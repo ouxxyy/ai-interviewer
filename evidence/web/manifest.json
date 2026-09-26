@@ -1,0 +1,25 @@
+{
+  "generatedAt": "2026-09-26T19:30:53.351Z",
+  "artifacts": [
+    {
+      "path": "evidence/web/acceptance.md",
+      "kind": "md",
+      "bytes": 21589,
+      "sha256": "ac66a068ef9228f541efb2a1d615b5c2460e85c3fb8daa61e85a646dc867e625",
+      "committed": true
+    },
+    {
+      "path": "evidence/web/summary.json",
+      "kind": "json",
+      "bytes": 58324,
+      "sha256": "0071b872f3a0a6b720464c1e78e68a9b59175a07df22fb3e7a0d377de7798512",
+      "committed": true
+    }
+  ],
+  "verifiedAgainstDisk": {
+    "total": 2,
+    "mismatches": [],
+    "checkedAt": "2026-09-26T19:30:53.352Z"
+  },
+  "note": "doc-only 重建：数据来自 summary.json，未重新调用模型"
+}
