@@ -1,0 +1,144 @@
+{
+  "itemId": "C17",
+  "sourceCaseId": "C17",
+  "transform": null,
+  "variant": "mechanical",
+  "repeat": 3,
+  "answerBasis": "这个专项的背景是我们的开屏 CTR 连续两个季度下滑。我拉了三个月的曝光日志做归因，发现问题不在素材而在频控：同一用户一天最多看到 6 次开屏，高频用户的 CTR 掉得最狠。我的方案是把频控从全局固定改成按用户分层动态调整，同时把等待时长从 5 秒降到 4 秒并加了跳过按钮的提前曝光埋点来验证注意力。上线后整体 CTR 提升 15%，高频用户的人均曝光 CPM 略有下降但总收益是正的，这是我算过账的。复盘时我意识到当时只看了 CTR，没监控用户次留，这是不严谨的地方。",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "部分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "我的方案是把频控从全局固定改成按用户分层动态调整，同时把等待时长从 5 秒降到 4 秒并加了跳过按钮的提前曝光埋点来验证注意力。",
+      "located": true,
+      "start": 87,
+      "end": 151,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "同一用户一天最多看到 6 次开屏，高频用户的 CTR 掉得最狠。",
+      "located": true,
+      "start": 55,
+      "end": 87,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "部分清楚",
+      "text": "我拉了三个月的曝光日志做归因，发现问题不在素材而在频控",
+      "located": true,
+      "start": 27,
+      "end": 54,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "充分清楚",
+      "text": "复盘时我意识到当时只看了 CTR，没监控用户次留，这是不严谨的地方。",
+      "located": true,
+      "start": 202,
+      "end": 236,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "这个专项的背景是我们的开屏 CTR 连续两个季度下滑。",
+      "located": true,
+      "start": 0,
+      "end": 27,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我的方案是把频控从全局固定改成按用户分层动态调整，同时把等待时长从 5 秒降到 4 秒并加了跳过按钮的提前曝光埋点来验证注意力。",
+          "start": 87,
+          "end": 151,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回答了具体做法，包含策略调整与参数优化细节。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "同一用户一天最多看到 6 次开屏，高频用户的 CTR 掉得最狠。",
+          "start": 55,
+          "end": 87,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的归因数据（频次阈值）和现象描述，事例详实。"
+      },
+      "contribution": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "我拉了三个月的曝光日志做归因，发现问题不在素材而在频控",
+          "start": 27,
+          "end": 54,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确了个人在数据分析环节的动作，但方案设计与执行协作细节略少。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "复盘时我意识到当时只看了 CTR，没监控用户次留，这是不严谨的地方。",
+          "start": 202,
+          "end": 236,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化结果（CTR+15%）及针对指标局限性的深刻反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这个专项的背景是我们的开屏 CTR 连续两个季度下滑。",
+          "start": 0,
+          "end": 27,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "采用背景-问题-方案-结果-反思的逻辑顺序，结构清晰完整。"
+      }
+    },
+    "factGaps": [
+      "未说明方案落地时的跨部门协作情况或遇到的阻力",
+      "未解释为何选择‘分层动态调整’这一特定策略而非其他选项"
+    ],
+    "topImprovement": "补充方案决策过程中的权衡逻辑，例如对比过哪些备选方案以及为何最终选定该方案。",
+    "nextFacts": [
+      "请补充：在确定‘按用户分层动态调整’之前，是否评估过其他频控策略？主要考量因素是什么？"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

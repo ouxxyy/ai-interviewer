@@ -1,0 +1,145 @@
+{
+  "itemId": "C21",
+  "sourceCaseId": "C21",
+  "transform": null,
+  "variant": "mechanical",
+  "repeat": 1,
+  "answerBasis": "说实话这个项目很难用一个数字证明，我讲下可核对的证据。立项的起因是财务和运营对“活跃用户”的口径吵了两次架，每次对齐都要拉数仓同学开会。我做的第一件事是盘点：扫了全部报表和看板，整理出 300 多个重复或口径冲突的指标，这一步产出了一份可以复查的盘点表。然后我组织了两轮评审把每个指标的唯一定义、负责人和计算口径定下来，录入指标字典系统，并把旧报表全部挂上了字典链接。验收时我请了财务和运营各出一个人做盲测：随机抽 20 个指标，问他们口径是什么，治理前这两个人答案经常不一致，治理后 20 个里 19 个双方说法一致。虽然没有留存治理前的严格基线记录，这 19/20 是当场可复核的。",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "部分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "说实话这个项目很难用一个数字证明，我讲下可核对的证据。",
+      "located": true,
+      "start": 0,
+      "end": 27,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "随机抽 20 个指标，问他们口径是什么，治理前这两个人答案经常不一致，治理后 20 个里 19 个双方说法一致。",
+      "located": true,
+      "start": 204,
+      "end": 260,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "充分清楚",
+      "text": "我做的第一件事是盘点：扫了全部报表和看板，整理出 300 多个重复或口径冲突的指标",
+      "located": true,
+      "start": 68,
+      "end": 109,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "部分清楚",
+      "text": "虽然没有留存治理前的严格基线记录，这 19/20 是当场可复核的。",
+      "located": true,
+      "start": 260,
+      "end": 293,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "我做的第一件事是盘点：扫了全部报表和看板，整理出 300 多个重复或口径冲突的指标，这一步产出了一份可以复查的盘点表。",
+      "located": true,
+      "start": 68,
+      "end": 127,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "说实话这个项目很难用一个数字证明，我讲下可核对的证据。",
+          "start": 0,
+          "end": 27,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应如何验证成功，提出用可核对证据替代单一数字。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "随机抽 20 个指标，问他们口径是什么，治理前这两个人答案经常不一致，治理后 20 个里 19 个双方说法一致。",
+          "start": 204,
+          "end": 260,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的盲测样本量、对比对象及量化结果（19/20）。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做的第一件事是盘点：扫了全部报表和看板，整理出 300 多个重复或口径冲突的指标",
+          "start": 68,
+          "end": 109,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确使用第一人称描述主导盘点、评审及录入等关键动作。"
+      },
+      "resultsReflection": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "虽然没有留存治理前的严格基线记录，这 19/20 是当场可复核的。",
+          "start": 260,
+          "end": 293,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "承认了基线缺失的局限并强调现有证据的可复核性，反思较浅。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做的第一件事是盘点：扫了全部报表和看板，整理出 300 多个重复或口径冲突的指标，这一步产出了一份可以复查的盘点表。",
+          "start": 68,
+          "end": 127,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "按时间顺序清晰陈述背景、行动步骤及验收结果，逻辑连贯。"
+      }
+    },
+    "factGaps": [
+      "未说明‘活跃用户’口径统一后对业务决策的具体影响",
+      "未提及除财务运营外其他部门对字典系统的采纳情况"
+    ],
+    "topImprovement": "补充一个因口径统一而避免错误决策或提升效率的具体业务案例",
+    "nextFacts": [
+      "请举例说明口径统一后，某次具体会议或报表输出中避免了之前的争议",
+      "请提供指标字典系统上线后的长期维护数据或使用率统计"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

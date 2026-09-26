@@ -1,0 +1,113 @@
+{
+  "preregisteredAt": "2026-09-27T01:40:00+08:00",
+  "ranAt": "2026-09-26T17:52:11.220Z",
+  "model": "qwen3.8-flash",
+  "batch": [
+    {
+      "id": "C01",
+      "sourceCaseId": "C01",
+      "transform": null,
+      "answerChars": 230
+    },
+    {
+      "id": "C05",
+      "sourceCaseId": "C05",
+      "transform": null,
+      "answerChars": 175
+    },
+    {
+      "id": "C09",
+      "sourceCaseId": "C09",
+      "transform": null,
+      "answerChars": 221
+    },
+    {
+      "id": "C13-oral",
+      "sourceCaseId": "C13",
+      "transform": "把 firstAnswer 里所有 '。' 与 '？' 替换为 '，'，其余字符一字不动",
+      "answerChars": 278
+    },
+    {
+      "id": "C17",
+      "sourceCaseId": "C17",
+      "transform": null,
+      "answerChars": 236
+    },
+    {
+      "id": "C21",
+      "sourceCaseId": "C21",
+      "transform": null,
+      "answerChars": 293
+    }
+  ],
+  "repeats": 3,
+  "totalCalls": 36,
+  "metrics": {
+    "prose": {
+      "variant": "prose",
+      "runs": 18,
+      "quoteLocateRate": 1,
+      "quotesTotal": 86,
+      "quotesLocated": 86,
+      "structureUndeterminedRate": 0,
+      "structureUndetermined": 0,
+      "firstAttemptRate": 1,
+      "degraded": 0,
+      "structureQuoteLocateRate": 1,
+      "latencyMs": {
+        "n": 18,
+        "min": 8178,
+        "p50": 9524,
+        "p95": 16112,
+        "max": 16112,
+        "mean": 10676.6
+      },
+      "tokens": 43848
+    },
+    "mechanical": {
+      "variant": "mechanical",
+      "runs": 18,
+      "quoteLocateRate": 1,
+      "quotesTotal": 87,
+      "quotesLocated": 87,
+      "structureUndeterminedRate": 0,
+      "structureUndetermined": 0,
+      "firstAttemptRate": 1,
+      "degraded": 0,
+      "structureQuoteLocateRate": 1,
+      "latencyMs": {
+        "n": 18,
+        "min": 8340,
+        "p50": 10635,
+        "p95": 16317,
+        "max": 16317,
+        "mean": 11090.4
+      },
+      "tokens": 44281
+    }
+  },
+  "verdict": {
+    "passed": true,
+    "checks": [
+      {
+        "id": "quote_locate_rate_not_worse",
+        "description": "机械版的引用可定位率不低于散文版",
+        "metric": "quoteLocateRate",
+        "compare": "mechanical >= prose",
+        "prose": 1,
+        "mechanical": 1,
+        "satisfied": true
+      },
+      {
+        "id": "structure_undetermined_not_higher",
+        "description": "机械版 structure 判「无法判断」的比例不高于散文版",
+        "metric": "structureUndeterminedRate",
+        "compare": "mechanical <= prose",
+        "prose": 0,
+        "mechanical": 0,
+        "satisfied": true
+      }
+    ],
+    "conclusion": "两条判据都满足：实验通过。可建议升 rules@0.2.1；但本轮不升版，由 lead 决定。"
+  }
+}

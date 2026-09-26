@@ -1,0 +1,145 @@
+{
+  "itemId": "C13-oral",
+  "sourceCaseId": "C13",
+  "transform": "把 firstAnswer 里所有 '。' 与 '？' 替换为 '，'，其余字符一字不动",
+  "variant": "mechanical",
+  "repeat": 1,
+  "answerBasis": "这个项目我全程负责，我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口，我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的，两个月后转化率从 2.1% 到 2.8%，复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平，",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒",
+      "located": true,
+      "start": 51,
+      "end": 177,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户",
+      "located": true,
+      "start": 115,
+      "end": 157,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "充分清楚",
+      "text": "这条是和技术排了两周才上线的",
+      "located": true,
+      "start": 178,
+      "end": 192,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "充分清楚",
+      "text": "但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平",
+      "located": true,
+      "start": 228,
+      "end": 277,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "于是把主攻点放在这个窗口，我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒",
+      "located": true,
+      "start": 38,
+      "end": 177,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒",
+          "start": 51,
+          "end": 177,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接列举了提升转化率的具体关键动作。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户",
+          "start": 115,
+          "end": 157,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "对策略细节（分档逻辑）描述具体清晰。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这条是和技术排了两周才上线的",
+          "start": 178,
+          "end": 192,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "体现了跨部门协调与推动落地的个人努力。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平",
+          "start": 228,
+          "end": 277,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "包含数据结果及针对负面影响的深度反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "于是把主攻点放在这个窗口，我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒",
+          "start": 38,
+          "end": 177,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "采用总分结构，使用序数词清晰罗列要点。"
+      }
+    },
+    "factGaps": [
+      "未说明如何量化‘试听评分’以支撑分档策略",
+      "未提及除技术排期外，其他动作的资源投入或阻力"
+    ],
+    "topImprovement": "补充说明‘试听评分’的具体定义或数据来源，增强策略的可信度。",
+    "nextFacts": [
+      "请简述‘试听评分’是如何计算的？",
+      "在推动销售改变话术时，遇到的最大阻力是什么？"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

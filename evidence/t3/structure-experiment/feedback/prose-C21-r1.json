@@ -1,0 +1,144 @@
+{
+  "itemId": "C21",
+  "sourceCaseId": "C21",
+  "transform": null,
+  "variant": "prose",
+  "repeat": 1,
+  "answerBasis": "说实话这个项目很难用一个数字证明，我讲下可核对的证据。立项的起因是财务和运营对“活跃用户”的口径吵了两次架，每次对齐都要拉数仓同学开会。我做的第一件事是盘点：扫了全部报表和看板，整理出 300 多个重复或口径冲突的指标，这一步产出了一份可以复查的盘点表。然后我组织了两轮评审把每个指标的唯一定义、负责人和计算口径定下来，录入指标字典系统，并把旧报表全部挂上了字典链接。验收时我请了财务和运营各出一个人做盲测：随机抽 20 个指标，问他们口径是什么，治理前这两个人答案经常不一致，治理后 20 个里 19 个双方说法一致。虽然没有留存治理前的严格基线记录，这 19/20 是当场可复核的。",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "我讲下可核对的证据。",
+      "located": true,
+      "start": 17,
+      "end": 27,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "随机抽 20 个指标，问他们口径是什么",
+      "located": true,
+      "start": 204,
+      "end": 223,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "充分清楚",
+      "text": "我做的第一件事是盘点：扫了全部报表和看板",
+      "located": true,
+      "start": 68,
+      "end": 88,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "充分清楚",
+      "text": "虽然没有留存治理前的严格基线记录",
+      "located": true,
+      "start": 260,
+      "end": 276,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "我做的第一件事是",
+      "located": true,
+      "start": 68,
+      "end": 76,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我讲下可核对的证据。",
+          "start": 17,
+          "end": 27,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应如何验证成功，提供具体证据而非空泛理论。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "随机抽 20 个指标，问他们口径是什么",
+          "start": 204,
+          "end": 223,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "包含具体的盲测方法、样本量及执行细节，事例非常具体。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做的第一件事是盘点：扫了全部报表和看板",
+          "start": 68,
+          "end": 88,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确使用第一人称描述主导动作，个人贡献清晰可见。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "虽然没有留存治理前的严格基线记录",
+          "start": 260,
+          "end": 276,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "既给出了量化结果，又诚实反思了数据基线的缺失，体现深度。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做的第一件事是",
+          "start": 68,
+          "end": 76,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用序数词和连接词构建清晰的行动步骤，逻辑层次分明。"
+      }
+    },
+    "factGaps": [
+      "未说明盲测中那1个不一致指标的具体原因或后续处理",
+      "未提及项目结束后的长期监控机制或复发率统计"
+    ],
+    "topImprovement": "补充对盲测中唯一不一致案例的分析，以展示更严谨的闭环思维。",
+    "nextFacts": [
+      "请说明那个不一致的指标具体是哪个，以及当时是如何解决分歧的？"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

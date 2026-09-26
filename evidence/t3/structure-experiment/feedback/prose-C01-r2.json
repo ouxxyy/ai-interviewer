@@ -1,0 +1,145 @@
+{
+  "itemId": "C01",
+  "sourceCaseId": "C01",
+  "transform": null,
+  "variant": "prose",
+  "repeat": 2,
+  "answerBasis": "我负责的活动里最有代表性的是毕业季征稿。前期我先用问卷收集了 200 份同学偏好，发现情感故事类选题呼声最高，于是把主题定为毕业故事。我个人联系了 5 个院系的宣传委员帮我扩散，又自己写了 2 篇范文做冷启动。活动两周收到 143 篇投稿，比上一期增长约 80%。复盘时我发现初审通过率只有 60%，是因为投稿规则里没写清字数要求，后来我补了一份投稿指引，下一期通过率提到了 85%。我的不足是当时完全没做获奖作品的二次传播，这些内容其实可以剪成合集再发一轮。",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "我负责的活动里最有代表性的是毕业季征稿。",
+      "located": true,
+      "start": 0,
+      "end": 20,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "前期我先用问卷收集了 200 份同学偏好",
+      "located": true,
+      "start": 20,
+      "end": 40,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "充分清楚",
+      "text": "我个人联系了 5 个院系的宣传委员帮我扩散",
+      "located": true,
+      "start": 67,
+      "end": 88,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "充分清楚",
+      "text": "活动两周收到 143 篇投稿，比上一期增长约 80%。",
+      "located": true,
+      "start": 105,
+      "end": 132,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "前期我先用问卷",
+      "located": true,
+      "start": 20,
+      "end": 27,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我负责的活动里最有代表性的是毕业季征稿。",
+          "start": 0,
+          "end": 20,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "开篇直接点题，明确回应了校内论坛征稿活动的背景。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷收集了 200 份同学偏好",
+          "start": 20,
+          "end": 40,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的调研手段、样本数量及后续动作细节。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我个人联系了 5 个院系的宣传委员帮我扩散",
+          "start": 67,
+          "end": 88,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "清晰列举了个人主导的联络与内容创作等关键动作。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "活动两周收到 143 篇投稿，比上一期增长约 80%。",
+          "start": 105,
+          "end": 132,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化结果，并包含对不足之处的具体反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷",
+          "start": 20,
+          "end": 27,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用“前期”、“复盘时”等时间状语串联，逻辑清晰。"
+      }
+    },
+    "factGaps": [
+      "未说明“情感故事类选题呼声最高”的具体数据支撑（如占比）",
+      "未提及初审通过率从60%提升到85%后，最终录用稿件的质量或数量变化"
+    ],
+    "topImprovement": "在描述反思部分时，可补充针对“二次传播缺失”这一不足，当时是否有尝试补救或为何完全忽略的原因分析，以增强深度。",
+    "nextFacts": [
+      "补充说明那2篇范文的具体主题或风格，以及它们如何带动冷启动效果",
+      "提供下一期投稿指引发布后，除了通过率提升外，用户反馈或参与度的其他变化"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

@@ -13,6 +13,7 @@ import { EvidenceWriter, verifyManifest, writeManifestFromDir } from '../t1r/evi
 import { t3Artifacts, versionStamp } from './content.js';
 import { runPromptFlow, runSkillFlow } from './run.js';
 import { recordHosts } from './hosts.js';
+import { runStructureExperiment } from './structure-experiment.js';
 import { writeFileSync } from 'node:fs';
 
 const EVIDENCE_T3 = path.join(REPO_ROOT, 'evidence', 't3');
@@ -47,7 +48,7 @@ async function main(): Promise<void> {
     summary.artifactsWritten = written;
   }
 
-  if (cmd !== 'skill:build' && cmd !== 'manifest' && cmd !== 'hosts:record') {
+  if (cmd !== 'skill:build' && cmd !== 'manifest' && cmd !== 'hosts:record' && cmd !== 'experiment:dry') {
     requireCredential();
     const client = new DashscopeTextClient();
     summary.textModel = DASHSCOPE_DEFAULTS.model;
@@ -65,6 +66,16 @@ async function main(): Promise<void> {
         turns: skill.turns,
         totalTokens: skill.turns.reduce((a, t) => a + t.tokens, 0),
         versions: skill.versions,
+      };
+    }
+
+    if (cmd === 'experiment') {
+      const exp = await runStructureExperiment(client, writer);
+      writer.writeJson('structure-experiment/summary.json', exp);
+      summary.experiment = {
+        preregisteredAt: exp.preregisteredAt, ranAt: exp.ranAt, model: exp.model,
+        repeats: exp.repeats, totalCalls: exp.totalCalls, batch: exp.batch,
+        metrics: exp.metrics, verdict: exp.verdict,
       };
     }
 

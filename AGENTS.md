@@ -5,6 +5,7 @@
 中文经历面试训练工具（三入口 MVP：本地网页／Skill／简版 Prompt），基于 Multica 任务 MYW-84。需求与验收红线以 `MULTICA_EXECUTION_PLAN.md` 与 PM 方案（issue 附件 `MYW-84-PM方案-v1.md`）为准。
 
 - 当前阶段：**T1-S 静态通过** ＋ **T1-R 两链实时通过** ＋ **T2 契约与内容定稿完成** ＋ **T3 纯文字两入口已交付**（Skill 包 `skills/ai-interviewer/` 与自包含 Prompt `prompt/ai-interviewer-prompt.md`；网页入口未开工，等 UX 挑选）（证据 `docs/t1r-acceptance.md`、`docs/t2-acceptance.md`、`evidence/t1r/`、`evidence/t2/`）。评审延迟 P95 未达标（30.4s vs 15s），已知限制保留，未因 T2 标定删除。
+- **入口级操作提示**（`src/rules/entry-hints.ts` 的 `ENTRY_HINTS`）**不是规则正文**，不在 `rulesDigest()` 覆盖内；两个 T3 入口逐字渲染同一常量，**网页入口必须引用同一常量**（否则 A8 被第三把尺子静默击穿）。要不要升格为规则正文，走预登记的控制实验，别顺手改。
 - T3 入口：规则正文**同源生成**（`src/t3/content.ts` 渲染），改动 `src/rules/rules.ts` 后必须跑 `node dist/src/t3/cli.js skill:build`，否则测试红。`skill:run`／`prompt:run` 会真调模型。宿主实测结论由 `hosts:record` 从原始输出算出，不许手写。
 - 契约版本：`contract@0.2.0`（与 0.1.0 结构相同、双版本并存，历史证据仍可校验）；规则 `rules@0.2.0`（单源 `src/rules/rules.ts`，正文 `docs/rules.md` 由 `node dist/src/t2/run.js rules:write` 生成，**勿手改**）；提示词 `prompts@0.2.0`（**未标定**）。
 - 技术栈：TypeScript（NodeNext），依赖仅 `ajv` 与 `ws`。产品形态（React＋Vite、SQLite、实时语音）属 T3。
@@ -41,12 +42,14 @@ node dist/src/t3/cli.js skill:run      # 按 Skill 流程真跑一场
 node dist/src/t3/cli.js prompt:run     # 简版 Prompt 多轮闭环
 node dist/src/t3/cli.js hosts:record   # 判定宿主实测结论
 node dist/src/t3/cli.js manifest
+node dist/src/t3/cli.js experiment     # 预登记控制实验（36 次真实调用）
 
 # T2（rules:write / manifest 不花钱；calibration / representative 真调模型）
 node dist/src/t2/run.js rules:write    # 生成 docs/rules.md（改了 rules.ts 必须重跑，否则单测红）
 node dist/src/t2/run.js calibration    # 三版本对照标定
 node dist/src/t2/run.js representative # 代表案例 ×3
 node dist/src/t2/run.js manifest       # 由磁盘重建 evidence/t2/manifest.json
+node dist/src/t2/run.js calibration:rounds  # 归档标定轮次并重建带 round 字段的合并视图
 
 # T1-R 真实调用（需 .env 里的 DASHSCOPE_API_KEY，产生费用；凭证缺失时不要跑）
 node dist/src/t1r/run-t1r.js models   # 模型核定

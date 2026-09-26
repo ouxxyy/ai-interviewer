@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T17:45:09.237Z",
+  "generatedAt": "2026-09-26T17:52:32.454Z",
   "artifacts": [
     {
       "path": "evidence/t3/hosts/codex-raw.txt",
@@ -33,7 +33,7 @@
       "path": "evidence/t3/run-summary.json",
       "kind": "json",
       "bytes": 379,
-      "sha256": "fe86e3e955c15348f01412e4e562f891b6ddea5c0681d98204a65c7ee33eb401",
+      "sha256": "1036e7caf04f63f17f5f224d4fdbf92dca2acbb143cec66d4914fc0a84892f86",
       "committed": true
     },
     {
@@ -58,16 +58,282 @@
       "committed": true
     },
     {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C01-r1.json",
+      "kind": "json",
+      "bytes": 4974,
+      "sha256": "27bd2c9b374b81eb76ac1554aea0403f5c715e8a23a83937490e11d00d43b271",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C01-r2.json",
+      "kind": "json",
+      "bytes": 5211,
+      "sha256": "7d11e020766c7278c82bf150ac3b414665d505f8db19015963606b917f28a086",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C01-r3.json",
+      "kind": "json",
+      "bytes": 5138,
+      "sha256": "30dfe3cd75a765ac2df04bcdc98e14646a162f7a2938abd23ccf1de18fde8cbf",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C05-r1.json",
+      "kind": "json",
+      "bytes": 4439,
+      "sha256": "7d5a80c8230c17f43a9acdeb53af78f73b3685079f5bd28d165c1af808a92045",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C05-r2.json",
+      "kind": "json",
+      "bytes": 4461,
+      "sha256": "7c019892d542d76f992cba2e6fed50834c56898ddb624b5988e13aa87d53fff2",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C05-r3.json",
+      "kind": "json",
+      "bytes": 4541,
+      "sha256": "9111aebd15228cae105c94e70bfe9bdca6b1f990185debabefef0ada88121feb",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C09-r1.json",
+      "kind": "json",
+      "bytes": 4722,
+      "sha256": "c14a4a6325707d979624c6fdfbbe390e0aa2900b20c5c919912b0f0d59a85bfa",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C09-r2.json",
+      "kind": "json",
+      "bytes": 4929,
+      "sha256": "74deb2e38afd9c6910df39cc31fe0cc166f29d6382e8f6a6455509582ed25ac9",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C09-r3.json",
+      "kind": "json",
+      "bytes": 4945,
+      "sha256": "6b03908eac136bcaeff253fde98f281ef549b589faa0f009138181c319be7ace",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C13-oral-r1.json",
+      "kind": "json",
+      "bytes": 6662,
+      "sha256": "2f837f429a01eb4fcd33e65c5320085ae9c0a9e3dfcdbb2b2feb693c7863ec77",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C13-oral-r2.json",
+      "kind": "json",
+      "bytes": 6859,
+      "sha256": "57d2b25c1f9a871b9b9ad0b7dc669c2fc7de14bd01450519960db13f1833f2d1",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C13-oral-r3.json",
+      "kind": "json",
+      "bytes": 7450,
+      "sha256": "0d6cf7a53dacaded366501610af959efb8f789aa416d1fd945fdeea97218afb4",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C17-r1.json",
+      "kind": "json",
+      "bytes": 5141,
+      "sha256": "1d4fc49a05da13100adc2ce869cb698ce3a76b07f09137c6b54b707c9d5df8c4",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C17-r2.json",
+      "kind": "json",
+      "bytes": 5342,
+      "sha256": "294394b8728b3acd95a73765fe5b4610ad0d4d00e33e1d225bb0e6f209d975f2",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C17-r3.json",
+      "kind": "json",
+      "bytes": 5397,
+      "sha256": "c98bab7354ba4c19fc482fd3daf8db4494c3a070941a2b245926ea6134c36e45",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C21-r1.json",
+      "kind": "json",
+      "bytes": 5778,
+      "sha256": "63e449edd2dd01c50680c6f0a02df62a66a7bfd50c2eae999ef4a766f24e26d6",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C21-r2.json",
+      "kind": "json",
+      "bytes": 5666,
+      "sha256": "c487a09233aa1863c1f3141c3c449926ae9c12b5834fb09324c2730ccf140507",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/mechanical-C21-r3.json",
+      "kind": "json",
+      "bytes": 4937,
+      "sha256": "b7db18c37657452ff18db992926cdb0729fd2ac06457a7a4e6d2339b5aa56786",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C01-r1.json",
+      "kind": "json",
+      "bytes": 5002,
+      "sha256": "a330daac1adbc64e5582a5bee3e25d5b86655a238c69b26e877f4c680734c481",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C01-r2.json",
+      "kind": "json",
+      "bytes": 4985,
+      "sha256": "b212d02efb816c343f416b0d429fe20718098371d77e58c660b5f236213b976d",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C01-r3.json",
+      "kind": "json",
+      "bytes": 4982,
+      "sha256": "03428b9e5b57ac62533bf57f08c8824cfbfcc9fae2cfff8c235162efac7134e8",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C05-r1.json",
+      "kind": "json",
+      "bytes": 3832,
+      "sha256": "a0073071b0463f6cafa5680ece45559ec707a36af11f7fed0c5be5fe7f71e91f",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C05-r2.json",
+      "kind": "json",
+      "bytes": 4274,
+      "sha256": "273a09fb666c34bf3776ce419b2751f1710deb962c3ee3b205b0bc3d9bb8bf13",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C05-r3.json",
+      "kind": "json",
+      "bytes": 4290,
+      "sha256": "54d2d3fe8cb28ab6918373a6df8e8f888b7ae8826e749fee3cf14d9c0ed12fdb",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C09-r1.json",
+      "kind": "json",
+      "bytes": 4995,
+      "sha256": "535902202ddb819d2401b3bf0b92e6045b7a7d259be66899bb6e3402456a054b",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C09-r2.json",
+      "kind": "json",
+      "bytes": 5003,
+      "sha256": "1e998dadd3cb55b2bfeefefcb9314d4bce70a2bcb933265fa26e0390acf4f982",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C09-r3.json",
+      "kind": "json",
+      "bytes": 4770,
+      "sha256": "cb359289ad3b67d898c17ab44b20561fcf072e53a7b98bacaf58055ae1bad288",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C13-oral-r1.json",
+      "kind": "json",
+      "bytes": 5837,
+      "sha256": "d3d68271bb3d2b62bcf1d17902efde16b0f95a36a11c23b4d3519a1efb2855be",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C13-oral-r2.json",
+      "kind": "json",
+      "bytes": 6985,
+      "sha256": "b359e2753e5476a03866e3cb3d68b63d1277b8424aa9b96922359838578f40c2",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C13-oral-r3.json",
+      "kind": "json",
+      "bytes": 6055,
+      "sha256": "b78405c3cb71fadaf82eea6568b0a4e641389d540be63c8b0c29353ff4be3a7c",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C17-r1.json",
+      "kind": "json",
+      "bytes": 5251,
+      "sha256": "be1ab7a570eb6d419a5b6fcaf2bf9a2a99b2bed221866a65f08e409ffcb3c017",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C17-r2.json",
+      "kind": "json",
+      "bytes": 5228,
+      "sha256": "d14b5531416031c6fa51019a7caf51851812d5f7a0b5df71aeac8ac687bf0e15",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C17-r3.json",
+      "kind": "json",
+      "bytes": 5275,
+      "sha256": "3c382863c2c3b7050a4e567aacc13867e1e47ba7adbbce7403dfa0a780870069",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C21-r1.json",
+      "kind": "json",
+      "bytes": 4906,
+      "sha256": "6f07134ba8eb7a770d1fbbbbdee606ca24e9a016cbbc9e98802ddc7590129dc5",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C21-r2.json",
+      "kind": "json",
+      "bytes": 5017,
+      "sha256": "d521897ad3172be5abf4826bbe526d10d50abd5e25100c9f55938e0de9ca6af4",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/feedback/prose-C21-r3.json",
+      "kind": "json",
+      "bytes": 4741,
+      "sha256": "1326441e9512d7c367b7824b759fe1fffe94ca3ef3be17faf6fcf41f2293666b",
+      "committed": true
+    },
+    {
       "path": "evidence/t3/structure-experiment/preregistration.md",
       "kind": "md",
       "bytes": 3986,
       "sha256": "de3ae8f6df2f0404c3ac83c1f94d5681a5a5cf2ac351f3ffc641b9feaeed8572",
       "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/runs.jsonl",
+      "kind": "jsonl",
+      "bytes": 56230,
+      "sha256": "959a24a7d269f0e2789bbbce39707b7701ac795c17166d49475c16ec242d8f00",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/summary.json",
+      "kind": "json",
+      "bytes": 2722,
+      "sha256": "6127a92fd7b4f9f917eb38d3c5e38a893e6f3775126135f92b1b033aaaa80dd0",
+      "committed": true
     }
   ],
-  "verifiedAt": "2026-09-26T17:45:09.237Z",
+  "verifiedAt": "2026-09-26T17:52:32.456Z",
   "verifiedAgainstDisk": {
-    "total": 9,
+    "total": 47,
     "mismatches": []
   }
 }

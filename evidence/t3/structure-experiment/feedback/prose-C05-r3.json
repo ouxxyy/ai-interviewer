@@ -1,0 +1,131 @@
+{
+  "itemId": "C05",
+  "sourceCaseId": "C05",
+  "transform": null,
+  "variant": "prose",
+  "repeat": 3,
+  "answerBasis": "我觉得会员体系这个事情要从行业整体来看。现在各大平台都在做会员，比如某视频网站的会员还有超前点播引发过争议，这说明用户对权益的感知非常重要。我认为好的会员体系应该让用户觉得钱花得值，而不是设置各种门槛。未来我觉得会员体系会越来越透明化。我个人平时也是很多平台的会员，对各种权益设计有切身体会，比如我常用的一个购物平台的会员就设计得很好，运费券很实用。",
+  "modelLevels": {
+    "relevance": "证据不足",
+    "specificity": "证据不足",
+    "contribution": "证据不足",
+    "resultsReflection": "无法判断",
+    "structure": "部分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "证据不足",
+      "text": "我觉得会员体系这个事情要从行业整体来看。",
+      "located": true,
+      "start": 0,
+      "end": 20,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "证据不足",
+      "text": "比如我常用的一个购物平台的会员就设计得很好",
+      "located": true,
+      "start": 146,
+      "end": 167,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "证据不足",
+      "text": "我个人平时也是很多平台的会员",
+      "located": true,
+      "start": 118,
+      "end": 132,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "部分清楚",
+      "text": "比如某视频网站的会员还有超前点播引发过争议",
+      "located": true,
+      "start": 32,
+      "end": 53,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "证据不足",
+        "quote": {
+          "text": "我觉得会员体系这个事情要从行业整体来看。",
+          "start": 0,
+          "end": 20,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "回答聚焦宏观观点，未涉及反馈收集的具体做法"
+      },
+      "specificity": {
+        "level": "证据不足",
+        "quote": {
+          "text": "比如我常用的一个购物平台的会员就设计得很好",
+          "start": 146,
+          "end": 167,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "仅举例个人消费体验，无工作场景具体事例"
+      },
+      "contribution": {
+        "level": "证据不足",
+        "quote": {
+          "text": "我个人平时也是很多平台的会员",
+          "start": 118,
+          "end": 132,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "强调个人用户身份，未体现项目中的实际贡献"
+      },
+      "resultsReflection": {
+        "level": "无法判断",
+        "quote": null,
+        "reason": "原文未提及任何工作结果或基于结果的反思"
+      },
+      "structure": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "比如某视频网站的会员还有超前点播引发过争议",
+          "start": 32,
+          "end": 53,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "有连接词但逻辑松散，未形成清晰的结构化表达"
+      }
+    },
+    "factGaps": [
+      "缺失反馈收集的具体渠道与方法",
+      "缺失在改版项目中承担的具体角色与动作",
+      "缺失反馈数据对改版决策的实际影响"
+    ],
+    "topImprovement": "紧扣问题描述反馈收集的执行细节而非宏观观点",
+    "nextFacts": [
+      "说明使用了哪些工具或渠道收集会员反馈",
+      "列举处理反馈的具体步骤及协作对象",
+      "提供一条反馈被采纳并优化权益的真实案例"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

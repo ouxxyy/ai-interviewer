@@ -70,8 +70,9 @@ node dist/src/t2/run.js all                # 以上全部
 │   ├── prototype/              # 音频 prototype：mock 服务 + 页面 + CDP 证据采集
 │   ├── t1r/                    # T1-R 验收运行器：.env 加载/密钥防线、音频工具、链 A/B、延迟、证据清单
 │   ├── t2/                     # T2 运行器：对照标定、代表案例复测、汇总与清单
-│   ├── t3/                     # T3 运行器：Skill／Prompt 内容生成、真实调用跑流程、宿主实测记录
-│   └── rules/rules.ts          # 三入口共用训练规则文本（唯一源）
+│   ├── t3/                     # T3 运行器：Skill／Prompt 内容生成、真实调用跑流程、宿主实测记录、控制实验
+│   ├── rules/rules.ts          # 三入口共用训练规则文本（唯一源）
+│   └── rules/entry-hints.ts    # 入口级操作提示（≠ 规则正文，不在 rulesDigest 覆盖内）
 ├── cases/cases.json            # 24 个固定案例（全合成，人工预期标注）
 ├── evidence/t1r/               # T1-R 真实调用证据（模型目录、QuestionPlan、Feedback、事件日志、延迟、短音频片段）
 ├── evidence/t2/                # T2 证据（三版本对照标定、代表案例 ×3、manifest 带 sha256）
@@ -97,3 +98,4 @@ node dist/src/t2/run.js all                # 以上全部
 11. **Claude Code 宿主未验证**（配额 1310，按止损未重试）；网页入口未开工；**A8 三入口一致性验收**要等网页入口。
 12. 简版 Prompt **没有引用校验回环**：`structure` 维度曾连续 3 次写出省略号拼接稿，改成「按句切开、整句复制」的机械做法后 5/5 逐字（`docs/t3-acceptance.md` §2.3）。仓库流水线尚未采用该做法，属待评估的提示词变更。
 13. 简版 Prompt 的实测宿主是百炼 chat completions 多轮会话（粘贴进普通聊天的 API 等价物），**第三方聊天 UI 未实测**。
+14. **`structure` 维度存在两套口径**：`rules@0.2.0` 正文是散文口径，两个 T3 入口渲染的是机械口径（入口级操作提示 `src/rules/entry-hints.ts`，**不在 `rulesDigest` 覆盖内**）。它带回退、可能改变档位输出，目前只有 n=1，已预登记控制实验；**是否升 `rules@0.2.1` 由 lead 决定**，本轮不动版本号。

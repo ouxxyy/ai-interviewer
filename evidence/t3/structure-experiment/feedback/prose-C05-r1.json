@@ -1,0 +1,114 @@
+{
+  "itemId": "C05",
+  "sourceCaseId": "C05",
+  "transform": null,
+  "variant": "prose",
+  "repeat": 1,
+  "answerBasis": "我觉得会员体系这个事情要从行业整体来看。现在各大平台都在做会员，比如某视频网站的会员还有超前点播引发过争议，这说明用户对权益的感知非常重要。我认为好的会员体系应该让用户觉得钱花得值，而不是设置各种门槛。未来我觉得会员体系会越来越透明化。我个人平时也是很多平台的会员，对各种权益设计有切身体会，比如我常用的一个购物平台的会员就设计得很好，运费券很实用。",
+  "modelLevels": {
+    "relevance": "证据不足",
+    "specificity": "证据不足",
+    "contribution": "无法判断",
+    "resultsReflection": "无法判断",
+    "structure": "部分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "证据不足",
+      "text": "我觉得会员体系这个事情要从行业整体来看。",
+      "located": true,
+      "start": 0,
+      "end": 20,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "证据不足",
+      "text": "比如我常用的一个购物平台的会员就设计得很好",
+      "located": true,
+      "start": 146,
+      "end": 167,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "部分清楚",
+      "text": "现在各大平台都在做会员",
+      "located": true,
+      "start": 20,
+      "end": 31,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "证据不足",
+        "quote": {
+          "text": "我觉得会员体系这个事情要从行业整体来看。",
+          "start": 0,
+          "end": 20,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "回答偏离具体执行动作，转向宏观行业观点。"
+      },
+      "specificity": {
+        "level": "证据不足",
+        "quote": {
+          "text": "比如我常用的一个购物平台的会员就设计得很好",
+          "start": 146,
+          "end": 167,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "仅提及个人消费体验，未涉及工作场景的具体事例。"
+      },
+      "contribution": {
+        "level": "无法判断",
+        "quote": null,
+        "reason": "原文未提及任何个人在改版项目中的具体职责或行动。"
+      },
+      "resultsReflection": {
+        "level": "无法判断",
+        "quote": null,
+        "reason": "原文未包含反馈收集的结果数据或针对该工作的反思。"
+      },
+      "structure": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "现在各大平台都在做会员",
+          "start": 20,
+          "end": 31,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "有基本的陈述逻辑，但缺乏针对问题的结构化表达。"
+      }
+    },
+    "factGaps": [
+      "反馈收集的具体渠道（如问卷、访谈、后台数据等）",
+      "负责的工作范围及与其他角色的协作方式",
+      "收集到的关键反馈内容及后续处理结果"
+    ],
+    "topImprovement": "需从宏观观点回归到具体的个人执行动作描述。",
+    "nextFacts": [
+      "请说明你通过什么具体方式收集了用户反馈？",
+      "你在收集过程中遇到了什么困难，是如何解决的？"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

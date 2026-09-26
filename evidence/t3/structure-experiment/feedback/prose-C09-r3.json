@@ -1,0 +1,143 @@
+{
+  "itemId": "C09",
+  "sourceCaseId": "C09",
+  "transform": null,
+  "variant": "prose",
+  "repeat": 3,
+  "answerBasis": "最大的困难是并发抢修的重复派单问题。两个管理员同时刷新待处理列表，可能把同一工单派给两个维修工。我一开始用先查再改的方式，发现还是偶尔重复。后来我在数据库层面给工单加了状态字段和版本号，用 UPDATE ... WHERE status='待处理' 的条件更新保证只有一个管理员能成功改状态，失败的那边重新查询。这个方案是我自己查资料试出来的，测试时用脚本模拟了 50 个并发请求，没有再出现重复派单。不过当时没做分布式锁，单机部署下够用了。",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "最大的困难是并发抢修的重复派单问题。",
+      "located": true,
+      "start": 0,
+      "end": 18,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "用 UPDATE ... WHERE status='待处理' 的条件更新保证只有一个管理员能成功改状态",
+      "located": true,
+      "start": 93,
+      "end": 145,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "充分清楚",
+      "text": "这个方案是我自己查资料试出来的",
+      "located": true,
+      "start": 156,
+      "end": 171,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "充分清楚",
+      "text": "测试时用脚本模拟了 50 个并发请求，没有再出现重复派单。",
+      "located": true,
+      "start": 172,
+      "end": 201,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "我一开始用先查再改的方式",
+      "located": true,
+      "start": 48,
+      "end": 60,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "最大的困难是并发抢修的重复派单问题。",
+          "start": 0,
+          "end": 18,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接点明技术难点，完全契合题目要求。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "用 UPDATE ... WHERE status='待处理' 的条件更新保证只有一个管理员能成功改状态",
+          "start": 93,
+          "end": 145,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的SQL实现细节和字段设计，事例非常具体。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这个方案是我自己查资料试出来的",
+          "start": 156,
+          "end": 171,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确声明了方案的自主探索过程，个人贡献清晰。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "测试时用脚本模拟了 50 个并发请求，没有再出现重复派单。",
+          "start": 172,
+          "end": 201,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化测试结果及后续的技术反思（未做分布式锁）。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我一开始用先查再改的方式",
+          "start": 48,
+          "end": 60,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "通过时间顺序词清晰展现了从尝试到优化的逻辑结构。"
+      }
+    },
+    "factGaps": [
+      "未说明该优化对系统整体性能或用户体验的具体影响数据"
+    ],
+    "topImprovement": "补充该技术方案上线后对业务指标（如派单准确率、响应时间）的实际提升效果",
+    "nextFacts": [
+      "该功能上线后的长期稳定性表现或是否有其他衍生问题"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}

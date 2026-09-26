@@ -1,0 +1,145 @@
+{
+  "itemId": "C09",
+  "sourceCaseId": "C09",
+  "transform": null,
+  "variant": "mechanical",
+  "repeat": 3,
+  "answerBasis": "最大的困难是并发抢修的重复派单问题。两个管理员同时刷新待处理列表，可能把同一工单派给两个维修工。我一开始用先查再改的方式，发现还是偶尔重复。后来我在数据库层面给工单加了状态字段和版本号，用 UPDATE ... WHERE status='待处理' 的条件更新保证只有一个管理员能成功改状态，失败的那边重新查询。这个方案是我自己查资料试出来的，测试时用脚本模拟了 50 个并发请求，没有再出现重复派单。不过当时没做分布式锁，单机部署下够用了。",
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": [
+    {
+      "dim": "relevance",
+      "level": "充分清楚",
+      "text": "最大的困难是并发抢修的重复派单问题。",
+      "located": true,
+      "start": 0,
+      "end": 18,
+      "matchType": "exact"
+    },
+    {
+      "dim": "specificity",
+      "level": "充分清楚",
+      "text": "用 UPDATE ... WHERE status='待处理' 的条件更新保证只有一个管理员能成功改状态",
+      "located": true,
+      "start": 93,
+      "end": 145,
+      "matchType": "exact"
+    },
+    {
+      "dim": "contribution",
+      "level": "充分清楚",
+      "text": "这个方案是我自己查资料试出来的",
+      "located": true,
+      "start": 156,
+      "end": 171,
+      "matchType": "exact"
+    },
+    {
+      "dim": "resultsReflection",
+      "level": "充分清楚",
+      "text": "测试时用脚本模拟了 50 个并发请求，没有再出现重复派单。",
+      "located": true,
+      "start": 172,
+      "end": 201,
+      "matchType": "exact"
+    },
+    {
+      "dim": "structure",
+      "level": "充分清楚",
+      "text": "我一开始用先查再改的方式，发现还是偶尔重复。",
+      "located": true,
+      "start": 48,
+      "end": 70,
+      "matchType": "exact"
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "最大的困难是并发抢修的重复派单问题。",
+          "start": 0,
+          "end": 18,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接点明技术难点，完全契合题目要求。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "用 UPDATE ... WHERE status='待处理' 的条件更新保证只有一个管理员能成功改状态",
+          "start": 93,
+          "end": 145,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的SQL逻辑和版本号机制，细节详实。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这个方案是我自己查资料试出来的",
+          "start": 156,
+          "end": 171,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确表述了个人在方案探索中的主导作用。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "测试时用脚本模拟了 50 个并发请求，没有再出现重复派单。",
+          "start": 172,
+          "end": 201,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化测试结果及未采用分布式锁的原因反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我一开始用先查再改的方式，发现还是偶尔重复。",
+          "start": 48,
+          "end": 70,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "按时间顺序清晰呈现了从失败尝试到最终方案的演进。"
+      }
+    },
+    "factGaps": [
+      "未说明工单表的具体数据量级或系统整体架构背景",
+      "未提及该方案上线后的长期稳定性监控情况"
+    ],
+    "topImprovement": "补充说明为何在单机部署下选择乐观锁而非悲观锁或分布式锁的权衡过程",
+    "nextFacts": [
+      "描述当时评估过的其他备选技术方案及其被否决的原因",
+      "提供该修复方案实施后对业务效率或错误率的具体影响数据"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  },
+  "expectedDims": null
+}
