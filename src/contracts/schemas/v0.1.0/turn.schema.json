@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "urn:ai-interviewer:turn@0.2.0",
+  "$id": "urn:ai-interviewer:turn@0.1.0",
   "title": "Turn",
   "description": "一个说话轮次。评分只使用用户确认后的回答文本（D1/D11 口径）。",
   "type": "object",
   "additionalProperties": false,
   "required": ["contractVersion", "id", "questionId", "speaker", "turnType", "seq", "startedAt", "endedAt", "rawTranscript", "revisedText", "audioFile"],
   "properties": {
-    "contractVersion": { "enum": ["0.2.0"] },
+    "contractVersion": { "enum": ["0.1.0"] },
     "id": { "type": "string", "pattern": "^t[1-9][0-9]*$" },
     "questionId": { "type": "string", "pattern": "^q[1-9][0-9]*$" },
     "speaker": { "enum": ["user", "interviewer"] },

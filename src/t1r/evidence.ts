@@ -13,6 +13,8 @@ import { assertNoSecret, REPO_ROOT } from './env.js';
 
 export const EVIDENCE_DIR = path.join(REPO_ROOT, 'evidence', 't1r');
 export const DATA_DIR = path.join(REPO_ROOT, 'data', 't1r');
+export const EVIDENCE_T2_DIR = path.join(REPO_ROOT, 'evidence', 't2');
+export const DATA_T2_DIR = path.join(REPO_ROOT, 'data', 't2');
 
 export interface ArtifactRecord {
   /** 相对仓库根的路径。 */
@@ -128,6 +130,38 @@ export function refreshManifest(manifestPath: string): { total: number; added: n
   }
   writeFileSync(manifestPath, `${JSON.stringify(parsed, null, 2)}\n`);
   return { total: (parsed.artifacts ?? []).length, added, changed };
+}
+
+/**
+ * 由目录内容生成 manifest（字节数 + sha256 + 是否入库）。
+ * 与 `manifest:refresh` 的区别：这个从**磁盘**重建清单，所以不需要重跑产生证据的模型调用，
+ * 任何时候都能重新生成一份可逐条核对的清单。
+ */
+export function writeManifestFromDir(dir: string, manifestPath: string, excluded: string[] = []): { total: number; bytes: number } {
+  const rows: ArtifactRecord[] = [];
+  const walk = (cur: string): void => {
+    if (!existsSync(cur)) return;
+    for (const name of readdirSync(cur).sort()) {
+      const full = path.join(cur, name);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+        continue;
+      }
+      const rel = path.relative(REPO_ROOT, full);
+      if (excluded.includes(rel) || name.startsWith('.')) continue;
+      const ext = path.extname(name).slice(1);
+      rows.push({
+        path: rel,
+        kind: (['json', 'jsonl', 'wav', 'pcm', 'md', 'txt'].includes(ext) ? ext : 'txt') as ArtifactRecord['kind'],
+        bytes: statSync(full).size,
+        sha256: fileSha256(full),
+        committed: !rel.startsWith('data/'),
+      });
+    }
+  };
+  walk(dir);
+  writeFileSync(manifestPath, `${JSON.stringify({ generatedAt: new Date().toISOString(), artifacts: rows }, null, 2)}\n`);
+  return { total: rows.length, bytes: rows.reduce((a, r) => a + r.bytes, 0) };
 }
 
 /** 目录清单：用于验收记录里「data/ 下这些原始音频存在」的可核对证据。 */

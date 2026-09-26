@@ -1,0 +1,515 @@
+{
+  "repeats": 3,
+  "cases": [
+    {
+      "caseId": "C01",
+      "stage": "应届",
+      "track": "产品运营",
+      "flawType": "常规良好",
+      "expectedDims": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "runs": [
+        {
+          "run": 1,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 13692,
+          "tokens": 2580
+        },
+        {
+          "run": 2,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 10128,
+          "tokens": 2482
+        },
+        {
+          "run": 3,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 13085,
+          "tokens": 2438
+        }
+      ],
+      "perDimension": {
+        "relevance": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "specificity": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "contribution": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "resultsReflection": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "structure": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        }
+      },
+      "levelSpreadOk": true,
+      "matchesExpected": true,
+      "quotesAllLocated": true
+    },
+    {
+      "caseId": "C07",
+      "stage": "应届",
+      "track": "研发数据",
+      "flawType": "常规良好",
+      "expectedDims": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "runs": [
+        {
+          "run": 1,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 12047,
+          "tokens": 2379
+        },
+        {
+          "run": 2,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 14229,
+          "tokens": 2401
+        },
+        {
+          "run": 3,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 13375,
+          "tokens": 2615
+        }
+      ],
+      "perDimension": {
+        "relevance": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "specificity": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "contribution": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "resultsReflection": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "structure": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        }
+      },
+      "levelSpreadOk": true,
+      "matchesExpected": true,
+      "quotesAllLocated": true
+    },
+    {
+      "caseId": "C13",
+      "stage": "社招",
+      "track": "产品运营",
+      "flawType": "常规良好",
+      "expectedDims": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "runs": [
+        {
+          "run": 1,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 14110,
+          "tokens": 2564
+        },
+        {
+          "run": 2,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 13169,
+          "tokens": 2568
+        },
+        {
+          "run": 3,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 15969,
+          "tokens": 2568
+        }
+      ],
+      "perDimension": {
+        "relevance": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "specificity": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "contribution": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "resultsReflection": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "structure": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        }
+      },
+      "levelSpreadOk": true,
+      "matchesExpected": true,
+      "quotesAllLocated": true
+    },
+    {
+      "caseId": "C19",
+      "stage": "社招",
+      "track": "研发数据",
+      "flawType": "常规良好",
+      "expectedDims": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "runs": [
+        {
+          "run": 1,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "部分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 8807,
+          "tokens": 2514
+        },
+        {
+          "run": 2,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 11945,
+          "tokens": 2766
+        },
+        {
+          "run": 3,
+          "outcomeKind": "ok",
+          "attempts": 1,
+          "levels": {
+            "relevance": "充分清楚",
+            "specificity": "充分清楚",
+            "contribution": "充分清楚",
+            "resultsReflection": "充分清楚",
+            "structure": "充分清楚"
+          },
+          "quotesTotal": 5,
+          "quotesLocated": 5,
+          "quoteFailures": [],
+          "latencyMs": 8608,
+          "tokens": 2486
+        }
+      ],
+      "perDimension": {
+        "relevance": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "specificity": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "contribution": {
+          "levels": [
+            "部分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 1,
+          "hasUndetermined": false,
+          "matchesExpected": false,
+          "withinOneBand": true
+        },
+        "resultsReflection": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        },
+        "structure": {
+          "levels": [
+            "充分清楚",
+            "充分清楚",
+            "充分清楚"
+          ],
+          "spread": 0,
+          "hasUndetermined": false,
+          "matchesExpected": true,
+          "withinOneBand": true
+        }
+      },
+      "levelSpreadOk": true,
+      "matchesExpected": false,
+      "quotesAllLocated": true
+    }
+  ],
+  "verdict": {
+    "totalCases": 4,
+    "levelSpreadOk": 4,
+    "matchesExpected": 3,
+    "quotesAllLocated": 4
+  }
+}

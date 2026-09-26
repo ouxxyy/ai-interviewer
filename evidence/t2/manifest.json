@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-09-26T16:49:02.830Z",
+  "artifacts": [
+    {
+      "path": "evidence/t2/calibration/runs.jsonl",
+      "kind": "jsonl",
+      "bytes": 15967,
+      "sha256": "0aca29e09f40772e1d67341dbe656f9182cee85e8eff6ffcf006f4e372d5c0bc",
+      "committed": true
+    },
+    {
+      "path": "evidence/t2/calibration/summary.json",
+      "kind": "json",
+      "bytes": 27864,
+      "sha256": "20bbacb4adcdee43371ca75c8f836c8691c11dad713e1daa92dfd5152691cb4e",
+      "committed": true
+    },
+    {
+      "path": "evidence/t2/representative/runs.jsonl",
+      "kind": "jsonl",
+      "bytes": 3610,
+      "sha256": "ea42f6c0b54e7fbf5d8ef1ace42ac37d45945370a5f505ea78b10430d72be03a",
+      "committed": true
+    },
+    {
+      "path": "evidence/t2/representative/summary.json",
+      "kind": "json",
+      "bytes": 13693,
+      "sha256": "19ed060f043d65c3c4121217f67f8751a88c165e8d86a08c05661f0b8f15921f",
+      "committed": true
+    },
+    {
+      "path": "evidence/t2/run-summary.json",
+      "kind": "json",
+      "bytes": 611,
+      "sha256": "ba91fddfb2933e0655fccd4a9f914106a244a67b049e2ba983b1e55fca10faaf",
+      "committed": true
+    }
+  ]
+}

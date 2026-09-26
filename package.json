@@ -15,7 +15,14 @@
     "t1r:models": "npm run build && node dist/src/t1r/run-t1r.js models",
     "t1r:chain-a": "npm run build && node dist/src/t1r/run-t1r.js chain-a",
     "t1r:chain-b": "npm run build && node dist/src/t1r/run-t1r.js chain-b",
-    "t1r:latency": "npm run build && node dist/src/t1r/run-t1r.js latency"
+    "t1r:latency": "npm run build && node dist/src/t1r/run-t1r.js latency",
+    "t2": "npm run build && node dist/src/t2/run.js all",
+    "t2:rules": "npm run build && node dist/src/t2/run.js rules:write",
+    "t2:calibration": "npm run build && node dist/src/t2/run.js calibration",
+    "t2:representative": "npm run build && node dist/src/t2/run.js representative",
+    "t1r:recount": "npm run build && node dist/src/t1r/run-t1r.js latency:recount",
+    "t1r:manifest": "npm run build && node dist/src/t1r/run-t1r.js manifest:refresh",
+    "t1r:session-config": "npm run build && node dist/src/t1r/run-t1r.js session-config"
   },
   "engines": {
     "node": ">=20"

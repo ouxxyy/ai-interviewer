@@ -34,6 +34,8 @@ export interface CaseRecord {
   firstAnswer: string;
   expectedDims: Record<string, string>;
   expectedGaps: string[];
+  /** 注入类/编造类的预期行为（T2 标注规范要求）；其余案例为 null。 */
+  expectedBehavior: string | null;
 }
 
 export function loadCases(): CaseRecord[] {

@@ -20,7 +20,7 @@ export function buildValidReviewJson(basisText: string, questionId: string, turn
       ? `{"level":"无法判断","quote":null,"reason":"回答中未见可判断该维度的信息"}`
       : `{"level":"${level}","quote":{"text":${JSON.stringify(q[i])},"start":0,"end":2,"turnId":"${turnIds[0]}","textVersion":"${textVersion}","matchType":"exact"},"reason":"基于所引原话的判断依据"}`;
   return JSON.stringify({
-    contractVersion: '0.1.0',
+    contractVersion: '0.2.0',
     questionId,
     reviewBasis: { turnIds, textVersion },
     dimensions: {
@@ -33,7 +33,7 @@ export function buildValidReviewJson(basisText: string, questionId: string, turn
     factGaps: ['个人在项目中的具体分工未说明'],
     topImprovement: '补充你个人负责的具体动作与可核对的结果',
     nextFacts: ['你在项目中的具体分工', '结果与你个人动作的对应关系'],
-    reviewVersion: 'prompts@0.1.0-t1r',
+    reviewVersion: 'prompts@0.2.0',
   });
 }
 
@@ -61,7 +61,7 @@ export function schemaInvalidChannel(): ReviewChannel {
   return {
     call: () =>
       JSON.stringify({
-        contractVersion: '0.1.0',
+        contractVersion: '0.2.0',
         questionId: 'q1',
         reviewBasis: { turnIds: ['t1'], textVersion: 'raw' },
         dimensions: {},

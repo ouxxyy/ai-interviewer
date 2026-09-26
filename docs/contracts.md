@@ -1,6 +1,17 @@
-# 契约说明（contract@0.1.0）
+# 契约说明（contract@0.2.0）
 
-五个契约对象的 JSON Schema 冻结于 `src/contracts/schemas/`，TypeScript 类型见 `src/contracts/types.ts`，校验器 `src/contracts/validate.ts`（独立 CLI：`npm run validate -- <file.json> <contract-name>`）。本文件记录 Schema 之外必须共同遵守的口径。
+五个契约对象的 JSON Schema 冻结于 `src/contracts/schemas/`（**T2 定稿版 0.2.0**），
+TypeScript 类型见 `src/contracts/types.ts`，校验器 `src/contracts/validate.ts`
+（独立 CLI：`npm run validate -- <file.json> <contract-name> [0.2.0|0.1.0]`）。
+本文件记录 Schema 之外必须共同遵守的口径。
+
+**双版本并存**：`0.1.0` 是 T1 期证据记录过的版本，Schema 原样留档在 `src/contracts/schemas/v0.1.0/`，
+校验器同时注册两个版本。两者**结构完全相同、只差版本号**——这条不是口头声明：
+`assertLegacyMatchesCurrent()` 在模块加载时逐 schema 断言，`test/t2-contract.test.ts` 固定它。
+升版后 T1 期证据仍可被 `validateContractAuto()` 校验。
+
+**相关文档**：产品决策冻结登记见 `docs/decisions.md`（D1–D11）；
+三入口共用规则正文见 `docs/rules.md`（由 `src/rules/rules.ts` 生成，带版本号与 sha256 摘要）。
 
 ## 评审对象口径（D1/D11）
 
@@ -45,8 +56,14 @@
 - 提前结束/零完成也生成报告（D6）：`priorityPractice = ["本次未完成任何题目，无有效反馈"]`。
 - 实时语音模型只管听说；是否追问、何时点评、何时下一题全部由文本层产出候选＋应用状态机裁决。
 
-## 版本
+## 版本（T2 定稿）
 
-- `contract@0.1.0`：五对象 Schema（T1-S 冻结，T2 正式定稿后升版）。
-- `rules@0.1.0-t1s`：三入口共用训练规则文本版本。
-- `prompts@0.1.0-t1r`：中文提示词 v1 版本（**未标定**——标定需真实模型输出，属 T1-R / T2）。T1-R 起四个模板内嵌的 JSON 示例**自身即通过对应 Schema**（由 `test/prompts-align.test.ts` 抽取后调用 `validateContract` 强制），占位符统一写作 `<…>`，模型不得照抄。
+| 版本号 | 对象 | 说明 |
+| --- | --- | --- |
+| `contract@0.2.0` | 五对象 Schema ＋ TS 类型 | **T2 定稿**。与 0.1.0 结构相同，只差版本号 |
+| `contract@0.1.0` | 同上（留档） | T1 期证据记录的版本；只读留档，不用于新写入 |
+| `rules@0.2.0` | 三入口共用训练规则正文 | 唯一源 `src/rules/rules.ts`；正文落盘 `docs/rules.md`；`rulesDigest()` 给出规范化 sha256 |
+| `prompts@0.2.0` | 中文提示词 | 四个模板内嵌的 JSON 示例**自身即通过对应 Schema**（`test/prompts-align.test.ts` 抽取后 `validateContract` 强制），占位符统一 `<…>`；共同红线逐字取自规则源，不在提示词里另抄一份 |
+
+**标定状态**：提示词仍标「**未标定**」——T2 做了带对照的结构标定（见 `evidence/t2/calibration/`），
+但 24 案例的预期档位仍是人工标注，模型侧全量校验与质量定标属后续阶段。

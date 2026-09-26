@@ -11,7 +11,8 @@
 - **T1-R 实时验收包：两链实时通过**（2026-09-26，真实百炼调用，证据 `docs/t1r-acceptance.md` 与 `evidence/t1r/`）——
   链 A：真实 QuestionPlan（3 题）＋ 5 份真实 Feedback 全部过 Schema、引用 23/23 可定位、0 降级；
   链 B：真实 WebSocket 语音会话跑完「提问→回答→转写→追问→打断」，两个技术前提（服务端注入问题文本、面试官音频服务端持久化）均成立。
-- **性能**：语音腿「答完→首段回应音频」P95 **1,979 ms**（达标 ≤3 s）；评审腿「提交评审→完整点评」P95 **30,417 ms**（**未达标** ≤15 s，根因与建议见验收记录 §7.2）。
+- **T2 契约与内容定稿：完成**（2026-09-27，证据 `docs/t2-acceptance.md`、`evidence/t2/`）——`contract@0.2.0`（与 0.1.0 结构相同、双版本并存可校验）、三入口共用规则文本 `rules@0.2.0`（单源 `src/rules/rules.ts` → `docs/rules.md`）、D1–D11 冻结登记 `docs/decisions.md`、24 案例标注规范、带对照的提示词标定（`t1s` 0% → `t1r` 67% → `t2` 83% 首次通过）、代表案例真实评审 ×3（档位不跨两档 4/4、引用 100% 可定位 4/4、与预期一致 3/4）。
+- **性能**：语音腿「答完→首段回应音频」P95 **1,979 ms**（达标 ≤3 s）；评审腿「提交评审→完整点评」P95 **30,417 ms**（**未达标** ≤15 s，根因与建议见验收记录 §7.2）。T2 标定把单次 P50 从 ~12.5 s 降到 11.1 s，但**未改变未达标的结论**，已知限制保留。
 - **仍未验证**：真人麦克风采集、浏览器↔服务端音频链路、提示词标定、24 案例模型侧全量校验、反抢话 A10、转写质量 A5、反注入 A9；单场成本金额与账号配额未核定（官方定价页在本机网络环境不可达）。
 
 ## 技术栈
@@ -36,6 +37,12 @@ node dist/src/t1r/run-t1r.js chain-a       # 链 A：真实 QuestionPlan + 真�
 node dist/src/t1r/run-t1r.js chain-b       # 链 B：真实语音会话（提问→回答→转写→追问→打断）
 node dist/src/t1r/run-t1r.js latency       # 延迟抽样（20 轮语音 + 20 轮评审）
 node dist/src/t1r/run-t1r.js all           # 以上全部，重写 evidence/t1r/
+
+# T2 契约与内容（rules:write / manifest 不花钱；calibration / representative 会真调模型）
+node dist/src/t2/run.js rules:write        # 由 src/rules/rules.ts 生成 docs/rules.md
+node dist/src/t2/run.js calibration        # 三版本对照标定（t1s / t1r / t2）
+node dist/src/t2/run.js representative     # 代表案例重复评审 ×3
+node dist/src/t2/run.js all                # 以上全部
 ```
 
 注意：prototype 端口为 8917（8787 曾被本机 ActivityWatch 占用）。`prototype:run` 需要 Chrome（`/Applications/Google Chrome.app`）。
@@ -49,7 +56,10 @@ node dist/src/t1r/run-t1r.js all           # 以上全部，重写 evidence/t1r/
 │   ├── environment-baseline.md # T0 环境基线记录（脚本生成，含失败项与 PATH 快照说明）
 │   ├── contracts.md            # 契约口径：评审对象、引用定位规则、流程控制
 │   ├── t1s-audio-prototype-evidence.md  # 音频 prototype 真跑证据（Chrome 153 · M1）
-│   └── t1r-acceptance.md       # T1-R 实时验收记录（核定参数、两链证据、延迟、未做到项）
+│   ├── t1r-acceptance.md       # T1-R 实时验收记录（核定参数、两链证据、延迟、未做到项）
+│   ├── t2-acceptance.md        # T2 契约与内容验收记录（对照标定、代表案例复测、未做到项）
+│   ├── decisions.md            # D1–D11 产品决策冻结登记
+│   └── rules.md                # 三入口共用规则正文（由 src/rules/rules.ts 生成，勿手改）
 ├── src/
 │   ├── contracts/              # 五对象 TS 类型 + JSON Schema + 校验器 CLI + 引用定位器
 │   ├── state/machine.ts        # 应用层状态机（D2/D5/D6）
@@ -57,11 +67,14 @@ node dist/src/t1r/run-t1r.js all           # 以上全部，重写 evidence/t1r/
 │   ├── prompts/prompts.ts      # 中文提示词 v1（四模板，未标定）
 │   ├── clients/                # 百炼文本适配器（真实调用已验证）+ Qwen-Omni-Realtime WS 客户端
 │   ├── prototype/              # 音频 prototype：mock 服务 + 页面 + CDP 证据采集
-│   └── t1r/                    # T1-R 验收运行器：.env 加载/密钥防线、音频工具、链 A/B、延迟、证据清单
+│   ├── t1r/                    # T1-R 验收运行器：.env 加载/密钥防线、音频工具、链 A/B、延迟、证据清单
+│   ├── t2/                     # T2 运行器：对照标定、代表案例复测、汇总与清单
+│   └── rules/rules.ts          # 三入口共用训练规则文本（唯一源）
 ├── cases/cases.json            # 24 个固定案例（全合成，人工预期标注）
 ├── evidence/t1r/               # T1-R 真实调用证据（模型目录、QuestionPlan、Feedback、事件日志、延迟、短音频片段）
+├── evidence/t2/                # T2 证据（三版本对照标定、代表案例 ×3、manifest 带 sha256）
 ├── scripts/                    # env-check / checkout-references
-└── test/                       # 55 项单测（契约/定位器/状态机/mock/提示词/案例/基线）
+└── test/                       # 67 项单测（契约/定位器/状态机/mock/提示词/案例/基线/T1-R 护栏/T2 定稿）
 ```
 
 ## 已知限制
@@ -73,4 +86,6 @@ node dist/src/t1r/run-t1r.js all           # 以上全部，重写 evidence/t1r/
 5. **评审延迟未达标**：P95 30.4 s（目标 15 s），根因是单次输出 ~800 tokens 与 25% 重试率；T3 建议流式渲染或五维拆分调用。
 6. 反抢话（A10）、转写质量（A5）、反注入（A9）对抗测试未做；单场成本金额与账号配额未核定。
 7. 音频 prototype 的音频输入为 Chrome 官方 fake device（真实 getUserMedia/MediaRecorder API，非真人声音）；面试官回应为 mock 服务合成音频。
-8. 百炼实时接口的服务端默认音色 `Chelsie` 实测**不可用**，必须显式指定（本项目固定 `Serena`）。
+8. 百炼实时接口的服务端默认音色 `Chelsie` 实测**不可用**，必须显式指定（本项目固定 `Serena`，代码层已加前置断言）。
+9. **代表案例 C19 的 contribution 维度与人工预期不一致**（3 次里 1 次相邻下档），未解决，见 `docs/t2-acceptance.md` §4.2；24 案例的模型侧**全量**校验与提示词质量定标仍未做。
+10. **structure 维度的标尺收敛（`rules@0.2.0`）改了尺子，必须交 T4 红队复测**，本轮不自我背书。

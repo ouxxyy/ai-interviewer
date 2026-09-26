@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "urn:ai-interviewer:session-report@0.2.0",
+  "$id": "urn:ai-interviewer:session-report@0.1.0",
   "title": "SessionReport",
   "description": "全场报告。零完成也生成报告并明确说明（D6），不生成伪报告。",
   "type": "object",
   "additionalProperties": false,
   "required": ["contractVersion", "sessionStatus", "completedQuestions", "totalQuestions", "perQuestion", "priorityPractice", "versions"],
   "properties": {
-    "contractVersion": { "enum": ["0.2.0"] },
+    "contractVersion": { "enum": ["0.1.0"] },
     "sessionStatus": { "enum": ["completed", "ended_early"] },
     "completedQuestions": { "type": "integer", "minimum": 0, "maximum": 3 },
     "totalQuestions": { "const": 3 },
@@ -21,7 +21,7 @@
         "properties": {
           "questionId": { "type": "string", "pattern": "^q[1-9][0-9]*$" },
           "status": { "enum": ["reviewed", "skipped", "not_reached"] },
-          "feedback": { "anyOf": [{ "type": "null" }, { "$ref": "urn:ai-interviewer:feedback@0.2.0" }] },
+          "feedback": { "anyOf": [{ "type": "null" }, { "$ref": "urn:ai-interviewer:feedback@0.1.0" }] },
           "rewriteDelta": {
             "anyOf": [
               { "type": "null" },

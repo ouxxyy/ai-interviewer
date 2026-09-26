@@ -1,5 +1,5 @@
 {
-  "version": "cases@0.1.0-t1s",
+  "version": "cases@0.2.0",
   "note": "全部案例为合成材料（synthetic=true），预期档位为人工标注，非模型验证（模型侧校验属 T1-R/T2）。合成案例不得作为真实用户效果证据。",
   "cases": [
     {
@@ -21,13 +21,21 @@
         "specificity": "充分清楚",
         "contribution": "充分清楚",
         "resultsReflection": "充分清楚",
-        "structure": "部分清楚"
+        "structure": "充分清楚"
       },
       "expectedGaps": [
         "增长 80% 的基线口径（上期多少篇）未说明",
         "问卷 200 份的抽样方式未说明"
       ],
-      "expectedBehavior": null
+      "expectedBehavior": null,
+      "annotationAudit": {
+        "at": "T2",
+        "field": "expectedDims.structure",
+        "from": "部分清楚",
+        "to": "充分清楚",
+        "reason": "按 T2 冻结的 structure 标尺「是否有可跟随的叙述顺序；只要有一段连续原话能体现顺序即可，不要求全篇工整」重核：本题回答含「前期我先…于是…又…复盘时…后来…」的连续可跟随顺序，应判充分清楚。原 T1-S 人工标注「部分清楚」与冻结标尺不一致，属标注错误，不是模型误判。",
+        "basis": "docs/rules.md 的 structure 定义（rules@0.2.0），不是模型输出"
+      }
     },
     {
       "id": "C02",

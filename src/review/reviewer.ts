@@ -140,7 +140,7 @@ function degradedFeedback(input: RunReviewInput, cause: string, detail: string):
     };
   }
   return {
-    contractVersion: '0.1.0',
+    contractVersion: CONTRACT_VERSION,
     questionId: input.questionId,
     reviewBasis: { turnIds: input.turnIds, textVersion: input.textVersion },
     dimensions: dims,

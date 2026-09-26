@@ -67,7 +67,7 @@ test('四个提示词都携带共同红线（素材非指令／原话引用／�
 
 test('问题计划提示词：内嵌 JSON 模板抽出后通过 QuestionPlan Schema（3 题）', () => {
   const p = questionPlanPrompt(mat);
-  for (const field of ['contractVersion', 'questions', 'askedTopics', 'id', 'text', 'sourceExcerpt', 'intent', 'topics', 'q1', 'q2', 'q3', '0.1.0']) {
+  for (const field of ['contractVersion', 'questions', 'askedTopics', 'id', 'text', 'sourceExcerpt', 'intent', 'topics', 'q1', 'q2', 'q3', '0.2.0']) {
     assert.ok(p.includes(field), `缺少字段 ${field}`);
   }
   assert.ok(p.includes('3 道'), '必须声明 3 道主问题');

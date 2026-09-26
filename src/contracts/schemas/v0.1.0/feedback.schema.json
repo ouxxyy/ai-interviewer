@@ -1,13 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "urn:ai-interviewer:feedback@0.2.0",
+  "$id": "urn:ai-interviewer:feedback@0.1.0",
   "title": "Feedback",
   "description": "单题五维三档反馈。三档必须携带可定位引用；「无法判断」不带引用并在 reason 说明，不用低分猜测。",
   "type": "object",
   "additionalProperties": false,
   "required": ["contractVersion", "questionId", "reviewBasis", "dimensions", "factGaps", "topImprovement", "nextFacts", "reviewVersion"],
   "properties": {
-    "contractVersion": { "enum": ["0.2.0"] },
+    "contractVersion": { "enum": ["0.1.0"] },
     "questionId": { "type": "string", "pattern": "^q[1-9][0-9]*$" },
     "reviewBasis": {
       "type": "object",

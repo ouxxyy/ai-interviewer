@@ -87,7 +87,7 @@ test('预期标注完整：五维齐全、档位合法、缺口为空时只允�
 test('案例材料通过 CandidateMaterials 契约校验（confirmed 口径）', () => {
   for (const c of data.cases) {
     const obj = {
-      contractVersion: '0.1.0',
+      contractVersion: '0.2.0',
       jd: c.materials.jd,
       experience: c.materials.experience,
       stage: c.stage,

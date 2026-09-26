@@ -1,11 +1,21 @@
-/** 独立运行的契约校验 CLI：node dist/src/contracts/validate-cli.js <file.json> <contract-name> */
+/**
+ * 独立运行的契约校验 CLI：
+ *   node dist/src/contracts/validate-cli.js <file.json> <contract-name> [contract-version]
+ *
+ * 第三个参数省略时按**数据自报的 contractVersion** 校验（无法识别则回落当前版本）——
+ * 这样 T1 期证据（0.1.0）与 T2 期对象（0.2.0）用同一条命令都能校验。
+ */
 import { readFileSync } from 'node:fs';
-import { validateContract } from './validate.js';
-import { CONTRACT_NAMES, CONTRACT_VERSION } from './version.js';
+import { validateContract, validateContractAt, validateContractAuto } from './validate.js';
+import { CONTRACT_NAMES, CONTRACT_VERSION, SUPPORTED_CONTRACT_VERSIONS, type ContractVersion } from './version.js';
 
-const [file, name] = process.argv.slice(2);
+const [file, name, versionArg] = process.argv.slice(2);
 if (!file || !name) {
-  console.error(`用法: node dist/src/contracts/validate-cli.js <file.json> <${CONTRACT_NAMES.join('|')}>`);
+  console.error(`用法: node dist/src/contracts/validate-cli.js <file.json> <${CONTRACT_NAMES.join('|')}> [${SUPPORTED_CONTRACT_VERSIONS.join('|')}]`);
+  process.exit(2);
+}
+if (versionArg && !(SUPPORTED_CONTRACT_VERSIONS as readonly string[]).includes(versionArg)) {
+  console.error(`不支持的契约版本: ${versionArg}（可选: ${SUPPORTED_CONTRACT_VERSIONS.join(', ')}）`);
   process.exit(2);
 }
 if (!CONTRACT_NAMES.includes(name as (typeof CONTRACT_NAMES)[number])) {
@@ -21,12 +31,16 @@ try {
   process.exit(2);
 }
 
-const result = validateContract(name as (typeof CONTRACT_NAMES)[number], data);
+const contractName = name as (typeof CONTRACT_NAMES)[number];
+const result = versionArg
+  ? { ...validateContractAt(contractName, versionArg as ContractVersion, data), version: versionArg as ContractVersion }
+  : validateContractAuto(contractName, data);
+void CONTRACT_VERSION;
 if (result.ok) {
-  console.log(`PASS ${name} ${file} (contract@${CONTRACT_VERSION})`);
+  console.log(`PASS ${name} ${file} (contract@${result.version})`);
   process.exit(0);
 } else {
-  console.error(`FAIL ${name} ${file}`);
+  console.error(`FAIL ${name} ${file} (contract@${result.version})`);
   for (const err of result.errors) console.error(`  - ${err}`);
   process.exit(1);
 }

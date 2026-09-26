@@ -7,7 +7,7 @@ const jd = '负责社区产品内容运营与活动策划，能基于数据复�
 const exp = '校内论坛运营负责人一年，组织三次主题征稿活动，注册用户从八千增至一万二。';
 
 const materials: CandidateMaterials = {
-  contractVersion: '0.1.0',
+  contractVersion: '0.2.0',
   jd,
   experience: exp,
   stage: '应届',
@@ -17,7 +17,7 @@ const materials: CandidateMaterials = {
 };
 
 const plan: QuestionPlan = {
-  contractVersion: '0.1.0',
+  contractVersion: '0.2.0',
   questions: [
     { id: 'q1', text: '说说你负责征稿活动时个人做了哪些关键动作？', sourceExcerpt: '组织三次主题征稿活动', intent: '考察个人贡献与动作', topics: ['活动运营'] },
     { id: 'q2', text: '数据增长背后你做了什么取舍？', sourceExcerpt: '注册用户从八千增至一万二', intent: '考察归因与反思', topics: ['数据复盘'] },
@@ -27,7 +27,7 @@ const plan: QuestionPlan = {
 };
 
 const turn: Turn = {
-  contractVersion: '0.1.0',
+  contractVersion: '0.2.0',
   id: 't1',
   questionId: 'q1',
   speaker: 'user',
@@ -47,7 +47,7 @@ const dim = (level: Feedback['dimensions']['relevance']['level'], quoteText: str
     : { level, quote: { text: quoteText!, start: 0, end: 4, turnId: 't1', textVersion: 'raw' as const, matchType: 'exact' as const }, reason: '依据所引原话' };
 
 const feedback: Feedback = {
-  contractVersion: '0.1.0',
+  contractVersion: '0.2.0',
   questionId: 'q1',
   reviewBasis: { turnIds: ['t1'], textVersion: 'raw' },
   dimensions: {
@@ -60,11 +60,11 @@ const feedback: Feedback = {
   factGaps: ['增长基线口径未说明'],
   topImprovement: '补充增长基线与个人动作的对应关系',
   nextFacts: ['上一期的投稿数量'],
-  reviewVersion: 'prompts@0.1.0-t1r',
+  reviewVersion: 'prompts@0.2.0',
 };
 
 const report: SessionReport = {
-  contractVersion: '0.1.0',
+  contractVersion: '0.2.0',
   sessionStatus: 'completed',
   completedQuestions: 3,
   totalQuestions: 3,
@@ -74,7 +74,7 @@ const report: SessionReport = {
     { questionId: 'q3', status: 'not_reached', feedback: null, rewriteDelta: null },
   ],
   priorityPractice: ['先说结论再展开'],
-  versions: { ruleVersion: 'rules@0.1.0-t1s', realtimeModel: null, textModel: null },
+  versions: { ruleVersion: 'rules@0.2.0', realtimeModel: null, textModel: null },
 };
 
 test('五个契约对象：合法样例全部通过 Schema 校验', () => {
@@ -131,13 +131,13 @@ test('session-report：题数越界 / 非法状态 拒绝；零完成报告合�
   assert.equal(validateContract('session-report', { ...report, completedQuestions: 4 }).ok, false);
   assert.equal(validateContract('session-report', { ...report, sessionStatus: 'paused' }).ok, false);
   const zero: SessionReport = {
-    contractVersion: '0.1.0',
+    contractVersion: '0.2.0',
     sessionStatus: 'ended_early',
     completedQuestions: 0,
     totalQuestions: 3,
     perQuestion: [],
     priorityPractice: ['本次未完成任何题目，无有效反馈'],
-    versions: { ruleVersion: 'rules@0.1.0-t1s', realtimeModel: null, textModel: null },
+    versions: { ruleVersion: 'rules@0.2.0', realtimeModel: null, textModel: null },
   };
   assert.equal(validateContract('session-report', zero).ok, true);
 });
