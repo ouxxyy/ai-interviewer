@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T17:23:08.659Z",
+  "generatedAt": "2026-09-26T17:45:09.121Z",
   "hosts": [
     {
       "host": "codex",
@@ -7,21 +7,25 @@
       "status": "verified",
       "exitCode": 0,
       "checks": {
+        "answerBlockFound": true,
+        "answerBlockChars": 93,
         "boundaryStated": true,
         "rulesVersionCited": true,
         "matchedPhrases": [
           "没有录音",
-          "没有实时语音",
           "不能听也不能说",
           "仅支持纯文字"
+        ],
+        "matchedPhrasesOutsideAnswerBlock": [
+          "没有实时语音"
         ]
       },
       "rawOutput": {
         "path": "evidence/t3/hosts/codex-raw.txt",
         "bytes": 12706,
-        "redacted": true
+        "redacted": false
       },
-      "note": "Skill 从 <项目>/.codex/skills/ 被加载；结论由本文件从原始输出匹配得出，不是手写断言。"
+      "note": "Skill 从 <项目>/.codex/skills/ 被加载。判定只扫「最后一次 tokens used 之后的回答块」——全文扫描会把宿主回显的 SKILL.md 正文误当成宿主自己的声明。注意 matchedPhrasesOutsideAnswerBlock：那些短语只出现在被回显的文档里。"
     },
     {
       "host": "claude-code",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T17:23:38.349Z",
+  "generatedAt": "2026-09-26T17:45:09.237Z",
   "artifacts": [
     {
       "path": "evidence/t3/hosts/codex-raw.txt",
@@ -11,29 +11,29 @@
     {
       "path": "evidence/t3/hosts/summary.json",
       "kind": "json",
-      "bytes": 1534,
-      "sha256": "bc83325bd068b26fbafb7979e41db9f5575d74aaa24b253be1e1499eefdfde96",
+      "bytes": 1827,
+      "sha256": "5f93a2443d975cd713c57aed1269c01862041e3d2b69c8e2c889972856c5afc9",
       "committed": true
     },
     {
       "path": "evidence/t3/prompt/summary.json",
       "kind": "json",
-      "bytes": 7868,
-      "sha256": "8d1a930d95ae8e886738e2c90724aefe0047a8abf68ed719c5d6b374476d8022",
+      "bytes": 8674,
+      "sha256": "f858cf1d2111b9d0804dd118a5b1f9307520df0e678a6a57c9da54711c47cb6a",
       "committed": true
     },
     {
       "path": "evidence/t3/prompt/transcript.json",
       "kind": "json",
-      "bytes": 7659,
-      "sha256": "f76b7b68e2699508fc7fe845929036ca7885abb3ebcc4462dc1f5d4a4d342dab",
+      "bytes": 8465,
+      "sha256": "99ed2a7d5e5ea7b40f7897c7431acb13d190e339f614f57a9716bd3f3f6c6b91",
       "committed": true
     },
     {
       "path": "evidence/t3/run-summary.json",
       "kind": "json",
       "bytes": 379,
-      "sha256": "06f0026cba89e46b4ebca76778f95fc74dec9ebd36849fb7a52b863ea7fb3dbc",
+      "sha256": "fe86e3e955c15348f01412e4e562f891b6ddea5c0681d98204a65c7ee33eb401",
       "committed": true
     },
     {
@@ -49,11 +49,25 @@
       "bytes": 31695,
       "sha256": "555cfbb3a2fbd37a0574e660a92cb0008c06f584bdc0db6d94b0055d68403628",
       "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/criteria.json",
+      "kind": "json",
+      "bytes": 1731,
+      "sha256": "385c3d49fe5890c9203c638e382fff7aa671b9dddd5d1147b51be8f8dd2647eb",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/structure-experiment/preregistration.md",
+      "kind": "md",
+      "bytes": 3986,
+      "sha256": "de3ae8f6df2f0404c3ac83c1f94d5681a5a5cf2ac351f3ffc641b9feaeed8572",
+      "committed": true
     }
   ],
-  "verifiedAt": "2026-09-26T17:23:38.350Z",
+  "verifiedAt": "2026-09-26T17:45:09.237Z",
   "verifiedAgainstDisk": {
-    "total": 7,
+    "total": 9,
     "mismatches": []
   }
 }

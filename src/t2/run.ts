@@ -16,6 +16,7 @@ import { RULES_VERSION, rulesDigest, rulesMarkdown } from '../rules/rules.js';
 import { CONTRACT_VERSION, SUPPORTED_CONTRACT_VERSIONS } from '../contracts/version.js';
 import { PROMPT_VERSION } from '../prompts/prompts.js';
 import { runCalibration, runRepresentative } from './run-t2.js';
+import { buildCalibrationRounds } from './rounds.js';
 
 async function main(): Promise<void> {
   const cmd = process.argv[2] ?? 'all';
@@ -29,6 +30,10 @@ async function main(): Promise<void> {
     credential: credentialStatus(),
     dotenv: { path: path.relative(REPO_ROOT, envReport.path), filePresent: envReport.filePresent, injectedKeys: envReport.injectedKeys },
   };
+
+  if (cmd === 'calibration:rounds') {
+    summary.calibrationRounds = buildCalibrationRounds();
+  }
 
   if (cmd === 'rules:write' || cmd === 'all') {
     const target = path.join(REPO_ROOT, 'docs', 'rules.md');
@@ -47,6 +52,8 @@ async function main(): Promise<void> {
       const result = await runCalibration(text, writer);
       writer.writeJson('calibration/summary.json', result);
       summary.calibration = {
+        round: result.round,
+        merged: result.merged,
         batch: result.batch,
         selectionRule: result.selectionRule,
         baselineProvenance: result.baselineProvenance,

@@ -13,6 +13,7 @@
  * 案例选择规则（确定性，不按结果挑）：按 `cases.json` 顺序**每 4 个取 1，起始下标 0**。
  */
 import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { runReview } from '../review/reviewer.js';
@@ -25,7 +26,8 @@ import type { DashscopeTextClient } from '../clients/dashscope.js';
 import type { Feedback, DimensionKey } from '../contracts/types.js';
 import { REPO_ROOT } from '../t1r/env.js';
 import { DashscopeReviewChannel, loadCases, type CaseRecord, type CallRecord } from '../t1r/chain-a.js';
-import { latencyStats, type EvidenceWriter } from '../t1r/evidence.js';
+import { EVIDENCE_T2_DIR, latencyStats, type EvidenceWriter } from '../t1r/evidence.js';
+import { buildCalibrationRounds } from './rounds.js';
 
 const DIMS: DimensionKey[] = ['relevance', 'specificity', 'contribution', 'resultsReflection', 'structure'];
 const ORDINAL: Record<string, number> = { 证据不足: 1, 部分清楚: 2, 充分清楚: 3 };
@@ -232,6 +234,10 @@ function summarize(variant: PromptVariant, runs: CaseRunRecord[]): VariantSummar
 }
 
 export interface CalibrationResult {
+  /** 本轮编号（写进 calibration/round-<n>/）。 */
+  round: number;
+  /** 合并视图的重建结果（含条数断言）。 */
+  merged: ReturnType<typeof buildCalibrationRounds>;
   batch: Array<{ id: string; stage: string; track: string; flawType: string }>;
   selectionRule: string;
   baselineProvenance: Array<{ variant: PromptVariant; ok: boolean; detail: string }>;
@@ -239,20 +245,27 @@ export interface CalibrationResult {
   runs: CaseRunRecord[];
 }
 
-export async function runCalibration(client: DashscopeTextClient, evidence: EvidenceWriter, opts: { stride?: number } = {}): Promise<CalibrationResult> {
+export async function runCalibration(
+  client: DashscopeTextClient,
+  evidence: EvidenceWriter,
+  opts: { stride?: number; round?: number } = {},
+): Promise<CalibrationResult> {
+  const round = opts.round ?? nextRoundNumber();
   const all = loadCases();
   const batch = calibrationBatch(all, opts.stride ?? 4);
   const provenance = (['t1s', 't1r', 't2'] as PromptVariant[]).map((v) => ({ variant: v, ...verifyFrozenBaseline(v) }));
   const bad = provenance.filter((p) => !p.ok);
   if (bad.length > 0) throw new Error(`对照基线校验失败，拒绝标定：${bad.map((b) => b.detail).join('; ')}`);
 
-  evidence.truncateJsonl('calibration/runs.jsonl');
+  // 每轮写进自己的目录；合并视图由 buildCalibrationRounds() 重建——
+  // 覆盖式重跑正是 R3 那个「第 1 轮只剩在 git 里」的起因，这里从根上排除。
+  evidence.truncateJsonl(`calibration/round-${round}/runs.jsonl`);
   const runs: CaseRunRecord[] = [];
   for (const variant of ['t1s', 't1r', 't2'] as PromptVariant[]) {
     for (const c of batch) {
-      const { record } = await runOne(client, variant, c, evidence, { tag: `cal-${variant}` });
+      const { record } = await runOne(client, variant, c, evidence, { tag: `cal-r${round}-${variant}` });
       runs.push(record);
-      evidence.appendJsonl('calibration/runs.jsonl', [record]);
+      evidence.appendJsonl(`calibration/round-${round}/runs.jsonl`, [{ round, ...record }]);
     }
   }
   const summaries = {
@@ -260,13 +273,29 @@ export async function runCalibration(client: DashscopeTextClient, evidence: Evid
     t1r: summarize('t1r', runs.filter((r) => r.variant === 't1r')),
     t2: summarize('t2', runs.filter((r) => r.variant === 't2')),
   };
+  // 归档本轮 summary，并重建带 round 字段的合并视图（条数 = 18 × 轮数）
+  evidence.writeJson(`calibration/round-${round}/summary.json`, { round, summaries, batch: batch.map((c) => c.id), runs });
+  const merged = buildCalibrationRounds();
   return {
+    round,
     batch: batch.map((c) => ({ id: c.id, stage: c.stage, track: c.track, flawType: c.flawType })),
     selectionRule: `cases.json 顺序每 ${opts.stride ?? 4} 个取 1、起始下标 0（确定性抽样，不按结果挑案例）`,
     baselineProvenance: provenance,
     summaries,
     runs,
+    merged,
   };
+}
+
+/** 下一轮编号 = 已有轮次最大值 + 1（不覆盖历史）。 */
+export function nextRoundNumber(): number {
+  const base = path.join(EVIDENCE_T2_DIR, 'calibration');
+  if (!existsSync(base)) return 1;
+  const nums = readdirSync(base)
+    .map((n) => /^round-(\d+)$/.exec(n)?.[1])
+    .filter((x): x is string => x !== undefined)
+    .map(Number);
+  return nums.length === 0 ? 1 : Math.max(...nums) + 1;
 }
 
 // ---------------- 代表案例重复评审 ----------------

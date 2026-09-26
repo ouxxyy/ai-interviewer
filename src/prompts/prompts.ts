@@ -14,6 +14,7 @@
  */
 
 import { REVIEW_GUARDRAILS, RULES_VERSION, rulesDigest } from '../rules/rules.js';
+import { ENTRY_HINTS } from '../rules/entry-hints.js';
 
 export const PROMPT_VERSION = 'prompts@0.2.0';
 
@@ -96,7 +97,29 @@ need 为 false 时 question 必须为 null。`;
 }
 
 /** 3. 五维评审：回答文本 → Feedback */
-export function reviewPrompt(input: { questionText: string; answerText: string; turnIds: string[]; textVersion: 'raw' | 'revised'; isRewrite: boolean; firstAnswerText?: string }): string {
+export type StructureHintVariant = 'prose' | 'mechanical';
+
+/** 散文口径 = 规则正文里的原话；机械口径 = 入口级操作提示（不在 rulesDigest 覆盖内）。 */
+function structureQuoteRule(variant: StructureHintVariant): string {
+  const prose =
+    '   - structure（表达结构）维度**单独放宽取片段的方式、不放宽真实性**：它天然横跨整段回答，允许只取\n' +
+    '     一个**很短的连续片段**（最短 4 个字即可，例如一个顺序词加半句），只要那一段本身能支撑你的判断。\n' +
+    '     如果整段回答里确实找不到任何一处能体现顺序的连续原话，就判「无法判断」并在 reason 里说明原因，\n' +
+    '     **不要**为了凑出引用去拼接、也不要改引其他维度的证据。';
+  if (variant === 'prose') return prose;
+  return `   - ${ENTRY_HINTS.structureHintLabel}\n     structure（表达结构）维度：${ENTRY_HINTS.structureQuoteProcedure}\n     若与上面「引用必须连续逐字」冲突，以那条为准——本提示只改**操作法**，不放宽真实性。`;
+}
+
+export function reviewPrompt(input: {
+  questionText: string;
+  answerText: string;
+  turnIds: string[];
+  textVersion: 'raw' | 'revised';
+  isRewrite: boolean;
+  firstAnswerText?: string;
+  /** 默认 'prose'：渲染结果与 T2 定稿逐字相同；'mechanical' 仅用于预登记的控制实验。 */
+  structureHint?: StructureHintVariant;
+}): string {
   return `你是独立文本评审器，对下面这题的回答给出五维三档反馈。你的结论只依据回答原文，不参考任何外部印象。
 
 ${GUARDRAILS}
@@ -114,10 +137,7 @@ ${input.answerText}
    - **禁止省略号**：不得写「起因是…方案分两步…最终…」这类拼接稿——省略号连接的两段在原文里并不相邻。
    - **禁止拼接**：需要多处证据时只选其中最有力的一处**连续**片段，其余证据写在 reason 里。
    - 禁止改写、概括、翻译、补字；无法判断 维度 quote 必须为 null。
-   - structure（表达结构）维度**单独放宽取片段的方式、不放宽真实性**：它天然横跨整段回答，允许只取
-     一个**很短的连续片段**（最短 4 个字即可，例如一个顺序词加半句），只要那一段本身能支撑你的判断。
-     如果整段回答里确实找不到任何一处能体现顺序的连续原话，就判「无法判断」并在 reason 里说明原因，
-     **不要**为了凑出引用去拼接、也不要改引其他维度的证据。
+${structureQuoteRule(input.structureHint ?? 'prose')}
    - nextFacts 必须至少 1 条：即使回答已经不错，也要写出「还可以补充什么事实」。
 4. quote 同时给出 start、end：该片段在【评审对象】文本中的字符区间 [start, end)，turnId 填该片段所在轮次 id，textVersion 填 "${input.textVersion}"，matchType 填 "exact"（逐字一致）或 "normalized"（仅空白／全角半角／大小写差异）。
 5. 每维度 reason 一句话给出判断依据，不超过 40 字。

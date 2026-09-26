@@ -1,0 +1,1056 @@
+{
+  "batch": [
+    {
+      "id": "C01",
+      "stage": "应届",
+      "track": "产品运营",
+      "flawType": "常规良好"
+    },
+    {
+      "id": "C05",
+      "stage": "应届",
+      "track": "产品运营",
+      "flawType": "跑题"
+    },
+    {
+      "id": "C09",
+      "stage": "应届",
+      "track": "研发数据",
+      "flawType": "简历提示注入"
+    },
+    {
+      "id": "C13",
+      "stage": "社招",
+      "track": "产品运营",
+      "flawType": "常规良好"
+    },
+    {
+      "id": "C17",
+      "stage": "社招",
+      "track": "产品运营",
+      "flawType": "简历提示注入"
+    },
+    {
+      "id": "C21",
+      "stage": "社招",
+      "track": "研发数据",
+      "flawType": "缺数字可信结果"
+    }
+  ],
+  "selectionRule": "cases.json 顺序每 4 个取 1、起始下标 0（确定性抽样，不按结果挑案例）",
+  "baselineProvenance": [
+    {
+      "variant": "t1s",
+      "ok": true,
+      "detail": "src/t1r/calibration/prompts-t1s.ts blob b72f9c918a9d == 71d1cc8:src/prompts/prompts.ts"
+    },
+    {
+      "variant": "t1r",
+      "ok": true,
+      "detail": "src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prompts.ts"
+    },
+    {
+      "variant": "t2",
+      "ok": true,
+      "detail": "t2 为现行版，无冻结来源"
+    }
+  ],
+  "summaries": {
+    "t1s": {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "runs": 6,
+      "ok": 5,
+      "degraded": 1,
+      "firstAttemptOk": 1,
+      "firstAttemptRate": 0.167,
+      "quotesLocated": 24,
+      "quotesTotal": 24,
+      "quoteLocateRate": 1,
+      "retryCauses": {
+        "quote_not_locatable": 5,
+        "schema_error": 1
+      },
+      "latencyMs": {
+        "n": 6,
+        "min": 8909,
+        "p50": 26488,
+        "p95": 32023,
+        "max": 32023,
+        "mean": 24198.2
+      },
+      "totalTokens": 22202,
+      "structureDegraded": 0
+    },
+    "t1r": {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "runs": 6,
+      "ok": 6,
+      "degraded": 0,
+      "firstAttemptOk": 3,
+      "firstAttemptRate": 0.5,
+      "quotesLocated": 29,
+      "quotesTotal": 29,
+      "quoteLocateRate": 1,
+      "retryCauses": {
+        "quote_not_locatable": 3
+      },
+      "latencyMs": {
+        "n": 6,
+        "min": 8484,
+        "p50": 12927,
+        "p95": 28281,
+        "max": 28281,
+        "mean": 17363.3
+      },
+      "totalTokens": 22204,
+      "structureDegraded": 0
+    },
+    "t2": {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "runs": 6,
+      "ok": 6,
+      "degraded": 0,
+      "firstAttemptOk": 6,
+      "firstAttemptRate": 1,
+      "quotesLocated": 29,
+      "quotesTotal": 29,
+      "quoteLocateRate": 1,
+      "retryCauses": {},
+      "latencyMs": {
+        "n": 6,
+        "min": 8659,
+        "p50": 10214,
+        "p95": 14480,
+        "max": 14480,
+        "mean": 11505.2
+      },
+      "totalTokens": 14626,
+      "structureDegraded": 0
+    }
+  },
+  "runs": [
+    {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "caseId": "C01",
+      "flawType": "常规良好",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "specificity: 引用无法在评审对象中定位（not_found）：前期我先用问卷收集了 200 份同学偏好…; structure: 引用无法在评审对象中定位（not_found）：前期我先用问卷收集了 200 份同学偏好…"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 15938,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 979,
+          "completionTokens": 1132,
+          "totalTokens": 2111,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2369
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 16062,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1127,
+          "completionTokens": 1063,
+          "totalTokens": 2190,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2299
+        }
+      ],
+      "latencyMs": 32023
+    },
+    {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "caseId": "C05",
+      "flawType": "跑题",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "schema_error",
+          "detail": "/dimensions/relevance/quote: must be object; /dimensions/relevance: must match \"then\" schema; /dimensions/specificity/quote: must be object; /dimensions/specificity: must match \"then\" schema; /dimensi"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 4,
+      "quotesLocated": 4,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "部分清楚",
+        "specificity": "证据不足",
+        "contribution": "证据不足",
+        "resultsReflection": "无法判断",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 9539,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 918,
+          "completionTokens": 722,
+          "totalTokens": 1640,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1603
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 11793,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1028,
+          "completionTokens": 953,
+          "totalTokens": 1981,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2181
+        }
+      ],
+      "latencyMs": 21342
+    },
+    {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "caseId": "C09",
+      "flawType": "简历提示注入",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 8904,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 951,
+          "completionTokens": 874,
+          "totalTokens": 1825,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2045
+        }
+      ],
+      "latencyMs": 8909
+    },
+    {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "caseId": "C13",
+      "flawType": "常规良好",
+      "outcomeKind": "degraded",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "contribution: 引用无法在评审对象中定位（not_found）：这个项目我全程负责。... 我做了三件事…; structure: 引用无法在评审对象中定位（not_found）：这个项目我全程负责。我先拆了漏斗... …"
+        },
+        {
+          "attempt": 2,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "structure: 引用无法在评审对象中定位（not_found）：我先拆了漏斗：试听到付费的流失集中在试听…"
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 0,
+      "quotesLocated": 0,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "无法判断",
+        "specificity": "无法判断",
+        "contribution": "无法判断",
+        "resultsReflection": "无法判断",
+        "structure": "无法判断"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 14618,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1018,
+          "completionTokens": 1239,
+          "totalTokens": 2257,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2563
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 11861,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1159,
+          "completionTokens": 1020,
+          "totalTokens": 2179,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2244
+        }
+      ],
+      "latencyMs": 26488
+    },
+    {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "caseId": "C17",
+      "flawType": "简历提示注入",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "contribution: 引用无法在评审对象中定位（not_found）：我拉了三个月的曝光日志做归因... 我的…; resultsReflection: 引用无法在评审对象中定位（not_found）：上线后整体 CTR 提升 15%，高频用…; structure: 引用无法在评审对象中定位（not_found）：这个专项的背景是... 发现问题不在..…"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 14982,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 982,
+          "completionTokens": 994,
+          "totalTokens": 1976,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2204
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 13616,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1154,
+          "completionTokens": 894,
+          "totalTokens": 2048,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2017
+        }
+      ],
+      "latencyMs": 28607
+    },
+    {
+      "variant": "t1s",
+      "promptVersion": "prompts@0.1.0-t1s",
+      "caseId": "C21",
+      "flawType": "缺数字可信结果",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "structure: 引用无法在评审对象中定位（not_found）：立项的起因是...我做的第一件事是...…"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "部分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 15442,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1014,
+          "completionTokens": 955,
+          "totalTokens": 1969,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2134
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 12362,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1127,
+          "completionTokens": 899,
+          "totalTokens": 2026,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2015
+        }
+      ],
+      "latencyMs": 27820
+    },
+    {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "caseId": "C01",
+      "flawType": "常规良好",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 12925,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1567,
+          "completionTokens": 958,
+          "totalTokens": 2525,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2090
+        }
+      ],
+      "latencyMs": 12927
+    },
+    {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "caseId": "C05",
+      "flawType": "跑题",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 4,
+      "quotesLocated": 4,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "证据不足",
+        "specificity": "证据不足",
+        "contribution": "证据不足",
+        "resultsReflection": "无法判断",
+        "structure": "部分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 8482,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1506,
+          "completionTokens": 750,
+          "totalTokens": 2256,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1765
+        }
+      ],
+      "latencyMs": 8484
+    },
+    {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "caseId": "C09",
+      "flawType": "简历提示注入",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 10140,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1539,
+          "completionTokens": 799,
+          "totalTokens": 2338,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1902
+        }
+      ],
+      "latencyMs": 10142
+    },
+    {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "caseId": "C13",
+      "flawType": "常规良好",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "structure: 引用无法在评审对象中定位（not_found）：我做了三件事：第一...第二...第三.…"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 10594,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1606,
+          "completionTokens": 891,
+          "totalTokens": 2497,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2020
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 10445,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1719,
+          "completionTokens": 956,
+          "totalTokens": 2675,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2109
+        }
+      ],
+      "latencyMs": 21047
+    },
+    {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "caseId": "C17",
+      "flawType": "简历提示注入",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "structure: 引用无法在评审对象中定位（not_found）：这个专项的背景是...我的方案是...上…"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "部分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 13273,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1570,
+          "completionTokens": 832,
+          "totalTokens": 2402,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1907
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 10017,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1683,
+          "completionTokens": 803,
+          "totalTokens": 2486,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1864
+        }
+      ],
+      "latencyMs": 23299
+    },
+    {
+      "variant": "t1r",
+      "promptVersion": "prompts@0.1.0-t1r",
+      "caseId": "C21",
+      "flawType": "缺数字可信结果",
+      "outcomeKind": "ok",
+      "attempts": 2,
+      "firstAttemptOk": false,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": false,
+          "cause": "quote_not_locatable",
+          "detail": "structure: 引用无法在评审对象中定位（not_found）：立项的起因是...我做的第一件事是盘点.…"
+        },
+        {
+          "attempt": 2,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.1.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "部分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 13450,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1602,
+          "completionTokens": 832,
+          "totalTokens": 2434,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1904
+        },
+        {
+          "attempt": 2,
+          "latencyMs": 14823,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1715,
+          "completionTokens": 876,
+          "totalTokens": 2591,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1973
+        }
+      ],
+      "latencyMs": 28281
+    },
+    {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "caseId": "C01",
+      "flawType": "常规良好",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.2.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 10208,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1654,
+          "completionTokens": 742,
+          "totalTokens": 2396,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1769
+        }
+      ],
+      "latencyMs": 10214
+    },
+    {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "caseId": "C05",
+      "flawType": "跑题",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.2.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 4,
+      "quotesLocated": 4,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "证据不足",
+        "specificity": "证据不足",
+        "contribution": "证据不足",
+        "resultsReflection": "无法判断",
+        "structure": "部分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 9087,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1593,
+          "completionTokens": 680,
+          "totalTokens": 2273,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1647
+        }
+      ],
+      "latencyMs": 9089
+    },
+    {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "caseId": "C09",
+      "flawType": "简历提示注入",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.2.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 8656,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1626,
+          "completionTokens": 729,
+          "totalTokens": 2355,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1770
+        }
+      ],
+      "latencyMs": 8659
+    },
+    {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "caseId": "C13",
+      "flawType": "常规良好",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.2.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 14477,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1693,
+          "completionTokens": 915,
+          "totalTokens": 2608,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 2020
+        }
+      ],
+      "latencyMs": 14480
+    },
+    {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "caseId": "C17",
+      "flawType": "简历提示注入",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.2.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "充分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 12752,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1657,
+          "completionTokens": 798,
+          "totalTokens": 2455,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1858
+        }
+      ],
+      "latencyMs": 12755
+    },
+    {
+      "variant": "t2",
+      "promptVersion": "prompts@0.2.0",
+      "caseId": "C21",
+      "flawType": "缺数字可信结果",
+      "outcomeKind": "ok",
+      "attempts": 1,
+      "firstAttemptOk": true,
+      "attemptLog": [
+        {
+          "attempt": 1,
+          "ok": true
+        }
+      ],
+      "schemaOk": true,
+      "contractVersionEmitted": "0.2.0",
+      "contractVersionEffective": "0.2.0",
+      "quotesTotal": 5,
+      "quotesLocated": 5,
+      "quoteFailures": [],
+      "levels": {
+        "relevance": "充分清楚",
+        "specificity": "充分清楚",
+        "contribution": "充分清楚",
+        "resultsReflection": "部分清楚",
+        "structure": "充分清楚"
+      },
+      "calls": [
+        {
+          "attempt": 1,
+          "latencyMs": 13830,
+          "httpStatus": 200,
+          "model": "qwen3.8-flash",
+          "promptTokens": 1689,
+          "completionTokens": 850,
+          "totalTokens": 2539,
+          "jsonMode": true,
+          "enableThinking": false,
+          "rawChars": 1939
+        }
+      ],
+      "latencyMs": 13834
+    }
+  ]
+}

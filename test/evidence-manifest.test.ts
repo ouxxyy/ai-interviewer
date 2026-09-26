@@ -77,6 +77,36 @@ test('run-summary 不得同时留下新旧两种 failures 口径（F2 回归）'
   }
 });
 
+test('标定轮次结构完整：每行带 round 字段，条数 = 18 × 轮数（R3 回归）', () => {
+  const calDir = path.join(REPO_ROOT, 'evidence', 't2', 'calibration');
+  const runsPath = path.join(calDir, 'runs.jsonl');
+  assert.ok(existsSync(runsPath), 'calibration/runs.jsonl 必须存在');
+  const rows = readFileSync(runsPath, 'utf8')
+    .split('\n')
+    .filter((l) => l.trim() !== '')
+    .map((l) => JSON.parse(l) as { round?: number; variant?: string });
+  assert.ok(rows.length > 0);
+  for (const [i, r] of rows.entries()) {
+    assert.equal(typeof r.round, 'number', `runs.jsonl 第 ${i + 1} 行缺 round 字段——「当前文件是哪一轮」不该靠 git 推断`);
+  }
+  const rounds = [...new Set(rows.map((r) => r.round!))].sort((a, b) => a - b);
+  assert.ok(rounds.length >= 1, '至少一轮');
+  assert.equal(rows.length, 18 * rounds.length, `合并视图应恰好是 18 × ${rounds.length} = ${18 * rounds.length} 行，实际 ${rows.length}`);
+  // 每轮目录自己也要在，且与合并视图里的同轮行逐行一致
+  for (const n of rounds) {
+    const perRound = path.join(calDir, `round-${n}`, 'runs.jsonl');
+    assert.ok(existsSync(perRound), `round-${n}/runs.jsonl 必须入库（第 1 轮曾经只剩下在 git 里）`);
+    const part = readFileSync(perRound, 'utf8')
+      .split('\n')
+      .filter((l) => l.trim() !== '')
+      .map((l) => JSON.parse(l) as { round?: number });
+    assert.equal(part.length, 18, `round-${n} 应有 18 行`);
+    for (const r of part) assert.equal(r.round, n, `round-${n} 里有行的 round 不是 ${n}`);
+    const mergedSlice = rows.filter((r) => r.round === n);
+    assert.deepEqual(mergedSlice, part, `round-${n} 与合并视图里的同轮行必须逐行一致`);
+  }
+});
+
 test('产物里不得出现本机绝对路径（验收记录声称过「无绝对路径」）', () => {
   const offenders: string[] = [];
   const walk = (dir: string): void => {

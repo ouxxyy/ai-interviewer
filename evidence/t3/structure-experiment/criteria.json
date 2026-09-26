@@ -1,0 +1,38 @@
+{
+  "preregisteredAt": "2026-09-27T01:40:00+08:00",
+  "note": "预登记判据的机器可读副本。实验脚本读这份文件来判成败，判据不写死在代码里。跑完之后这份文件不得修改。",
+  "batch": {
+    "cases": ["C01", "C05", "C09", "C13-oral", "C17", "C21"],
+    "oralTransform": {
+      "baseCase": "C13",
+      "id": "C13-oral",
+      "rule": "把 firstAnswer 里所有 '。' 与 '？' 替换为 '，'，其余字符一字不动",
+      "why": "满足『批次里至少 1 个整段无句号的口语化首答』"
+    }
+  },
+  "variants": {
+    "prose": "rules@0.2.0 正文的散文口径（prompts.ts 默认渲染，逐字未改）",
+    "mechanical": "ENTRY_HINTS.structureQuoteProcedure（入口级操作提示，不在 rulesDigest 覆盖内）"
+  },
+  "repeats": 3,
+  "model": { "id": "qwen3.8-flash", "enableThinking": false, "jsonMode": true, "temperature": 0.2, "maxRetries": 2 },
+  "criteria": [
+    {
+      "id": "quote_locate_rate_not_worse",
+      "description": "机械版的引用可定位率不低于散文版",
+      "metric": "quoteLocateRate",
+      "compare": "mechanical >= prose"
+    },
+    {
+      "id": "structure_undetermined_not_higher",
+      "description": "机械版 structure 判「无法判断」的比例不高于散文版",
+      "metric": "structureUndeterminedRate",
+      "compare": "mechanical <= prose"
+    }
+  ],
+  "decision": {
+    "pass": "两条都满足 → 结论写「通过，建议升 rules@0.2.1」；本轮不升版，由 lead 决定",
+    "fail": "任一不满足 → 结论写「不通过」，机械口径维持入口级操作提示地位，不动 rules",
+    "always": "两版数字全量报出；异常计入分母并标注；不挑样本"
+  }
+}

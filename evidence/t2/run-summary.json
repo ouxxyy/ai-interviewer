@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-26T17:02:41.551Z",
-  "command": "all",
+  "startedAt": "2026-09-26T17:45:09.347Z",
+  "command": "calibration:rounds",
   "versions": {
     "contract": "0.2.0",
     "supportedContracts": [
@@ -682,5 +682,17 @@
     "version": "rules@0.2.0",
     "digest": "8795410eb4fe98cb6c58067644040838625f17ce4690b97dfef981d74326fa54"
   },
-  "textModel": "qwen3.8-flash"
+  "textModel": "qwen3.8-flash",
+  "calibrationRounds": {
+    "rounds": [
+      1,
+      2
+    ],
+    "rowsPerRound": {
+      "round-1": 18,
+      "round-2": 18
+    },
+    "totalRows": 36,
+    "expectedRows": 36
+  }
 }

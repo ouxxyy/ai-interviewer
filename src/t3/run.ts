@@ -307,8 +307,21 @@ export interface PromptRunResult {
   transcript: PromptTurn[];
   /** 一题闭环是否走完：要材料 → 确认 → 出题 → 作答 → 反馈。 */
   closedLoop: { askedMaterials: boolean; askedQuestion: boolean; gaveFeedback: boolean; feedbackHasAllFiveDims: boolean; quotedVerbatim: boolean };
-  /** 逐维引用自检：把模型给的 quote.text 拿回回答原文做字符串查找。 */
-  quoteChecks: Array<{ dim: string; level: string | null; verbatim: boolean; text: string }>;
+  /**
+   * 逐维引用自检（R1：按契约口径，不是子串包含）。
+   * 区间由 `locateQuote` **权威回写**——模型自报的 start/end 一律不信、不记。
+   */
+  quoteChecks: Array<{
+    dim: string;
+    level: string | null;
+    /** locateQuote 是否定位成功（这才是「逐字」的判据）。 */
+    located: boolean;
+    text: string;
+    /** 定位器算出的区间；未定位到时为 null。模型自报区间不采信。 */
+    start: number | null;
+    end: number | null;
+    matchType: string | null;
+  }>;
   versions: { rules: string; contract: string; prompts: string };
 }
 
@@ -361,13 +374,24 @@ export async function runPromptFlow(client: DashscopeTextClient, evidence: Evide
   const quoteChecks: PromptRunResult['quoteChecks'] = [];
   const parsed = extractJson(last);
   if (parsed.ok) {
-    const fb = parsed.value as { dimensions?: Record<string, { level?: string; quote?: { text?: string } | null }> };
+    const fb = parsed.value as { dimensions?: Record<string, { level?: string; quote?: { text?: string; start?: number; end?: number; matchType?: string } | null }> };
     for (const [dim, d] of Object.entries(fb.dimensions ?? {})) {
       const text = typeof d?.quote?.text === 'string' ? d.quote.text : '';
-      quoteChecks.push({ dim, level: d?.level ?? null, verbatim: text !== '' && c.firstAnswer.includes(text), text });
+      // R1：判据是契约口径（locateQuote），不是 `String.includes`。
+      // 区间用定位器回写；模型自报的 start/end 不采信、不记入证据。
+      const loc = text === '' ? null : locateQuote(c.firstAnswer, text);
+      quoteChecks.push({
+        dim,
+        level: d?.level ?? null,
+        located: loc?.located === true,
+        text,
+        start: loc?.located === true ? loc.start : null,
+        end: loc?.located === true ? loc.end : null,
+        matchType: loc?.located === true ? loc.matchType : null,
+      });
     }
   }
-  const quotedVerbatim = quoteChecks.length > 0 && quoteChecks.every((q) => q.verbatim);
+  const quotedVerbatim = quoteChecks.length > 0 && quoteChecks.every((q) => q.located);
 
   evidence.writeJson('prompt/transcript.json', { host: 'dashscope-chat-completions（多轮 messages）', caseId: c.id, pastedChars: pasted.length, quoteChecks, transcript });
   return {

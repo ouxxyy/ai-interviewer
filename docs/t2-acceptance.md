@@ -246,7 +246,7 @@ T2 首轮交付只跑了一遍；**收尾时用同一批案例、同一批提示
 | 「标定抽样是确定性的、不按结果挑」 | `test/t2-contract.test.ts` 断言批次恰为 C01/C05/C09/C13/C17/C21 |
 | 「对照基线是那个 revision 的逐字副本」 | `test/t2-contract.test.ts` 跑 `git hash-object` vs `git rev-parse` |
 | 「代表案例 12 次评审的引用可独立重算」 | 引用明细入库；**重算动作由复核者做**，本轮只保证「数据够算」 |
-| 「三版本对照的两轮排序一致」 | 两轮原始记录都在 `calibration/runs.jsonl`（第 2 轮覆盖式重跑，历史轮次见 git） |
+| 「三版本对照的两轮排序一致」 | 每轮的原始记录都在工作树里：`calibration/round-1/runs.jsonl`、`calibration/round-2/runs.jsonl`；合并视图 `calibration/runs.jsonl` 每行带 `round` 字段，条数 = 18 × 轮数。**R3 订正**：原先这里写「两轮原始记录都在 runs.jsonl（历史轮次见 git）」——前半句是假的（当时文件只有 18 条、没有 `round` 字段），括号里那句又在反驳它。现在第 1 轮已从 `f983989^` 取回入库（取回时逐行比对，只补 `round` 字段），并挂上 `test/evidence-manifest.test.ts` 的轮次结构断言 |
 
 ## 8. 给下一阶段的结论
 
