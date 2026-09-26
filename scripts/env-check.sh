@@ -25,16 +25,17 @@ info() { echo "INFO  $1"; }
 echo "# AI 面试官 T0 环境基线记录"
 echo "生成时间：$(date '+%Y-%m-%d %H:%M:%S %z')"
 echo "生成方式：bash scripts/env-check.sh --write"
+echo "说明：工具链版本为生成时 shell PATH 解析结果的快照（@ 后为解析路径）。本机存在双套工具链时，不同 PATH 顺序的复跑会得到不同版本号，属 PATH 解析差异，非记录失真。"
 echo
 
 echo "## 1. 主机与工具链"
 info "OS: $(sw_vers -productName) $(sw_vers -productVersion) ($(sw_vers -buildVersion))"
 info "架构: $(uname -m) / CPU: $(/usr/sbin/sysctl -n machdep.cpu.brand_string)"
 info "RAM: $(echo "scale=0; $(/usr/sbin/sysctl -n hw.memsize)/1073741824" | bc) GB"
-info "node: $(node --version 2>&1)"
+info "node: $(node --version 2>&1) @ $(command -v node 2>/dev/null || echo '未解析')"
 info "npm: $(npm --version 2>&1)"
 info "git: $(git --version 2>&1)"
-info "python3: $(python3 --version 2>&1)"
+info "python3: $(python3 --version 2>&1) @ $(command -v python3 2>/dev/null || echo '未解析')"
 echo
 
 echo "## 2. 项目目录与 Git 状态"

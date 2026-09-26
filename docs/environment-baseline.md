@@ -1,18 +1,19 @@
 # AI 面试官 T0 环境基线记录
-生成时间：2026-09-26 22:02:28 +0800
+生成时间：2026-09-26 22:50:21 +0800
 生成方式：bash scripts/env-check.sh --write
+说明：工具链版本为生成时 shell PATH 解析结果的快照（@ 后为解析路径）。本机存在双套工具链时，不同 PATH 顺序的复跑会得到不同版本号，属 PATH 解析差异，非记录失真。
 
 ## 1. 主机与工具链
 INFO  OS: macOS 27.0 (26A428)
 INFO  架构: arm64 / CPU: Apple M1
 INFO  RAM: 16 GB
-INFO  node: v26.7.0
+INFO  node: v26.7.0 @ /opt/homebrew/bin/node
 INFO  npm: 11.19.0
 INFO  git: git version 2.50.1 (Apple Git-155)
-INFO  python3: Python 3.9.6
+INFO  python3: Python 3.9.6 @ /usr/bin/python3
 
 ## 2. 项目目录与 Git 状态
-INFO  Git 仓库: /Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官 @ 599dd9f (branch: main)
+INFO  Git 仓库: /Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官 @ 56ef42c (branch: main)
 INFO  产品代码状态: 尚无产品代码（T0 基线阶段，预期如此）
 
 ## 3. 参考源码（固定 commit，MIT，只读设计参考）
