@@ -1,5 +1,5 @@
 # AI 面试官 T0 环境基线记录
-生成时间：2026-09-26 22:01:36 +0800
+生成时间：2026-09-26 22:02:28 +0800
 生成方式：bash scripts/env-check.sh --write
 
 ## 1. 主机与工具链
@@ -12,7 +12,7 @@ INFO  git: git version 2.50.1 (Apple Git-155)
 INFO  python3: Python 3.9.6
 
 ## 2. 项目目录与 Git 状态
-INFO  Git 仓库: /Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官 @ 尚无提交 (branch: main)
+INFO  Git 仓库: /Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官 @ 599dd9f (branch: main)
 INFO  产品代码状态: 尚无产品代码（T0 基线阶段，预期如此）
 
 ## 3. 参考源码（固定 commit，MIT，只读设计参考）
