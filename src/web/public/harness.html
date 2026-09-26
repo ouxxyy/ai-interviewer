@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 面试官 · 本地服务验收用最小客户端（不是产品界面）</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; max-width: 900px; margin: 20px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 18px; }
+  .warn { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  button { padding: 6px 10px; font-size: 13px; border: 1px solid #bbb; border-radius: 6px; background: #fff; cursor: pointer; }
+  button.primary { background: #2b6cb0; border-color: #2b6cb0; color: #fff; }
+  button.danger { background: #c53030; border-color: #c53030; color: #fff; }
+  #status, #question, #transcript, #review { font-size: 14px; margin: 6px 0; }
+  #log { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 8px; font-size: 12px; white-space: pre-wrap; max-height: 260px; overflow: auto; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<h1>AI 面试官 · 本地服务验收用最小客户端</h1>
+<p class="warn">这不是产品界面：A／B／C 视觉方案还没定，本页只用于驱动服务端真实链路（Chrome ＋ 真实模型 ＋ 真实实时语音）并采集验收证据。</p>
+<div class="row">
+  <button id="btn-boot" class="primary">1 首次使用告知</button>
+  <button id="btn-session" class="primary">2 新建会话</button>
+  <button id="btn-materials">3 确认材料（虚构演示）</button>
+  <button id="btn-answer" class="primary">4 开始回答</button>
+  <button id="btn-done" class="primary">5 回答完毕</button>
+  <button id="btn-pause">暂停</button>
+  <button id="btn-resume">继续</button>
+  <button id="btn-interrupt" class="danger">打断</button>
+  <button id="btn-repeat">重读本题</button>
+  <button id="btn-rewrite">重答一次</button>
+  <button id="btn-next">下一题</button>
+  <button id="btn-end" class="danger">结束并出报告</button>
+  <button id="btn-delete" class="danger">删除本会话</button>
+</div>
+<div id="status">idle</div>
+<div id="question"></div>
+<div id="transcript"></div>
+<div id="review"></div>
+<pre id="log"></pre>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const logEl = $('log');
+  const state = {
+    sid: null, ws: null, snapshot: null,
+    capCtx: null, playCtx: null, micStream: null, workletNode: null, mutedGain: null,
+    capturing: false, paused: false,
+    pendingPcm: [], pendingBytes: 0,
+    playQueue: [], playing: false, currentSrc: null, playedMs: 0, activeSince: null,
+    bytesSent: 0, chunksSent: 0, bytesSentWhilePaused: 0, bytesAttemptedWhilePaused: 0, appendWhilePausedRejected: 0,
+    streamBuf: [], streamOffset: 0, streamSending: false, streamSentBytes: 0, suppressSend: false,
+    lastInterrupt: null, audioEvents: 0, audioEventBytes: 0,
+    errors: [], lastError: null, transcript: '', review: null, report: null,
+    tmpNote: null, deleted: null, micProbe: null, lastPeak: 0,
+  };
+  const log = (line) => {
+    const t = new Date().toISOString().slice(11, 23);
+    logEl.textContent += `[${t}] ${line}\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+  const setStatus = (s) => { $('status').textContent = s; };
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function api(method, url, body, raw) {
+    const init = { method, headers: {} };
+    if (body !== undefined) {
+      init.body = raw ? body : JSON.stringify(body);
+      if (!raw) init.headers['Content-Type'] = 'application/json';
+    }
+    const res = await fetch(url, init);
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    if (!res.ok) {
+      const err = (data && data.error) || { code: 'E_HTTP', message: `HTTP ${res.status}` };
+      state.lastError = err;
+      state.errors.push(err);
+      const e = new Error(`${err.code}: ${err.message}`);
+      e.appError = err;
+      throw e;
+    }
+    return data;
+  }
+
+  // ---------- 音频：采集（PCM16@16k）与播放（PCM24@24k） ----------
+
+  const WORKLET = `
+class PCM16 extends AudioWorkletProcessor {
+  process(inputs) {
+    const input = inputs[0];
+    if (!input || !input[0]) return true;
+    const ch = input[0];
+    const out = new Int16Array(ch.length);
+    for (let i = 0; i < ch.length; i++) {
+      const s = Math.max(-1, Math.min(1, ch[i]));
+      out[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+    this.port.postMessage(out.buffer, [out.buffer]);
+    return true;
+  }
+}
+registerProcessor('pcm16', PCM16);`;
+
+  async function startCapture() {
+    if (state.capturing) return { ok: true, already: true };
+    try {
+      state.micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false } });
+    } catch (e) {
+      state.micProbe = { ok: false, name: e.name, message: String(e.message).slice(0, 160) };
+      log(`麦克风被拒绝：${e.name}`);
+      try { await api('POST', `/api/sessions/${state.sid}/mic-denied`, { detail: `${e.name}: ${String(e.message).slice(0, 120)}` }); } catch (err) { log(`上报 mic-denied 失败：${err.message}`); }
+      return { ok: false, micDenied: true, name: e.name };
+    }
+    state.capCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    const url = URL.createObjectURL(new Blob([WORKLET], { type: 'application/javascript' }));
+    await state.capCtx.audioWorklet.addModule(url);
+    const source = state.capCtx.createMediaStreamSource(state.micStream);
+    state.workletNode = new AudioWorkletNode(state.capCtx, 'pcm16');
+    state.mutedGain = state.capCtx.createGain();
+    state.mutedGain.gain.value = 0;
+    source.connect(state.workletNode);
+    state.workletNode.connect(state.mutedGain);
+    state.mutedGain.connect(state.capCtx.destination);
+    state.workletNode.port.onmessage = (ev) => {
+      const chunk = new Uint8Array(ev.data);
+      const view = new DataView(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+      for (let i = 0; i + 1 < chunk.length; i += 2) {
+        const v = Math.abs(view.getInt16(i, true)) / 32768;
+        if (v > (state.lastPeak ?? 0)) state.lastPeak = v;
+      }
+      for (let i = 0; i < chunk.length; i++) state.pendingPcm.push(chunk[i]);
+      state.pendingBytes = state.pendingPcm.length;
+      // 100ms @16k 单声道 = 3200 字节
+      while (state.pendingPcm.length >= 3200) {
+        const slice = state.pendingPcm.splice(0, 3200);
+        sendAudio(Uint8Array.from(slice));
+      }
+    };
+    state.capturing = true;
+    setStatus('recording');
+    return { ok: true, sampleRate: state.capCtx.sampleRate, trackLabel: state.micStream.getAudioTracks()[0]?.label ?? '' };
+  }
+
+  function toBase64(bytes) {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+
+  function sendAudio(bytes) {
+    if (state.suppressSend) return;
+    if (!state.ws || state.ws.readyState !== 1) return;
+    if (state.paused) {
+      state.bytesAttemptedWhilePaused += bytes.length;
+      return; // 暂停时客户端就地扣住，不发；服务端另外也会拒收（见 probeAppendWhilePaused）
+    }
+    state.ws.send(JSON.stringify({ type: 'audio.append', audio: toBase64(bytes) }));
+    state.bytesSent += bytes.length;
+    state.chunksSent += 1;
+  }
+
+  async function stopCapture() {
+    if (!state.capturing) return { ok: true };
+    state.capturing = false;
+    if (state.workletNode) {
+      state.workletNode.port.onmessage = null;
+      try { state.workletNode.disconnect(); } catch {}
+    }
+    try { state.mutedGain?.disconnect(); } catch {}
+    state.micStream?.getTracks().forEach((t) => t.stop());
+    try { await state.capCtx?.close(); } catch {}
+    state.capCtx = null; state.workletNode = null; state.mutedGain = null; state.micStream = null;
+    const leftover = state.pendingPcm.length;
+    state.pendingPcm = [];
+    setStatus(state.playing ? 'playing' : 'idle');
+    return { ok: true, droppedTailBytes: leftover };
+  }
+
+  function ensurePlayCtx() {
+    if (!state.playCtx) state.playCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+    return state.playCtx;
+  }
+
+  function enqueueInterviewerPcm(int16) {
+    const ctx = ensurePlayCtx();
+    const f32 = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) f32[i] = int16[i] / 32768;
+    const buf = ctx.createBuffer(1, f32.length, 24000);
+    buf.copyToChannel(f32, 0);
+    state.playQueue.push(buf);
+    if (!state.playing) playNext();
+  }
+
+  function playNext() {
+    const ctx = ensurePlayCtx();
+    const buf = state.playQueue.shift();
+    if (!buf) {
+      state.playing = false;
+      state.activeSince = null;
+      setStatus(state.capturing ? 'recording' : 'idle');
+      return;
+    }
+    state.playing = true;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    state.activeSince = performance.now();
+    src.onended = () => {
+      state.playedMs += performance.now() - state.activeSince;
+      state.activeSince = null;
+      if (state.currentSrc === src) state.currentSrc = null;
+      playNext();
+    };
+    state.currentSrc = src;
+    setStatus('playing interviewer audio');
+    src.start();
+  }
+
+  function playedMs() {
+    return state.playedMs + (state.playing && state.activeSince ? performance.now() - state.activeSince : 0);
+  }
+
+  function interrupt() {
+    const cleared = state.playQueue.length;
+    state.playQueue = [];
+    if (state.currentSrc) {
+      try { state.currentSrc.stop(); } catch {}
+      state.currentSrc = null;
+    }
+    state.playing = false;
+    state.activeSince = null;
+    state.ws?.send(JSON.stringify({ type: 'interrupt' }));
+    state.lastInterrupt = { clearedQueue: cleared, at: Date.now() };
+    log(`打断：清空待播 ${cleared} 段，已发送 response.cancel`);
+    return cleared;
+  }
+
+  // ---------- WS ----------
+
+  function openRealtime() {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(`ws://${location.host}/realtime?sid=${encodeURIComponent(state.sid)}`);
+      state.ws = ws;
+      ws.onopen = () => { log('WS 已连接'); resolve({ ok: true }); };
+      ws.onerror = () => reject(new Error('WS 连接失败'));
+      ws.onclose = () => log('WS 已关闭');
+      ws.onmessage = async (ev) => {
+        if (typeof ev.data !== 'string') return;
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'interviewer.audio') {
+          state.audioEvents += 1;
+          const bin = atob(msg.audio);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          state.audioEventBytes += bytes.length;
+          const view = new DataView(bytes.buffer);
+          const int16 = new Int16Array(bytes.length / 2);
+          for (let i = 0; i < int16.length; i++) int16[i] = view.getInt16(i * 2, true);
+          enqueueInterviewerPcm(int16);
+          return;
+        }
+        if (msg.type === 'transcript.partial' || msg.type === 'transcript.final') { state.transcript = msg.text; $('transcript').textContent = `实时转写：${msg.text}`; return; }
+        if (msg.type === 'state') { applySnapshot(msg.snapshot); return; }
+        if (msg.type === 'paused' || msg.type === 'resumed') { state.paused = msg.type === 'paused'; applySnapshot(msg.snapshot); return; }
+        if (msg.type === 'interrupted') { state.lastInterrupt = { ...(state.lastInterrupt || {}), ...msg }; log(`服务端确认打断：deltasAfterCancel=${msg.deltasAfterCancel}`); return; }
+        if (msg.type === 'audio.ack') return;
+        if (msg.type === 'error') { state.lastError = msg.error; state.errors.push(msg.error); log(`服务端错误：${msg.error.code} ${msg.error.message}`); return; }
+      };
+    });
+  }
+
+  function applySnapshot(snapshot) {
+    if (!snapshot) return;
+    state.snapshot = snapshot;
+    if (snapshot.reviews) state.review = snapshot.reviews[snapshot.currentQuestion?.id] ?? state.review;
+    if (snapshot.report) state.report = snapshot.report;
+    if (snapshot.lastError) state.lastError = snapshot.lastError;
+    $('status').textContent = `state=${snapshot.state} 题=${(snapshot.machine.questionIndex ?? 0) + 1} 追问=${snapshot.machine.followupCount} 完成=${snapshot.machine.completed} 保存历史=${snapshot.toggles.saveHistory} 保存录音=${snapshot.toggles.saveAudio}`;
+    $('question').textContent = snapshot.currentQuestion ? `第 ${snapshot.machine.questionIndex + 1} 题：${snapshot.currentQuestion.text}` : '（无进行中的问题）';
+    if (snapshot.reviews && snapshot.currentQuestion) {
+      const fb = snapshot.reviews[snapshot.currentQuestion.id];
+      if (fb) {
+        const dims = Object.entries(fb.dimensions).map(([k, v]) => `${k}=${v.level}`).join('、');
+        state.review = fb;
+        $('review').textContent = `五维：${dims}｜最值得改：${fb.topImprovement}`;
+      }
+    }
+  }
+
+  /**
+   * 把 PCM16@16k 按 **100ms 分片、20ms 间隔（5 倍速）** 推给服务端——与真实麦克风上行同一条 WS 协议、
+   * 同一分片大小；每 tick 只发一片，节奏与真实推流一致（不是一次性灌进去）。
+   */
+  function pumpStream() {
+    if (state.streamSending) return;
+    state.streamSending = true;
+    const tick = () => {
+      let chunk = null;
+      while (state.streamBuf.length > 0) {
+        const head = state.streamBuf[0];
+        const take = Math.min(3200, head.length - state.streamOffset);
+        chunk = head.subarray(state.streamOffset, state.streamOffset + take);
+        state.streamOffset += take;
+        if (state.streamOffset >= head.length) {
+          state.streamBuf.shift();
+          state.streamOffset = 0;
+        }
+        break;
+      }
+      if (!chunk) {
+        state.streamSending = false;
+        return;
+      }
+      sendAudio(chunk);
+      setTimeout(tick, 20);
+    };
+    tick();
+  }
+
+  function waitFor(predicate, timeoutMs, label) {
+    const deadline = Date.now() + timeoutMs;
+    return new Promise((resolve, reject) => {
+      const tick = () => {
+        let ok = false;
+        try { ok = predicate(); } catch { ok = false; }
+        if (ok) return resolve(true);
+        if (Date.now() > deadline) return reject(new Error(`等待超时：${label}`));
+        setTimeout(tick, 150);
+      };
+      tick();
+    });
+  }
+
+  // ---------- 驱动接口（CDP 证据采集用） ----------
+
+  const driver = {
+    sleep,
+    status: () => ({
+      sid: state.sid, state: state.snapshot?.state ?? null, paused: state.paused, capturing: state.capturing,
+      playing: state.playing, queueLength: state.playQueue.length, playedMs: Math.round(playedMs()),
+      bytesSent: state.bytesSent, chunksSent: state.chunksSent, bytesSentWhilePaused: state.bytesSentWhilePaused,
+      bytesAttemptedWhilePaused: state.bytesAttemptedWhilePaused, streamSentBytes: state.streamSentBytes, streamPending: state.streamBuf.length,
+      appendWhilePausedRejected: state.appendWhilePausedRejected,
+      audioEvents: state.audioEvents, audioEventBytes: state.audioEventBytes,
+      lastInterrupt: state.lastInterrupt, errors: state.errors, lastError: state.lastError,
+      transcript: state.transcript, review: state.review, report: state.report, micProbe: state.micProbe, peak: state.lastPeak,
+      deleted: state.deleted,
+    }),
+    async boot(ack = true) {
+      const disclosure = await api('GET', '/api/disclosure');
+      if (ack) await api('PATCH', '/api/settings', { disclosureAck: true });
+      const settings = await api('GET', '/api/settings');
+      log(`告知版本 ${disclosure.disclosure.version}，已确认=${settings.settings.disclosureAckVersion}`);
+      return { disclosureVersion: disclosure.disclosure.version, settings: settings.settings };
+    },
+    async createSession(opts = {}) {
+      const created = await api('POST', '/api/sessions', { disclosureAck: true, synthetic: opts.synthetic !== false, ...(opts.saveHistory === undefined ? {} : { saveHistory: opts.saveHistory }), ...(opts.saveAudio === undefined ? {} : { saveAudio: opts.saveAudio }) });
+      state.sid = created.sid;
+      applySnapshot(created.snapshot);
+      await openRealtime();
+      log(`会话 ${state.sid}（保存历史=${created.snapshot.toggles.saveHistory} 保存录音=${created.snapshot.toggles.saveAudio}）`);
+      return { sid: state.sid, toggles: created.snapshot.toggles };
+    },
+    async attachSession(sid) {
+      state.sid = sid;
+      const d = await api('GET', `/api/sessions/${sid}`);
+      applySnapshot(null);
+      await openRealtime();
+      log(`已接管会话 ${sid}（live=${d.live} state=${d.state}）`);
+      return { sid, live: d.live, state: d.state, turns: d.turns.length };
+    },
+    async confirmMaterials(materials) {
+      const r = await api('POST', `/api/sessions/${state.sid}/materials`, materials);
+      applySnapshot(r.snapshot);
+      await waitFor(() => state.audioEvents > 0, 90000, '第一题语音');
+      await waitFor(() => !state.playing && state.playQueue.length === 0, 90000, '第一题播完');
+      return { state: r.snapshot.state, question: r.snapshot.currentQuestion, audioEvents: state.audioEvents };
+    },
+    async uploadMaterial(filename, base64) {
+      const bin = atob(base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const res = await fetch(`/api/sessions/${state.sid}/materials/upload?filename=${encodeURIComponent(filename)}`, { method: 'POST', body: bytes, headers: { 'Content-Type': 'application/octet-stream' } });
+      const data = await res.json();
+      if (!res.ok) { state.lastError = data.error; state.errors.push(data.error); }
+      return { status: res.status, data };
+    },
+    async answerStreamBegin() {
+      await api('POST', `/api/sessions/${state.sid}/answer/start`);
+      state.streamBuf = [];
+      state.streamOffset = 0;
+      state.streamSending = false;
+      state.streamSentBytes = 0;
+      return { ok: true };
+    },
+    answerStreamPush(base64) {
+      const bin = atob(base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      state.streamBuf.push(bytes);
+      state.streamSentBytes += bytes.length;
+      pumpStream();
+      return { queued: state.streamSentBytes };
+    },
+    async answerStreamFinish() {
+      await waitFor(() => !state.streamSending && state.streamBuf.length === 0, 120000, 'PCM 推流排空');
+      await sleep(400);
+      const r = await driver.answerDone();
+      r.streamSentBytes = state.streamSentBytes;
+      return r;
+    },
+    async startAnswer() {
+      await api('POST', `/api/sessions/${state.sid}/answer/start`);
+      const cap = await startCapture();
+      return cap;
+    },
+    async stopAnswer() { return stopCapture(); },
+    /** 只测麦克风链路（不动服务端状态）：采集 seconds 秒，返回上行字节数、分片数与峰值/均值幅度。 */
+    async micProbe(seconds = 2, transmit = true) {
+      const cap = await startCapture();
+      if (cap.ok !== true) return { ok: false, micDenied: true, probe: state.micProbe };
+      state.suppressSend = !transmit; // 只测采集时不上行（不动 WS 连接本身）
+      const before = { bytes: state.bytesSent, chunks: state.chunksSent };
+      const t0 = performance.now();
+      while (performance.now() - t0 < seconds * 1000) {
+        await sleep(50);
+      }
+      const after = { bytes: state.bytesSent, chunks: state.chunksSent };
+      const peak = state.lastPeak ?? 0;
+      state.suppressSend = false;
+      await stopCapture();
+      return { ok: true, seconds, transmit, bytesSent: after.bytes - before.bytes, chunksSent: after.chunks - before.chunks, peak: Number(peak.toFixed(4)), trackLabel: cap.trackLabel };
+    },
+    async answerDone() {
+      state.transcript = '';
+      await stopCapture();
+      const before = state.snapshot?.state;
+      const r = await api('POST', `/api/sessions/${state.sid}/answer/done`);
+      applySnapshot(r.snapshot);
+      log(`回答完毕：${before} → ${r.snapshot.state}`);
+      await waitFor(() => !state.playing && state.playQueue.length === 0, 90000, '面试官语音播完');
+      return { state: r.snapshot.state, lastError: r.snapshot.lastError, review: state.review, followupCount: r.snapshot.machine.followupCount };
+    },
+    async answerDoneNoAudio() {
+      // 直接提交（不推流）：用于验证「空转写」状态，不产生音频、不伪造内容。
+      state.transcript = '';
+      const r = await api('POST', `/api/sessions/${state.sid}/answer/done`);
+      applySnapshot(r.snapshot);
+      return { state: r.snapshot.state, lastError: r.snapshot.lastError };
+    },
+    async repeatQuestion() {
+      const r = await api('POST', `/api/sessions/${state.sid}/answer/repeat-question`);
+      applySnapshot(r.snapshot);
+      await waitFor(() => !state.playing && state.playQueue.length === 0, 90000, '重读播完');
+      return { state: r.snapshot.state, lastError: r.snapshot.lastError };
+    },
+    async micDeniedProbe() {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: { deviceId: 'definitely-not-a-device' } });
+        return { ok: true, note: '意外成功（未触发拒绝）' };
+      } catch (e) {
+        state.micProbe = { ok: false, name: e.name, message: String(e.message).slice(0, 160) };
+        const r = await api('POST', `/api/sessions/${state.sid}/mic-denied`, { detail: e.name });
+        applySnapshot(r.snapshot);
+        return { ok: false, name: e.name, state: r.snapshot.state, lastError: r.snapshot.lastError };
+      }
+    },
+    async pause() {
+      const r = await api('POST', `/api/sessions/${state.sid}/pause`);
+      state.paused = true;
+      applySnapshot(r.snapshot);
+      return { state: r.snapshot.state };
+    },
+    async resume() {
+      const r = await api('POST', `/api/sessions/${state.sid}/resume`);
+      state.paused = false;
+      applySnapshot(r.snapshot);
+      return { state: r.snapshot.state };
+    },
+    async probeAppendWhilePaused() {
+      // 直接发一小段静音 PCM：验证服务端在暂停期间**拒收**上行音频。
+      const silent = new Uint8Array(3200);
+      const before = state.appendWhilePausedRejected;
+      state.ws.send(JSON.stringify({ type: 'audio.append', audio: toBase64(silent) }));
+      await sleep(400);
+      state.appendWhilePausedRejected = state.errors.filter((e) => e.code === 'E_UPLINK_PAUSED').length;
+      return { rejectedBefore: before, rejectedAfter: state.appendWhilePausedRejected, bytesSentWhilePaused: state.bytesSentWhilePaused };
+    },
+    async interrupt() {
+      const cleared = interrupt();
+      await sleep(300);
+      return { clearedQueue: cleared, lastInterrupt: state.lastInterrupt, playing: state.playing, queueLength: state.playQueue.length };
+    },
+    async review() {
+      const r = await api('POST', `/api/sessions/${state.sid}/review`);
+      applySnapshot(r.snapshot);
+      return { state: r.snapshot.state, review: state.review };
+    },
+    async rewriteStart() {
+      const r = await api('POST', `/api/sessions/${state.sid}/rewrite/start`);
+      applySnapshot(r.snapshot);
+      return { state: r.snapshot.state };
+    },
+    async next() {
+      state.transcript = '';
+      const r = await api('POST', `/api/sessions/${state.sid}/next`);
+      applySnapshot(r.snapshot);
+      await waitFor(() => !state.playing && state.playQueue.length === 0, 90000, '下一题播完');
+      return { state: r.snapshot.state, question: r.snapshot.currentQuestion };
+    },
+    async nextNoWait() {
+      state.transcript = '';
+      const r = await api('POST', `/api/sessions/${state.sid}/next`);
+      applySnapshot(r.snapshot);
+      await sleep(1200); // 让面试官音频开始播
+      return { state: r.snapshot.state, question: r.snapshot.currentQuestion, playing: state.playing, queueLength: state.playQueue.length };
+    },
+    async waitPlaybackDone(timeoutMs = 90000) {
+      await waitFor(() => !state.playing && state.playQueue.length === 0, timeoutMs, '播放结束');
+      return { playing: state.playing, queueLength: state.playQueue.length, playedMs: Math.round(playedMs()) };
+    },
+    async questionAudioStats() { return { events: state.audioEvents, bytes: state.audioEventBytes, playedMs: Math.round(playedMs()) }; },
+    async turns() {
+      const d = await api('GET', `/api/sessions/${state.sid}`);
+      return d.turns;
+    },
+    async snapshot() {
+      const d = await api('GET', `/api/sessions/${state.sid}`);
+      const live = await api('GET', `/api/sessions/${state.sid}`);
+      return live;
+    },
+    async end() {
+      const r = await api('POST', `/api/sessions/${state.sid}/end`);
+      applySnapshot(r.snapshot);
+      return { state: r.snapshot.state, report: r.snapshot.report, reportSource: r.snapshot.reportSource };
+    },
+    async detail() {
+      const d = await api('GET', `/api/sessions/${state.sid}`);
+      return d;
+    },
+    async playback(turnId, track) {
+      state.playedMs = 0;
+      const res = await fetch(`/api/sessions/${state.sid}/turns/${turnId}/audio/${track}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        return { ok: false, status: res.status, error: body?.error ?? null };
+      }
+      const buf = await res.arrayBuffer();
+      const ctx = ensurePlayCtx();
+      const audio = await ctx.decodeAudioData(buf.slice(0));
+      const f32 = audio.getChannelData(0);
+      const copy = ctx.createBuffer(1, f32.length, audio.sampleRate);
+      copy.copyToChannel(f32, 0);
+      state.playQueue.push(copy);
+      if (!state.playing) playNext();
+      await sleep(Math.min(1500, Math.max(400, audio.duration * 1000)));
+      return {
+        ok: true, bytes: buf.byteLength, durationSec: Number(audio.duration.toFixed(3)), sampleRate: audio.sampleRate,
+        source: res.headers.get('X-Audio-Source'), playedMs: Math.round(playedMs()),
+      };
+    },
+    async deleteSession() {
+      const r = await api('DELETE', `/api/sessions/${state.sid}`);
+      state.deleted = r;
+      state.ws?.close();
+      return r;
+    },
+    async listSessions(limit = 50) { return api('GET', `/api/sessions?limit=${limit}`); },
+    async stats() { return api('GET', '/api/stats'); },
+    async health() { return api('GET', '/api/health'); },
+  };
+  window.__webDriver = driver;
+
+  $('btn-boot').onclick = () => driver.boot().catch((e) => log(`失败：${e.message}`));
+  $('btn-session').onclick = () => driver.createSession().catch((e) => log(`失败：${e.message}`));
+  $('btn-materials').onclick = () => driver.confirmMaterials(window.__demoMaterials).catch((e) => log(`失败：${e.message}`));
+  $('btn-answer').onclick = () => driver.startAnswer().catch((e) => log(`失败：${e.message}`));
+  $('btn-done').onclick = () => driver.answerDone().catch((e) => log(`失败：${e.message}`));
+  $('btn-pause').onclick = () => driver.pause().catch((e) => log(`失败：${e.message}`));
+  $('btn-resume').onclick = () => driver.resume().catch((e) => log(`失败：${e.message}`));
+  $('btn-interrupt').onclick = () => driver.interrupt().catch((e) => log(`失败：${e.message}`));
+  $('btn-repeat').onclick = () => driver.repeatQuestion().catch((e) => log(`失败：${e.message}`));
+  $('btn-rewrite').onclick = () => driver.rewriteStart().catch((e) => log(`失败：${e.message}`));
+  $('btn-next').onclick = () => driver.next().catch((e) => log(`失败：${e.message}`));
+  $('btn-end').onclick = () => driver.end().catch((e) => log(`失败：${e.message}`));
+  $('btn-delete').onclick = () => driver.deleteSession().catch((e) => log(`失败：${e.message}`));
+  log('验收用最小客户端就绪（不是产品界面）');
+})();
+</script>
+</body>
+</html>
