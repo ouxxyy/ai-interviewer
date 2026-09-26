@@ -13,6 +13,7 @@
  * 案例选择规则（确定性，不按结果挑）：按 `cases.json` 顺序**每 4 个取 1，起始下标 0**。
  */
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { runReview } from '../review/reviewer.js';
 import { validateContractAuto } from '../contracts/validate.js';
@@ -81,7 +82,10 @@ export interface CaseRunRecord {
   firstAttemptOk: boolean;
   attemptLog: Array<{ attempt: number; ok: boolean; cause?: string; detail?: string }>;
   schemaOk: boolean;
-  contractVersionSeen: string;
+  /** 模型原始输出里自报的 contractVersion（回填**之前**）。 */
+  contractVersionEmitted: string | null;
+  /** 流水线权威回填后对象里的 contractVersion（真正参与校验的那个）。 */
+  contractVersionEffective: string;
   quotesTotal: number;
   quotesLocated: number;
   quoteFailures: string[];
@@ -142,7 +146,7 @@ async function runOne(
   c: CaseRecord,
   evidence: EvidenceWriter,
   opts: { tag?: string } = {},
-): Promise<CaseRunRecord> {
+): Promise<{ record: CaseRunRecord; feedback: Feedback; emitted: string | null }> {
   const spec = VARIANTS[variant];
   const prompt = spec.build({ questionText: c.questionText, answerText: c.firstAnswer, turnIds: ['t1'], textVersion: 'raw', isRewrite: false });
   const channel = new DashscopeReviewChannel(client, prompt, {
@@ -164,11 +168,14 @@ async function runOne(
   });
   const latencyMs = Date.now() - startedAt;
   const fb = outcome.feedback as Feedback;
+  // F5：模型自报版本与回填后版本必须分开记——回填是应用层行为，混在一起会让读者
+  // 以为 t1s 基线也吐 0.2.0。emitted 从原始输出里解析，effective 取自回填后的对象。
+  const emittedRaw = channel.emittedContractVersions[0] ?? null;
   const schema = validateContractAuto('feedback', fb);
   const qc = independentQuoteCheck(c.firstAnswer, fb);
   const levels = Object.fromEntries(DIMS.map((d) => [d, fb.dimensions[d].level]));
 
-  return {
+  const record: CaseRunRecord = {
     variant,
     promptVersion: spec.promptVersion,
     caseId: c.id,
@@ -178,7 +185,8 @@ async function runOne(
     firstAttemptOk: attemptLog[0]?.ok === true,
     attemptLog,
     schemaOk: schema.ok,
-    contractVersionSeen: String((fb as unknown as { contractVersion?: string }).contractVersion ?? ''),
+    contractVersionEmitted: emittedRaw,
+    contractVersionEffective: String((fb as unknown as { contractVersion?: string }).contractVersion ?? ''),
     quotesTotal: qc.total,
     quotesLocated: qc.located,
     quoteFailures: qc.failures,
@@ -186,6 +194,7 @@ async function runOne(
     calls: channel.calls,
     latencyMs,
   };
+  return { record, feedback: fb, emitted: emittedRaw };
 }
 
 /** 确定性抽样：每 4 个取 1，起始下标 0（不按结果挑案例）。 */
@@ -241,9 +250,9 @@ export async function runCalibration(client: DashscopeTextClient, evidence: Evid
   const runs: CaseRunRecord[] = [];
   for (const variant of ['t1s', 't1r', 't2'] as PromptVariant[]) {
     for (const c of batch) {
-      const rec = await runOne(client, variant, c, evidence, { tag: `cal-${variant}` });
-      runs.push(rec);
-      evidence.appendJsonl('calibration/runs.jsonl', [rec]);
+      const { record } = await runOne(client, variant, c, evidence, { tag: `cal-${variant}` });
+      runs.push(record);
+      evidence.appendJsonl('calibration/runs.jsonl', [record]);
     }
   }
   const summaries = {
@@ -308,7 +317,7 @@ export async function runRepresentative(
   for (const c of cases) {
     const runs: RepresentativeCaseResult['runs'] = [];
     for (let i = 1; i <= repeats; i++) {
-      const rec = await runOne(client, 't2', c, evidence, { tag: `rep-${c.id}-r${i}` });
+      const { record: rec, feedback } = await runOne(client, 't2', c, evidence, { tag: `rep-${c.id}-r${i}` });
       runs.push({
         run: i,
         outcomeKind: rec.outcomeKind,
@@ -321,6 +330,31 @@ export async function runRepresentative(
         tokens: rec.calls.reduce((a, x) => a + x.totalTokens, 0),
       });
       evidence.appendJsonl('representative/runs.jsonl', [{ caseId: c.id, ...runs[runs.length - 1]! }]);
+      // F4：把整份 Feedback 连同五维引用 text＋区间入库，让「引用 100% 可定位」可以被独立重算，
+      // 而不是只能采信脚本自报的计数（照 T1-R 链 A 的做法）。
+      const answer = c.firstAnswer;
+      evidence.writeJson(`representative/feedback/${c.id}-run${i}.json`, {
+        caseId: c.id,
+        run: i,
+        synthetic: c.synthetic,
+        questionText: c.questionText,
+        answerBasis: answer,
+        answerSha256: createHash('sha256').update(answer).digest('hex'),
+        promptVersion: PROMPT_VERSION,
+        outcomeKind: rec.outcomeKind,
+        attempts: rec.attempts,
+        contractVersionEmitted: rec.contractVersionEmitted,
+        contractVersionEffective: rec.contractVersionEffective,
+        expectedDims: c.expectedDims,
+        modelLevels: rec.levels,
+        quotes: Object.fromEntries(
+          DIMS.map((d) => {
+            const q = feedback.dimensions[d]?.quote ?? null;
+            return [d, q === null ? null : { text: q.text, start: q.start, end: q.end, turnId: q.turnId, textVersion: q.textVersion, matchType: q.matchType, level: feedback.dimensions[d]?.level ?? null, verbatimSlice: answer.slice(q.start, q.end) }];
+          }),
+        ),
+        feedback,
+      });
     }
 
     const perDimension: RepresentativeCaseResult['perDimension'] = {};

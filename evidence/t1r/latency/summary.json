@@ -747,7 +747,7 @@
     "rounds": 20
   },
   "recount": {
-    "at": "2026-09-26T16:33:22.241Z",
+    "at": "2026-09-26T17:02:37.625Z",
     "why": "F1-1：failures 原先只统计「抛异常/不合规」，把契约内降级漏掉了，与 successfulOnlyStats.n 自相矛盾。这里只重算汇总字段。",
     "samplesUnchanged": true,
     "samplesSha256Before": {

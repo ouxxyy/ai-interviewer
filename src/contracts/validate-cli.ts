@@ -33,14 +33,18 @@ try {
 
 const contractName = name as (typeof CONTRACT_NAMES)[number];
 const result = versionArg
-  ? { ...validateContractAt(contractName, versionArg as ContractVersion, data), version: versionArg as ContractVersion }
+  ? { ...validateContractAt(contractName, versionArg as ContractVersion, data), claimedVersion: versionArg, usedVersion: versionArg as ContractVersion, rejected: undefined }
   : validateContractAuto(contractName, data);
 void CONTRACT_VERSION;
+if (result.rejected === 'unrecognized_contract_version') {
+  console.error(`REJECT ${name} ${file}：contractVersion 无法识别（自报 ${JSON.stringify(result.claimedVersion)}，支持 ${SUPPORTED_CONTRACT_VERSIONS.join('/')}）`);
+  process.exit(1);
+}
 if (result.ok) {
-  console.log(`PASS ${name} ${file} (contract@${result.version})`);
+  console.log(`PASS ${name} ${file} (contract@${result.usedVersion}${result.claimedVersion !== result.usedVersion ? `, 显式指定` : ''})`);
   process.exit(0);
 } else {
-  console.error(`FAIL ${name} ${file} (contract@${result.version})`);
+  console.error(`FAIL ${name} ${file} (contract@${result.usedVersion})`);
   for (const err of result.errors) console.error(`  - ${err}`);
   process.exit(1);
 }

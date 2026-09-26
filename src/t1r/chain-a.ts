@@ -61,6 +61,8 @@ export interface CallRecord {
 /** 真实文本通道：把每次 HTTP 调用的可观测字段留在证据里（不含凭证）。 */
 export class DashscopeReviewChannel implements ReviewChannel {
   readonly calls: CallRecord[] = [];
+  /** 每次尝试里模型**原始输出**自报的 contractVersion（回填前），按 attempt 顺序。 */
+  readonly emittedContractVersions: Array<string | null> = [];
   constructor(
     private readonly client: DashscopeTextClient,
     private readonly basePrompt: string,
@@ -88,6 +90,9 @@ export class DashscopeReviewChannel implements ReviewChannel {
       enableThinking: this.opts.enableThinking ?? false,
       rawChars: res.text.length,
     });
+    const parsedRaw = extractJson(res.text);
+    const claimed = parsedRaw.ok ? (parsedRaw.value as { contractVersion?: unknown } | null)?.contractVersion : undefined;
+    this.emittedContractVersions.push(typeof claimed === 'string' ? claimed : null);
     this.opts.rawSink?.(attempt, res.text);
     return res.text;
   }

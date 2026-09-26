@@ -1,0 +1,161 @@
+{
+  "caseId": "C19",
+  "run": 1,
+  "synthetic": true,
+  "questionText": "存储成本降 35% 这个项目，你是怎么定位问题和设计方案？",
+  "answerBasis": "起因是财务季度结算时数仓存储费用同比涨了 60%，老板让我查。我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表。深挖后发现两个问题：一是生命周期策略缺失，中间表和 3 年前的冷数据都按热存储放着；二是文件格式老，一半还是 TextFile gzip。方案分两步：先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层，热数据保留 90 天。迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度。最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。",
+  "answerSha256": "5804e914e1a55365342e8403d7e09e68269bb7781d284101a9af322d2ad49446",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "起因是财务季度结算时数仓存储费用同比涨了 60%，老板让我查。我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表。深挖后发现两个问题：一是生命周期策略缺失，中间表和 3 年前的冷数据都按热存储放着；二是文件格式老，一半还是 TextFile gzip。方案分两步：先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层，热数据保留 90 天。迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度。最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。",
+      "start": 0,
+      "end": 336,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "起因是财务季度结算时数仓存储费用同比涨了 60%，老板让我查。我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表。深挖后发现两个问题：一是生命周期策略缺失，中间表和 3 年前的冷数据都按热存储放着；二是文件格式老，一半还是 TextFile gzip。方案分两步：先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层，热数据保留 90 天。迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度。最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。"
+    },
+    "specificity": {
+      "text": "发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表",
+      "start": 48,
+      "end": 85,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表"
+    },
+    "contribution": {
+      "text": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度",
+      "start": 219,
+      "end": 258,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度"
+    },
+    "resultsReflection": {
+      "text": "最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。",
+      "start": 259,
+      "end": 336,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。"
+    },
+    "structure": {
+      "text": "方案分两步",
+      "start": 155,
+      "end": 160,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "方案分两步"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "起因是财务季度结算时数仓存储费用同比涨了 60%，老板让我查。我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表。深挖后发现两个问题：一是生命周期策略缺失，中间表和 3 年前的冷数据都按热存储放着；二是文件格式老，一半还是 TextFile gzip。方案分两步：先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层，热数据保留 90 天。迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度。最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。",
+          "start": 0,
+          "end": 336,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "完整覆盖了定位问题（成本画像、根因分析）与设计方案（格式转换、分层存储、迁移策略）。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表",
+          "start": 48,
+          "end": 85,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的表数量、占比、数据类型及文件格式等细节，事例非常具体。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度",
+          "start": 219,
+          "end": 258,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确指出了个人在迁移环节的具体技术手段（Spark重写、双写校验）和执行动作。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。",
+          "start": 259,
+          "end": 336,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化的结果指标，并反思了未覆盖范围的原因及后续规划。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "方案分两步",
+          "start": 155,
+          "end": 160,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用了“起因”、“先”、“深挖后”、“方案分两步”、“最终”等连接词，逻辑清晰。"
+      }
+    },
+    "factGaps": [
+      "未说明团队规模或协作角色，仅体现个人执行",
+      "未提及成本降低后的长期维护机制或自动化监控手段"
+    ],
+    "topImprovement": "可补充说明在定位问题时，如何排除其他潜在干扰因素以确认根因的唯一性",
+    "nextFacts": [
+      "请补充在实施过程中遇到的最大技术难点及解决思路",
+      "请说明该方案对其他业务线或下游任务的影响评估过程"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}

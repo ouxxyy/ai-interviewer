@@ -1,0 +1,161 @@
+{
+  "caseId": "C01",
+  "run": 3,
+  "synthetic": true,
+  "questionText": "说说你在校内论坛负责征稿活动时，你个人做了哪些关键动作，结果如何？",
+  "answerBasis": "我负责的活动里最有代表性的是毕业季征稿。前期我先用问卷收集了 200 份同学偏好，发现情感故事类选题呼声最高，于是把主题定为毕业故事。我个人联系了 5 个院系的宣传委员帮我扩散，又自己写了 2 篇范文做冷启动。活动两周收到 143 篇投稿，比上一期增长约 80%。复盘时我发现初审通过率只有 60%，是因为投稿规则里没写清字数要求，后来我补了一份投稿指引，下一期通过率提到了 85%。我的不足是当时完全没做获奖作品的二次传播，这些内容其实可以剪成合集再发一轮。",
+  "answerSha256": "7dfeea7f5cdd5e970f0f14e585e8afa70f24be44d8c301bb3ef1ded0b4fef1c0",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "我负责的活动里最有代表性的是毕业季征稿。",
+      "start": 0,
+      "end": 20,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我负责的活动里最有代表性的是毕业季征稿。"
+    },
+    "specificity": {
+      "text": "前期我先用问卷收集了 200 份同学偏好",
+      "start": 20,
+      "end": 40,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "前期我先用问卷收集了 200 份同学偏好"
+    },
+    "contribution": {
+      "text": "我个人联系了 5 个院系的宣传委员帮我扩散",
+      "start": 67,
+      "end": 88,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我个人联系了 5 个院系的宣传委员帮我扩散"
+    },
+    "resultsReflection": {
+      "text": "复盘时我发现初审通过率只有 60%，是因为投稿规则里没写清字数要求",
+      "start": 132,
+      "end": 165,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "复盘时我发现初审通过率只有 60%，是因为投稿规则里没写清字数要求"
+    },
+    "structure": {
+      "text": "前期我先用问卷",
+      "start": 20,
+      "end": 27,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "前期我先用问卷"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我负责的活动里最有代表性的是毕业季征稿。",
+          "start": 0,
+          "end": 20,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应问题，明确指出了具体负责的校内论坛活动。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷收集了 200 份同学偏好",
+          "start": 20,
+          "end": 40,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的行动细节（问卷、数量）和背景信息，事例非常具体。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我个人联系了 5 个院系的宣传委员帮我扩散",
+          "start": 67,
+          "end": 88,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "清晰列举了个人主导的关键动作，如联系人员、撰写范文等。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "复盘时我发现初审通过率只有 60%，是因为投稿规则里没写清字数要求",
+          "start": 132,
+          "end": 165,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化结果，并基于数据进行了归因分析和改进反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷",
+          "start": 20,
+          "end": 27,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用了“前期”、“后来”等时间顺序词，叙事逻辑清晰连贯。"
+      }
+    },
+    "factGaps": [
+      "未说明团队其他成员的角色或协作情况",
+      "未提及获奖作品二次传播的具体计划或阻碍原因"
+    ],
+    "topImprovement": "补充团队协作背景以凸显个人在集体中的独特价值",
+    "nextFacts": [
+      "当时团队共有多少人，你与其他成员的分工边界是什么？",
+      "如果现在重新做这个项目，你会如何规划获奖作品的二次传播？"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}

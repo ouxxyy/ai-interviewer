@@ -110,13 +110,31 @@ export function validateContractAt(name: ContractName, version: ContractVersion,
   return run(name, version, data);
 }
 
-/** 按数据自报的 `contractVersion` 校验；无法识别时回落到当前版本。 */
-export function validateContractAuto(name: ContractName, data: unknown): ValidationResult & { version: ContractVersion } {
-  const claimed = (data as { contractVersion?: unknown } | null)?.contractVersion;
-  const version = (SUPPORTED_CONTRACT_VERSIONS as readonly string[]).includes(String(claimed))
-    ? (String(claimed) as ContractVersion)
-    : CONTRACT_VERSION;
-  return { ...run(name, version, data), version };
+export interface AutoValidationResult extends ValidationResult {
+  /** 数据自报的 contractVersion（原样回传，未做任何归一化；缺失/非字符串为 null）。 */
+  claimedVersion: string | null;
+  /** 实际用来校验的版本；被拒绝时为 null。 */
+  usedVersion: ContractVersion | null;
+  /** 非空表示**没有**执行校验，直接拒绝。 */
+  rejected?: 'unrecognized_contract_version';
+}
+
+/**
+ * 按数据自报的 `contractVersion` 校验（复核历史证据用）。
+ *
+ * **fail-closed**（F6）：自报版本认不出来就**拒绝**，不静默回落到当前版本。
+ * 回落看似无害——今天两个版本只差版本号——但哪天某个版本放松了约束（加枚举值、去 required），
+ * 回落就意味着「被篡改过版本号的数据会在最松的那版下通过」。认不出就明确拒绝，
+ * 并把 claimed / used 都摆出来，调用方分得清「声明了 0.2.0」和「声明了一串垃圾」。
+ */
+export function validateContractAuto(name: ContractName, data: unknown): AutoValidationResult {
+  const raw = (data as { contractVersion?: unknown } | null)?.contractVersion;
+  const claimedVersion = typeof raw === 'string' ? raw : null;
+  if (claimedVersion === null || !(SUPPORTED_CONTRACT_VERSIONS as readonly string[]).includes(claimedVersion)) {
+    return { ok: false, errors: [], claimedVersion, usedVersion: null, rejected: 'unrecognized_contract_version' };
+  }
+  const usedVersion = claimedVersion as ContractVersion;
+  return { ...run(name, usedVersion, data), claimedVersion, usedVersion };
 }
 
 export { CONTRACT_VERSION, SUPPORTED_CONTRACT_VERSIONS } from './version.js';

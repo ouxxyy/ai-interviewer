@@ -19,8 +19,8 @@
 | 24 案例标注规范 | ✅ 24/24 字段齐、全标合成、分布对得上 issue §7（12/12、12/12、注入 ≥3） |
 | 代表案例真实评审 ×3：引用 100% 可定位 | ✅ 4/4 案例、所有轮次均 100% |
 | 代表案例真实评审 ×3：档位不跨两档 | ✅ 4/4 案例（20 个维度×3 次，无一跨两档、无「无法判断」抖动） |
-| 代表案例真实评审 ×3：与预期一致 | ⚠️ **3/4 案例**；1 例（C19 contribution）3 次里 1 次给出相邻下档，见 §4 |
-| 提示词标定带对照 | ✅ 三版本对照跑完：`t1s` → `t1r` → `t2`，归因成立（§3） |
+| 代表案例真实评审 ×3：与预期一致 | ⚠️ **3/4 案例**；1 例（C19 contribution）在**两轮独立运行里都**出现相邻下档抖动，见 §4 |
+| 提示词标定带对照 | ✅ 三版本对照跑完，**且独立复现第二轮**：`t1s` → `t1r` → `t2` 的排序两轮一致（§3） |
 | structure 维度标尺收敛（减少重试） | ✅ 首次通过率 4/6 → 5/6，重试原因从「引用不连续」变为 0 例 |
 | 实时音色写死 `Serena` ＋ 前置断言 | ✅ 代码层强制（`assertVoice()`；`injectText()` 未断言即拒绝） |
 | 已知限制保留「评审延迟 P95 未达标」 | ✅ 保留，未因标定删除（§6） |
@@ -51,6 +51,18 @@
 **D1–D11 冻结登记**在 `docs/decisions.md`：逐条给出决策要点、实现位置、以及 T1-R 的实测回填
 （D3 已核定 `Serena`；D2 实测成立但有范围限制；D7 单价未核定）。
 
+### 1.1 收尾返工（T2 复核 F1/F2/F4/F5/F6）
+
+| 项 | 问题 | 处置 |
+| --- | --- | --- |
+| F1 | `evidence/t2/manifest.json` 的 `run-summary.json` 条目是**过期值**（记 611 B，实际 18,658 B）——manifest 在最后一次写 run-summary **之前**生成 | 生成顺序改为「run-summary 先落盘 → manifest 最后生成」，并在生成后立刻逐条核对、把结果写进 manifest（`verifiedAgainstDisk`）。现为 17 条全对 |
+| F2 | `evidence/t1r/run-summary.json` 同时留着新的 `latencyFailures` 对象与旧的标量 `latency.*.failures`，同文件自相矛盾 | `latency:recount` 顺手把该投影回写成新对象（记录 `projectionRewritten`）；并加纪律测试断言两者必须一致 |
+| F4 | 代表案例 12 次评审只存了计数，「引用 100% 可定位」无法独立重算 | 12 份完整 Feedback ＋五维引用 text／区间／`verbatimSlice` ＋回答基准 sha256 入库 `representative/feedback/` |
+| F5 | `contractVersionSeen` 记的是**回填后**的值，读者会以为 t1s 基线也吐 0.2.0 | 拆成 `contractVersionEmitted`（模型原始自报，实测 t1s/t1r 都是 `0.1.0`）与 `contractVersionEffective`（回填后、真正参与校验的） |
+| F6 | `validateContractAuto()` 认不出自报版本时**静默回落**当前版本 | 改为 **fail-closed**：返回 `claimedVersion` + `usedVersion`，认不出即 `rejected: 'unrecognized_contract_version'`、不执行校验。单测覆盖 `9.9.9`／`v0.2.0`／`"0.1.0 "`／空串／数字／null／缺失七种自报值 |
+
+**F3（C01 标注的自我评分影响）**不在本轮修，已写进 §4.1 与 §6-10c，交 T4 盲标。
+
 ## 2. 三入口共用规则文本
 
 - 唯一源 `src/rules/rules.ts`：五维定义、四档、流程规则、评审红线、引用契约。
@@ -79,13 +91,23 @@ src/t1r/calibration/prompts-t1s.ts blob b72f9c918a9d == 71d1cc8:src/prompts/prom
 src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prompts.ts
 ```
 
-**三组结果（同一批案例、同一批参数、真实模型 `qwen3.8-flash`）**：
+**三组结果（同一批案例、同一批参数、真实模型 `qwen3.8-flash`）**。
+T2 首轮交付只跑了一遍；**收尾时用同一批案例、同一批提示词独立复现了第二轮**（T3 前重跑，两轮都是真实调用）：
 
-| 变体 | 提示词版本 | 交付层 ok | 降级 | **首次通过** | 引用可定位 | 重试原因 | 单次 P50 | 总 tokens |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `t1s` | `prompts@0.1.0-t1s`（T1-S 原版） | 5/6 | **1** | **0/6（0%）** | 24/24 | `quote_not_locatable` ×7 | 25,355 ms | 23,566 |
-| `t1r` | `prompts@0.1.0-t1r`（T1-R 版） | 6/6 | 0 | 4/6（67%） | 29/29 | `quote_not_locatable` ×2 | 15,260 ms | 19,704 |
-| `t2` | `prompts@0.2.0`（**T2 标定版**） | 6/6 | 0 | **5/6（83%）** | 29/29 | `schema_error` ×1 | **11,148 ms** | **17,034** |
+| 变体 | 提示词版本 | 轮次 | 交付层 ok | 降级 | **首次通过** | 引用可定位 | 重试原因 | 单次 P50 | 总 tokens |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `t1s` | `prompts@0.1.0-t1s`（T1-S 原版） | 第 1 轮 | 5/6 | **1** | **0/6（0%）** | 24/24 | `quote_not_locatable` ×7 | 25,355 ms | 23,566 |
+| `t1s` | 同上 | 第 2 轮 | 5/6 | **1** | 1/6（17%） | 24/24 | `quote_not_locatable` ×5、`schema_error` ×1 | 26,488 ms | 22,202 |
+| `t1r` | `prompts@0.1.0-t1r`（T1-R 版） | 第 1 轮 | 6/6 | 0 | 4/6（67%） | 29/29 | `quote_not_locatable` ×2 | 15,260 ms | 19,704 |
+| `t1r` | 同上 | 第 2 轮 | 6/6 | 0 | 3/6（50%） | 29/29 | `quote_not_locatable` ×3 | 12,927 ms | 22,204 |
+| `t2` | `prompts@0.2.0`（**T2 标定版**） | 第 1 轮 | 6/6 | 0 | **5/6（83%）** | 29/29 | `schema_error` ×1 | 11,148 ms | 17,034 |
+| `t2` | 同上 | 第 2 轮 | 6/6 | 0 | **6/6（100%）** | 29/29 | 无 | **10,214 ms** | **14,626** |
+| **合计** | | **两轮 12 次/变体** | | | `t1s` **1/12**、`t1r` **7/12**、`t2` **11/12** | 三组均 100% | | | |
+
+**两轮之间数字有波动，这是模型随机性，不是记录不实**：单轮 6 个案例的样本量不足以给出精确点值。
+但**排序在两轮里完全一致**（`t1s` < `t1r` < `t2`），两轮合并后 `1/12 → 7/12 → 11/12` 的差距远超单轮波动。
+所以「引用连续性规则拿到主要提升、structure 标尺收敛再拿一档」这个归因是稳的；
+**具体百分比请按两轮合并看，不要引用单轮的点值**。
 
 **归因结论（有对照，不是自洽推断）**：
 
@@ -96,9 +118,14 @@ src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prom
 3. **T2 的 structure 标尺收敛再拿到一档**：首次通过 67% → 83%，
    **`quote_not_locatable` 重试归零**（唯一一次重试是 `schema_error`），
    单次 P50 11.1 s、token 17.0k——都比 T1-R 低。
-4. 三组的**交付层引用可定位率都是 100%**（24/24、29/29、29/29）。
-   `t1s` 的分母小是因为它有一个案例整份降级（降级对象不含任何等级与引用），
+4. 三组的**交付层引用可定位率都是 100%**（两轮、六组都是）。
+   `t1s` 的分母小（24/24）是因为它每轮都有一个案例整份降级（降级对象不含任何等级与引用），
    不是它更准。
+5. **公平性说明（F5 订正）**：三个变体都跑了 T1-R 引入的应用层元数据回填，所以 `t1s` 记录里的
+   `contractVersionEffective` 是 `0.2.0`——**那不是模型写的**。每行同时记了
+   `contractVersionEmitted`（模型原始输出自报，`t1s`/`t1r` 实测都是 `0.1.0`）与
+   `contractVersionEffective`（回填后、真正参与校验的）。统一回填是对的（否则冻结基线会因为
+   与尺子无关的版本号字符串被扣分），但两个值必须分开看。
 
 ### 3.1 structure 维度标尺收敛（本轮唯一的标尺改动）
 
@@ -133,7 +160,16 @@ src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prom
   判据是标尺正文，不是模型输出。
 - 处置：`cases.json` 的 `expectedDims.structure` 改为 `充分清楚`，并在该案例上加
   `annotationAudit` 字段留痕（旧值、理由、依据）。案例库版本升 `cases@0.2.0`。
-  改后重测 C01 ×3：spread 全 0、与预期一致、引用 100%。
+  改后重测 C01 ×3：spread 全 0、与预期一致、引用 100%（两轮均如此）。
+
+**这条订正对「与预期一致」这个数字的影响，必须写明（T2 复核 F3）**：
+若 C01 的 structure 维持原标注 `部分清楚`，那么「与预期一致」是 **2/4**，不是 3/4——掉一半。
+而这次标注是在**看过模型输出之后**改的，所以 **3/4 这个数里含自我评分的成分**。
+`annotationAudit` 留了痕、也给了不依赖模型输出的判据（`docs/rules.md` 的 structure 正文），
+但「我先看了模型答案、再去核对标尺」这个顺序本身消不掉。
+**处置（已与 lead 对齐，归 T4）**：由 T4 拿 `docs/rules.md` 正文、**不看模型输出**地
+对 T2 用到的 10 个案例（代表 4 ＋ 标定 6）做一次盲标，再回来核「与预期一致」。
+在那之前，**3/4 只能当作下含自我评分的下界参考，不能当作独立的准确率证据**。
 
 ### 4.2 C19 contribution：**未解决**，如实留作开放项
 
@@ -154,8 +190,10 @@ src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prom
 
 ## 5. 证据清单
 
-入库 `evidence/t2/`（5 个产物，`manifest.json` 逐条带 sha256，可由
-`node dist/src/t2/run.js manifest` 从磁盘重建）：
+入库 `evidence/t2/`（**实测 17 个产物**；`manifest.json` 的 17/17 条都带 sha256，
+且文件内记录了生成后的逐条核对结果 `verifiedAgainstDisk`，实测 `mismatches: []`）。
+`npm test` 里有一条纪律测试会对每份 manifest 重算一遍字节数与 sha256——
+**「manifest 与磁盘一致」从此不是我说的话，是每次跑测试都会验的事**：
 
 | 文件 | 内容 |
 | --- | --- |
@@ -163,7 +201,8 @@ src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prom
 | `calibration/runs.jsonl` | 18 次真实评审的逐次记录（档位、引用复核、重试原因、延迟、token） |
 | `representative/summary.json` | 4 案例 ×3 次的逐维档位、spread、与预期比对、引用复核 |
 | `representative/runs.jsonl` | 12 次真实评审的逐次记录 |
-| `run-summary.json` | T2 汇总（版本号、`rulesDigest`、两组结果、manifest 摘要） |
+| `representative/feedback/<案例>-run<n>.json` | **F4 新增**：12 份完整 Feedback ＋五维引用的 `text`／`start`／`end`／`verbatimSlice` ＋回答基准与它的 sha256。「引用 100% 可定位」现在可以被独立重算，不必采信脚本计数 |
+| `run-summary.json` | T2 汇总（版本号、`rulesDigest`、两组结果） |
 
 原始模型输出（未入库，gitignore）在 `data/t2/raw/`，每条对应一次调用。
 
@@ -181,8 +220,35 @@ src/t1r/calibration/prompts-t1r.ts blob f1624c2216ea == 4079d2b:src/prompts/prom
 | 8 | D7 单场成本金额 | 未核定 | 与 T1-R 相同：官方定价页在本沙箱不可达，只给用量与公式 |
 | 9 | D8 Skill 产物 / D9 演示材料与水印 | 未实现 | 属 T3 |
 | 10 | structure 标尺改动的红队复测 | **待 T4** | 本轮改了尺子（`rules@0.2.0`），按红线必须交 T4 复测，本轮不自我背书 |
+| 10b | 代表案例引用明细**能否**被独立重算 | **已闭合（F4）** | 12 份 Feedback 连同五维引用的 text／区间／`verbatimSlice` 入库（`representative/feedback/`）。仍不可复算的是**原始模型输出**——它在 `data/t2/raw/`（gitignore），要逐字节复现需重跑调用 |
+| 10c | 「与预期一致 3/4」含自我评分 | **待 T4 盲标** | C01 的标注是看过模型输出后改的；若维持原值该指标为 2/4。T4 需拿 `docs/rules.md` 正文对 10 个案例做不看模型输出的盲标（见 §4.1） |
+| 10d | 标定单轮点值不可外推 | **如实标注** | 两轮同批案例的首次通过率有波动（`t2` 83% / 100%）；**排序两轮一致**，但具体百分比请按两轮合并看（§3） |
 
-## 7. 给下一阶段的结论
+## 7. 声明 → 机器检查对照表（纪律）
+
+本轮返工的**病根是「声称已核对、但产物不符」**（manifest 过期条目、run-summary 双口径）。
+只修那两处不够——所以把本文件里每一条「已验证／已核对／一致」都挂到一个**每次 `npm test` 都会跑**
+的检查上。下面这张表就是清单；**表里没有机器检查的声明，就不该出现在本文件里**。
+
+| 声明 | 背后跑什么 |
+| --- | --- |
+| 「evidence 下的 manifest 与磁盘逐条一致」 | `test/evidence-manifest.test.ts`：对每份 manifest 重算字节数＋sha256，不符即红 |
+| 「manifest 自己记的核对结果是真的」 | 同一测试：比对 `verifiedAgainstDisk` 与实际复核结果 |
+| 「run-summary 不再有新旧两种 failures 口径」 | 同一测试：断言 `latency.*.failures` 必须等于 `latencyFailures.*` |
+| 「产物里无本机绝对路径」 | 同一测试：扫 `evidence/`、`docs/`、README、AGENTS |
+| 「产物里无凭证值／`sk-*`」 | 同一测试：扫同一批文件 |
+| 「契约 0.2.0 与 0.1.0 只差版本号」 | `validate.ts` 加载时断言 ＋ `test/t2-contract.test.ts` |
+| 「版本号不是摆设（0.1.0 对象在 0.2.0 校验器下必须失败）」 | `test/t2-contract.test.ts` 反向断言 |
+| 「认不出的自报版本被拒绝，不静默回落」 | `test/t2-contract.test.ts` 的 F6 用例（7 种自报值） |
+| 「T1 期真实证据在 0.1.0 下仍可校验」 | `test/t2-contract.test.ts` 读真实 `evidence/t1r/chain-a/*` |
+| 「`docs/rules.md` 与 `src/rules/rules.ts` 逐字一致」 | `test/t2-contract.test.ts`（手改产物或改源不重跑都会红） |
+| 「24 案例规范齐、分布对得上 issue §7」 | `test/t2-contract.test.ts` |
+| 「标定抽样是确定性的、不按结果挑」 | `test/t2-contract.test.ts` 断言批次恰为 C01/C05/C09/C13/C17/C21 |
+| 「对照基线是那个 revision 的逐字副本」 | `test/t2-contract.test.ts` 跑 `git hash-object` vs `git rev-parse` |
+| 「代表案例 12 次评审的引用可独立重算」 | 引用明细入库；**重算动作由复核者做**，本轮只保证「数据够算」 |
+| 「三版本对照的两轮排序一致」 | 两轮原始记录都在 `calibration/runs.jsonl`（第 2 轮覆盖式重跑，历史轮次见 git） |
+
+## 8. 给下一阶段的结论
 
 - **T2 的硬指标**：契约定稿＋双版本可校验、规则文本单源可核对、24 案例规范齐、
   代表案例引用 100% 可定位、档位不跨两档 —— 都达成。

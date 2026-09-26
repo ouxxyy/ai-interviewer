@@ -203,8 +203,31 @@ async function main(): Promise<void> {
       samplesSha256After: after,
     };
     writer.writeJson('latency/summary.json', doc);
+    const failures = { realtime: (doc.realtime as { failures: unknown }).failures, review: (doc.review as { failures: unknown }).failures };
     summary.recount = doc.recount;
-    summary.latencyFailures = { realtime: (doc.realtime as { failures: unknown }).failures, review: (doc.review as { failures: unknown }).failures };
+    summary.latencyFailures = failures;
+
+    // F2：run-summary.json 里 `latency.*.failures` 是旧标量（recount 之前的口径），
+    // 与新的 latencyFailures 对象同处一文件却互相矛盾。这里顺手把投影回写成新对象，
+    // 让「全量运行汇总」不再自相矛盾。
+    const projectionPath = path.join(EVIDENCE_DIR, 'run-summary.json');
+    if (existsSync(projectionPath)) {
+      const projected = JSON.parse(readFileSync(projectionPath, 'utf8')) as Record<string, unknown>;
+      const latency = projected.latency as Record<string, { failures?: unknown }> | undefined;
+      const rewrote: string[] = [];
+      for (const leg of ['realtime', 'review'] as const) {
+        if (latency?.[leg] && JSON.stringify(latency[leg]!.failures) !== JSON.stringify((failures as Record<string, unknown>)[leg])) {
+          latency[leg]!.failures = (failures as Record<string, unknown>)[leg];
+          rewrote.push(leg);
+        }
+      }
+      if (latency) {
+        projected.latencyFailures = failures;
+        projected.recount = { ...(projected.recount as Record<string, unknown> | undefined), projectionRewritten: rewrote, at: new Date().toISOString() };
+        writer.writeJson('run-summary.json', projected);
+      }
+      summary.projectionRewritten = rewrote;
+    }
   }
 
   if (cmd === 'manifest:refresh') {

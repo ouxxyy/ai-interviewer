@@ -1,0 +1,161 @@
+{
+  "caseId": "C13",
+  "run": 1,
+  "synthetic": true,
+  "questionText": "说说付费转化率从 2.1% 提到 2.8% 这个项目里你的关键动作。",
+  "answerBasis": "这个项目我全程负责。我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。两个月后转化率从 2.1% 到 2.8%。复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+  "answerSha256": "ec63dedaa158bcc4b4fc22a5e598801bc302debede0688894b2a8297154065e5",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。",
+      "start": 51,
+      "end": 193,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。"
+    },
+    "specificity": {
+      "text": "试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。",
+      "start": 17,
+      "end": 51,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。"
+    },
+    "contribution": {
+      "text": "这个项目我全程负责。",
+      "start": 0,
+      "end": 10,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "这个项目我全程负责。"
+    },
+    "resultsReflection": {
+      "text": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+      "start": 214,
+      "end": 278,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。"
+    },
+    "structure": {
+      "text": "我做了三件事：第一，",
+      "start": 51,
+      "end": 61,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我做了三件事：第一，"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。",
+          "start": 51,
+          "end": 193,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "详细列举了针对转化率提升的三个具体关键动作。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。",
+          "start": 17,
+          "end": 51,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的时间窗口、数据分布及执行细节。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这个项目我全程负责。",
+          "start": 0,
+          "end": 10,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确声明全程负责，并描述了主导的具体行动。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+          "start": 214,
+          "end": 278,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了结果数据，并反思了副作用及后续补救措施。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做了三件事：第一，",
+          "start": 51,
+          "end": 61,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用序数词清晰划分了三个主要动作，逻辑层次分明。"
+      }
+    },
+    "factGaps": [
+      "未说明团队规模或协作方角色（如技术、销售的具体配合程度）",
+      "未提及除转化率外的其他核心指标变化（如客单价、LTV等）"
+    ],
+    "topImprovement": "可补充说明在推动跨部门协作（如与技术排期、销售培训）中遇到的具体阻力及解决策略，以体现影响力。",
+    "nextFacts": [
+      "请补充该项目涉及的销售团队人数或技术资源投入情况。",
+      "请说明除了转化率外，该举措对营收或利润的具体影响数据。"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}

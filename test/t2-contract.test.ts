@@ -68,7 +68,24 @@ test('契约双版本：0.2.0 对象在 0.1.0 校验器下必须失败（版本�
   const legacy = { ...fb, contractVersion: '0.1.0' };
   assert.equal(validateContractAt('feedback', '0.1.0', legacy).ok, true);
   assert.equal(validateContract('feedback', legacy).ok, false, '0.1.0 的对象不该被当前校验器接受');
-  assert.equal(validateContractAuto('feedback', legacy).version, '0.1.0');
+  const auto = validateContractAuto('feedback', legacy);
+  assert.equal(auto.usedVersion, '0.1.0');
+  assert.equal(auto.claimedVersion, '0.1.0');
+});
+
+test('F6 fail-closed：自报版本认不出来就拒绝，绝不静默回落到当前版本', () => {
+  const base = { questionId: 'q1', reviewBasis: { turnIds: ['t1'], textVersion: 'raw' }, dimensions: {}, factGaps: [], topImprovement: 'x', nextFacts: ['y'], reviewVersion: 'v' };
+  for (const claimed of ['9.9.9', 'v0.2.0', '0.1.0 ', '', 1, null, undefined]) {
+    const res = validateContractAuto('feedback', { ...base, contractVersion: claimed });
+    assert.equal(res.rejected, 'unrecognized_contract_version', `自报 ${JSON.stringify(claimed)} 必须被拒绝`);
+    assert.equal(res.ok, false);
+    assert.equal(res.usedVersion, null, '被拒绝时不得声称用某个版本校验过');
+  }
+  // 认得出的版本正常走
+  const good = validateContractAuto('feedback', { ...base, contractVersion: '0.2.0' });
+  assert.equal(good.rejected, undefined);
+  assert.equal(good.usedVersion, '0.2.0');
+  assert.equal(good.claimedVersion, '0.2.0');
 });
 
 test('T1 期真实证据在 0.1.0 校验器下仍可校验（升版不能让历史证据失效）', () => {
@@ -76,13 +93,13 @@ test('T1 期真实证据在 0.1.0 校验器下仍可校验（升版不能让历�
   const plan = JSON.parse(readFileSync(path.join(dir, 'question-plan.json'), 'utf8')) as { contractVersion: string };
   assert.equal(plan.contractVersion, '0.1.0');
   const planResult = validateContractAuto('question-plan', plan);
-  assert.equal(planResult.version, '0.1.0');
+  assert.equal(planResult.usedVersion, '0.1.0');
   assert.equal(planResult.ok, true, `T1 QuestionPlan 应在 0.1.0 下通过：${planResult.errors.join('; ')}`);
 
   for (const id of ['C01', 'C02', 'C03', 'C15', 'C19']) {
     const doc = JSON.parse(readFileSync(path.join(dir, `feedback-${id}.json`), 'utf8')) as { feedback: { contractVersion: string } };
     const res = validateContractAuto('feedback', doc.feedback);
-    assert.equal(res.version, '0.1.0');
+    assert.equal(res.usedVersion, '0.1.0');
     assert.equal(res.ok, true, `T1 Feedback ${id} 应在 0.1.0 下通过：${res.errors.join('; ')}`);
   }
 });

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T16:33:22.242Z",
+  "generatedAt": "2026-09-26T17:02:37.627Z",
   "artifacts": [
     {
       "path": "evidence/t1r/models/catalog.json",
@@ -196,14 +196,14 @@
       "path": "evidence/t1r/latency/summary.json",
       "kind": "json",
       "bytes": 20931,
-      "sha256": "b6800290270f4a2886f95e25d117ec59eb68296a8b61a4fd497875cab33cd6a2",
+      "sha256": "4f47db2ec17fdfcfcf00791f8ff4a015b38b05fa8204d5f5c8dc87ec26b266b4",
       "committed": true
     },
     {
       "path": "evidence/t1r/run-summary.json",
       "kind": "json",
-      "bytes": 36878,
-      "sha256": "25447f719193947f947cce7f02fca908486bc516146f6076179c4dd386577380",
+      "bytes": 37049,
+      "sha256": "66af0726c195a1ade5d1d673919734c04e39f9cd580a6dce74bfffbd5928b694",
       "committed": true
     },
     {
@@ -216,7 +216,7 @@
   ],
   "notes": [
     {
-      "at": "2026-09-26T16:33:22.239Z",
+      "at": "2026-09-26T17:02:37.619Z",
       "key": "env",
       "value": {
         "dotenvPath": ".env",

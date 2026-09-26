@@ -11,7 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { DashscopeTextClient, DASHSCOPE_DEFAULTS } from '../clients/dashscope.js';
 import { REPO_ROOT, credentialStatus, loadDotEnv, requireCredential } from '../t1r/env.js';
-import { EVIDENCE_T2_DIR, DATA_T2_DIR, EvidenceWriter, writeManifestFromDir } from '../t1r/evidence.js';
+import { EVIDENCE_T2_DIR, DATA_T2_DIR, EvidenceWriter, verifyManifest, writeManifestFromDir } from '../t1r/evidence.js';
 import { RULES_VERSION, rulesDigest, rulesMarkdown } from '../rules/rules.js';
 import { CONTRACT_VERSION, SUPPORTED_CONTRACT_VERSIONS } from '../contracts/version.js';
 import { PROMPT_VERSION } from '../prompts/prompts.js';
@@ -88,9 +88,19 @@ async function main(): Promise<void> {
   };
   pull('calibration/summary.json', 'calibration', (d) => ({ batch: d.batch, selectionRule: d.selectionRule, baselineProvenance: d.baselineProvenance, summaries: d.summaries }));
   pull('representative/summary.json', 'representative', (d) => ({ repeats: d.repeats, verdict: d.verdict, cases: d.cases }));
-  const manifestRel = path.join('evidence', 't2', 'manifest.json');
-  rollup.manifest = writeManifestFromDir(EVIDENCE_T2_DIR, path.join(REPO_ROOT, manifestRel), [manifestRel]);
+  // 顺序很重要：run-summary 先落盘，manifest 最后生成——manifest 记的是别的产物的摘要，
+  // 先写就会把过期的大小/哈希记进去（F1 就是这么来的）。manifest 里不含 run-summary 的自述。
   writer.writeJson('run-summary.json', rollup);
+  const manifestRel = path.join('evidence', 't2', 'manifest.json');
+  const manifestAbs = path.join(REPO_ROOT, manifestRel);
+  writeManifestFromDir(EVIDENCE_T2_DIR, manifestAbs, [manifestRel]);
+  // 生成后立刻逐条核对，把结果写进 manifest 自己：声称「已核对」必须留下可复核的痕迹。
+  const verified = verifyManifest(manifestAbs);
+  const withCheck = JSON.parse(readFileSync(manifestAbs, 'utf8')) as Record<string, unknown>;
+  withCheck.verifiedAt = new Date().toISOString();
+  withCheck.verifiedAgainstDisk = { total: verified.total, mismatches: verified.mismatches };
+  writeFileSync(manifestAbs, `${JSON.stringify(withCheck, null, 2)}\n`);
+  if (verified.mismatches.length > 0) throw new Error(`manifest 与磁盘不符：${JSON.stringify(verified.mismatches)}`);
   console.log(JSON.stringify({ ok: true, command: cmd, keys: Object.keys(summary) }, null, 2));
 }
 

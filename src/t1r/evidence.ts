@@ -164,6 +164,29 @@ export function writeManifestFromDir(dir: string, manifestPath: string, excluded
   return { total: rows.length, bytes: rows.reduce((a, r) => a + r.bytes, 0) };
 }
 
+/**
+ * 逐条核对 manifest 与磁盘：把「manifest 已核对」从口头声明变成机器检查。
+ * 返回不符项清单——空数组才代表真的对得上。
+ */
+export function verifyManifest(manifestPath: string): { total: number; mismatches: Array<{ path: string; reason: string }> } {
+  const mismatches: Array<{ path: string; reason: string }> = [];
+  if (!existsSync(manifestPath)) return { total: 0, mismatches: [{ path: manifestPath, reason: 'manifest 不存在' }] };
+  const parsed = JSON.parse(readFileSync(manifestPath, 'utf8')) as { artifacts?: ArtifactRecord[] };
+  const rows = parsed.artifacts ?? [];
+  for (const a of rows) {
+    const full = path.resolve(REPO_ROOT, a.path);
+    if (!existsSync(full)) {
+      mismatches.push({ path: a.path, reason: '磁盘上不存在' });
+      continue;
+    }
+    const bytes = statSync(full).size;
+    if (bytes !== a.bytes) mismatches.push({ path: a.path, reason: `字节数记录 ${a.bytes} 实际 ${bytes}` });
+    const sha = fileSha256(full);
+    if (sha !== a.sha256) mismatches.push({ path: a.path, reason: `sha256 记录 ${String(a.sha256).slice(0, 12)} 实际 ${sha.slice(0, 12)}` });
+  }
+  return { total: rows.length, mismatches };
+}
+
 /** 目录清单：用于验收记录里「data/ 下这些原始音频存在」的可核对证据。 */
 export function listDir(dir: string): Array<{ name: string; bytes: number }> {
   if (!existsSync(dir)) return [];

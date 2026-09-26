@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-26T16:49:02.827Z",
-  "command": "manifest",
+  "startedAt": "2026-09-26T17:02:41.551Z",
+  "command": "all",
   "versions": {
     "contract": "0.2.0",
     "supportedContracts": [
@@ -92,23 +92,24 @@
         "runs": 6,
         "ok": 5,
         "degraded": 1,
-        "firstAttemptOk": 0,
-        "firstAttemptRate": 0,
+        "firstAttemptOk": 1,
+        "firstAttemptRate": 0.167,
         "quotesLocated": 24,
         "quotesTotal": 24,
         "quoteLocateRate": 1,
         "retryCauses": {
-          "quote_not_locatable": 7
+          "quote_not_locatable": 5,
+          "schema_error": 1
         },
         "latencyMs": {
           "n": 6,
-          "min": 19340,
-          "p50": 25355,
-          "p95": 32490,
-          "max": 32490,
-          "mean": 26206.2
+          "min": 8909,
+          "p50": 26488,
+          "p95": 32023,
+          "max": 32023,
+          "mean": 24198.2
         },
-        "totalTokens": 23566,
+        "totalTokens": 22202,
         "structureDegraded": 0
       },
       "t1r": {
@@ -117,23 +118,23 @@
         "runs": 6,
         "ok": 6,
         "degraded": 0,
-        "firstAttemptOk": 4,
-        "firstAttemptRate": 0.667,
+        "firstAttemptOk": 3,
+        "firstAttemptRate": 0.5,
         "quotesLocated": 29,
         "quotesTotal": 29,
         "quoteLocateRate": 1,
         "retryCauses": {
-          "quote_not_locatable": 2
+          "quote_not_locatable": 3
         },
         "latencyMs": {
           "n": 6,
-          "min": 12293,
-          "p50": 15260,
-          "p95": 28776,
-          "max": 28776,
-          "mean": 18208.8
+          "min": 8484,
+          "p50": 12927,
+          "p95": 28281,
+          "max": 28281,
+          "mean": 17363.3
         },
-        "totalTokens": 19704,
+        "totalTokens": 22204,
         "structureDegraded": 0
       },
       "t2": {
@@ -142,23 +143,21 @@
         "runs": 6,
         "ok": 6,
         "degraded": 0,
-        "firstAttemptOk": 5,
-        "firstAttemptRate": 0.833,
+        "firstAttemptOk": 6,
+        "firstAttemptRate": 1,
         "quotesLocated": 29,
         "quotesTotal": 29,
         "quoteLocateRate": 1,
-        "retryCauses": {
-          "schema_error": 1
-        },
+        "retryCauses": {},
         "latencyMs": {
           "n": 6,
-          "min": 9489,
-          "p50": 11148,
-          "p95": 22016,
-          "max": 22016,
-          "mean": 12831.5
+          "min": 8659,
+          "p50": 10214,
+          "p95": 14480,
+          "max": 14480,
+          "mean": 11505.2
         },
-        "totalTokens": 17034,
+        "totalTokens": 14626,
         "structureDegraded": 0
       }
     }
@@ -199,8 +198,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 13692,
-            "tokens": 2580
+            "latencyMs": 12205,
+            "tokens": 2375
           },
           {
             "run": 2,
@@ -216,8 +215,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 10128,
-            "tokens": 2482
+            "latencyMs": 11934,
+            "tokens": 2398
           },
           {
             "run": 3,
@@ -233,8 +232,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 13085,
-            "tokens": 2438
+            "latencyMs": 11820,
+            "tokens": 2411
           }
         ],
         "perDimension": {
@@ -325,8 +324,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 12047,
-            "tokens": 2379
+            "latencyMs": 8791,
+            "tokens": 2427
           },
           {
             "run": 2,
@@ -342,8 +341,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 14229,
-            "tokens": 2401
+            "latencyMs": 9309,
+            "tokens": 2426
           },
           {
             "run": 3,
@@ -359,8 +358,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 13375,
-            "tokens": 2615
+            "latencyMs": 7673,
+            "tokens": 2429
           }
         ],
         "perDimension": {
@@ -451,8 +450,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 14110,
-            "tokens": 2564
+            "latencyMs": 12423,
+            "tokens": 2578
           },
           {
             "run": 2,
@@ -468,8 +467,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 13169,
-            "tokens": 2568
+            "latencyMs": 13733,
+            "tokens": 2576
           },
           {
             "run": 3,
@@ -485,8 +484,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 15969,
-            "tokens": 2568
+            "latencyMs": 14378,
+            "tokens": 2617
           }
         ],
         "perDimension": {
@@ -570,15 +569,15 @@
             "levels": {
               "relevance": "充分清楚",
               "specificity": "充分清楚",
-              "contribution": "部分清楚",
+              "contribution": "充分清楚",
               "resultsReflection": "充分清楚",
               "structure": "充分清楚"
             },
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 8807,
-            "tokens": 2514
+            "latencyMs": 11667,
+            "tokens": 2761
           },
           {
             "run": 2,
@@ -587,15 +586,15 @@
             "levels": {
               "relevance": "充分清楚",
               "specificity": "充分清楚",
-              "contribution": "充分清楚",
+              "contribution": "部分清楚",
               "resultsReflection": "充分清楚",
               "structure": "充分清楚"
             },
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 11945,
-            "tokens": 2766
+            "latencyMs": 10775,
+            "tokens": 2544
           },
           {
             "run": 3,
@@ -611,8 +610,8 @@
             "quotesTotal": 5,
             "quotesLocated": 5,
             "quoteFailures": [],
-            "latencyMs": 8608,
-            "tokens": 2486
+            "latencyMs": 9007,
+            "tokens": 2499
           }
         ],
         "perDimension": {
@@ -640,8 +639,8 @@
           },
           "contribution": {
             "levels": [
-              "部分清楚",
               "充分清楚",
+              "部分清楚",
               "充分清楚"
             ],
             "spread": 1,
@@ -677,5 +676,11 @@
         "quotesAllLocated": true
       }
     ]
-  }
+  },
+  "rulesWritten": {
+    "target": "docs/rules.md",
+    "version": "rules@0.2.0",
+    "digest": "8795410eb4fe98cb6c58067644040838625f17ce4690b97dfef981d74326fa54"
+  },
+  "textModel": "qwen3.8-flash"
 }

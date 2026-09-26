@@ -1,0 +1,162 @@
+{
+  "caseId": "C13",
+  "run": 3,
+  "synthetic": true,
+  "questionText": "说说付费转化率从 2.1% 提到 2.8% 这个项目里你的关键动作。",
+  "answerBasis": "这个项目我全程负责。我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。两个月后转化率从 2.1% 到 2.8%。复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+  "answerSha256": "ec63dedaa158bcc4b4fc22a5e598801bc302debede0688894b2a8297154065e5",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。",
+      "start": 51,
+      "end": 193,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。"
+    },
+    "specificity": {
+      "text": "把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户",
+      "start": 115,
+      "end": 157,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户"
+    },
+    "contribution": {
+      "text": "我全程负责。我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。",
+      "start": 4,
+      "end": 51,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我全程负责。我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。"
+    },
+    "resultsReflection": {
+      "text": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+      "start": 214,
+      "end": 278,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。"
+    },
+    "structure": {
+      "text": "我做了三件事：第一，",
+      "start": 51,
+      "end": 61,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我做了三件事：第一，"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。",
+          "start": 51,
+          "end": 193,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接列举了三个针对转化率提升的具体关键动作，完全切题。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户",
+          "start": 115,
+          "end": 157,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "对策略调整的描述非常具体，包含分类逻辑和对应目的，细节丰富。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我全程负责。我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。",
+          "start": 4,
+          "end": 51,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确声明全程负责，并展示了从数据分析到确定主攻点的个人主导过程。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+          "start": 214,
+          "end": 278,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了具体数据结果，并深刻反思了副作用及后续补救措施，闭环完整。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我做了三件事：第一，",
+          "start": 51,
+          "end": 61,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用了清晰的序数词标记，整体遵循背景-行动-结果-反思的逻辑结构。"
+      }
+    },
+    "factGaps": [
+      "未说明‘试听评分’的具体定义或数据来源",
+      "未提及项目团队规模或协作方的具体角色（除技术和销售外）",
+      "未说明‘个性化反馈’话术的具体内容示例"
+    ],
+    "topImprovement": "可以补充一个具体的‘个性化反馈’话术案例，以增强说服力。",
+    "nextFacts": [
+      "提供一条具体的个性化反馈话术示例",
+      "说明试听评分是基于哪些维度计算的"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}

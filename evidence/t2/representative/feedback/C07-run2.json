@@ -1,0 +1,161 @@
+{
+  "caseId": "C07",
+  "run": 2,
+  "synthetic": true,
+  "questionText": "说说评论情感分析项目里你个人负责的部分和遇到的困难。",
+  "answerBasis": "这个项目三个人一组，我负责数据清洗和特征工程。原始评论有 5 万条，我先用正则去掉了无意义的符号和表情，发现还有约 8% 是系统自动回复，我用规则加人工抽检把它们剔除了。困难是中文分词对新型网络词效果差，比如“绝绝子”被切开导致情感判断错误。我的解决办法是人工标注了 500 条错分样本，统计高频错分词，加进自定义词典后准确率从 81% 提到 87%。这个提升是我用留出集测的，避免用训练数据自评。反思是我当时只调了词典没有尝试预训练模型，后来课程复盘才知道还有更好的方案。",
+  "answerSha256": "5d1f36e6bdcbe41f50aa0b95837135b56b818bc478692f3f848d3e5b736eebfb",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "这个项目三个人一组，我负责数据清洗和特征工程。",
+      "start": 0,
+      "end": 23,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "这个项目三个人一组，我负责数据清洗和特征工程。"
+    },
+    "specificity": {
+      "text": "比如“绝绝子”被切开导致情感判断错误。",
+      "start": 102,
+      "end": 121,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "比如“绝绝子”被切开导致情感判断错误。"
+    },
+    "contribution": {
+      "text": "我的解决办法是人工标注了 500 条错分样本",
+      "start": 121,
+      "end": 143,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我的解决办法是人工标注了 500 条错分样本"
+    },
+    "resultsReflection": {
+      "text": "反思是我当时只调了词典没有尝试预训练模型",
+      "start": 199,
+      "end": 219,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "反思是我当时只调了词典没有尝试预训练模型"
+    },
+    "structure": {
+      "text": "困难是中文分词对新型网络词效果差",
+      "start": 85,
+      "end": 101,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "困难是中文分词对新型网络词效果差"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这个项目三个人一组，我负责数据清洗和特征工程。",
+          "start": 0,
+          "end": 23,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应了个人负责部分及项目背景，切题准确。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "比如“绝绝子”被切开导致情感判断错误。",
+          "start": 102,
+          "end": 121,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的网络词案例、数据量及处理细节，事例具体。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我的解决办法是人工标注了 500 条错分样本",
+          "start": 121,
+          "end": 143,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确指出了个人采取的具体行动（标注、统计、加词典），贡献清晰。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "反思是我当时只调了词典没有尝试预训练模型",
+          "start": 199,
+          "end": 219,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化结果（准确率提升）及对技术选型的深度反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "困难是中文分词对新型网络词效果差",
+          "start": 85,
+          "end": 101,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "按职责-困难-解决-结果-反思顺序展开，逻辑连贯。"
+      }
+    },
+    "factGaps": [
+      "未说明另外两名组员的具体分工以界定协作边界",
+      "未提及除准确率外的其他评估指标（如F1值）"
+    ],
+    "topImprovement": "补充团队协作中如何与另外两名成员配合的细节",
+    "nextFacts": [
+      "另外两名组员分别负责什么模块",
+      "在加入自定义词典前，基线模型的选型是什么"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}

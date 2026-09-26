@@ -1,0 +1,159 @@
+{
+  "caseId": "C01",
+  "run": 1,
+  "synthetic": true,
+  "questionText": "说说你在校内论坛负责征稿活动时，你个人做了哪些关键动作，结果如何？",
+  "answerBasis": "我负责的活动里最有代表性的是毕业季征稿。前期我先用问卷收集了 200 份同学偏好，发现情感故事类选题呼声最高，于是把主题定为毕业故事。我个人联系了 5 个院系的宣传委员帮我扩散，又自己写了 2 篇范文做冷启动。活动两周收到 143 篇投稿，比上一期增长约 80%。复盘时我发现初审通过率只有 60%，是因为投稿规则里没写清字数要求，后来我补了一份投稿指引，下一期通过率提到了 85%。我的不足是当时完全没做获奖作品的二次传播，这些内容其实可以剪成合集再发一轮。",
+  "answerSha256": "7dfeea7f5cdd5e970f0f14e585e8afa70f24be44d8c301bb3ef1ded0b4fef1c0",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "我负责的活动里最有代表性的是毕业季征稿。",
+      "start": 0,
+      "end": 20,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我负责的活动里最有代表性的是毕业季征稿。"
+    },
+    "specificity": {
+      "text": "前期我先用问卷收集了 200 份同学偏好",
+      "start": 20,
+      "end": 40,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "前期我先用问卷收集了 200 份同学偏好"
+    },
+    "contribution": {
+      "text": "又自己写了 2 篇范文做冷启动",
+      "start": 89,
+      "end": 104,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "又自己写了 2 篇范文做冷启动"
+    },
+    "resultsReflection": {
+      "text": "下一期通过率提到了 85%。我的不足是当时完全没做获奖作品的二次传播",
+      "start": 178,
+      "end": 212,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "下一期通过率提到了 85%。我的不足是当时完全没做获奖作品的二次传播"
+    },
+    "structure": {
+      "text": "前期我先用问卷",
+      "start": 20,
+      "end": 27,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "前期我先用问卷"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我负责的活动里最有代表性的是毕业季征稿。",
+          "start": 0,
+          "end": 20,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应校内论坛征稿活动，切题明确。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷收集了 200 份同学偏好",
+          "start": 20,
+          "end": 40,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "包含具体数量、动作及结果数据，事例细节丰富。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "又自己写了 2 篇范文做冷启动",
+          "start": 89,
+          "end": 104,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "清晰列举个人执行的关键动作，区分度好。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "下一期通过率提到了 85%。我的不足是当时完全没做获奖作品的二次传播",
+          "start": 178,
+          "end": 212,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "有量化结果对比，且反思了具体缺失环节。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷",
+          "start": 20,
+          "end": 27,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用“前期”、“复盘时”等词，时间线逻辑清晰。"
+      }
+    },
+    "factGaps": [
+      "未说明如何协调5个院系宣传委员的具体沟通策略或遇到的阻力"
+    ],
+    "topImprovement": "补充在联系院系宣传委员时的具体协作难点及个人解决方式",
+    "nextFacts": [
+      "描述与院系宣传委员沟通时的具体话术或遇到的拒绝情况"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}

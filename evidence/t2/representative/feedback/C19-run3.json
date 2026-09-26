@@ -1,0 +1,161 @@
+{
+  "caseId": "C19",
+  "run": 3,
+  "synthetic": true,
+  "questionText": "存储成本降 35% 这个项目，你是怎么定位问题和设计方案？",
+  "answerBasis": "起因是财务季度结算时数仓存储费用同比涨了 60%，老板让我查。我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表，其中 7 张是用户行为日志的分区表。深挖后发现两个问题：一是生命周期策略缺失，中间表和 3 年前的冷数据都按热存储放着；二是文件格式老，一半还是 TextFile gzip。方案分两步：先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层，热数据保留 90 天。迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和，跑了三周灰度。最终存储成本降了 35%，查询侧 P90 反而快了 8% 因为 Parquet 裁剪。权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度。",
+  "answerSha256": "5804e914e1a55365342e8403d7e09e68269bb7781d284101a9af322d2ad49446",
+  "promptVersion": "prompts@0.2.0",
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "contractVersionEmitted": "0.2.0",
+  "contractVersionEffective": "0.2.0",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "modelLevels": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "quotes": {
+    "relevance": {
+      "text": "我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表",
+      "start": 31,
+      "end": 67,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表"
+    },
+    "specificity": {
+      "text": "先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层",
+      "start": 161,
+      "end": 207,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层"
+    },
+    "contribution": {
+      "text": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和",
+      "start": 219,
+      "end": 251,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和"
+    },
+    "resultsReflection": {
+      "text": "权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度",
+      "start": 302,
+      "end": 335,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度"
+    },
+    "structure": {
+      "text": "方案分两步",
+      "start": 155,
+      "end": 160,
+      "turnId": "t1",
+      "textVersion": "raw",
+      "matchType": "exact",
+      "level": "充分清楚",
+      "verbatimSlice": "方案分两步"
+    }
+  },
+  "feedback": {
+    "contractVersion": "0.2.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表",
+          "start": 31,
+          "end": 67,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应了如何定位问题，展示了具体的分析步骤。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层",
+          "start": 161,
+          "end": 207,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的技术选型（Parquet/ZSTD）和操作策略，细节丰富。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和",
+          "start": 219,
+          "end": 251,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确指出了个人执行的具体技术手段和验证方法，贡献清晰。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度",
+          "start": 302,
+          "end": 335,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "不仅给出了结果，还反思了未覆盖部分的决策逻辑和风险权衡。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "方案分两步",
+          "start": 155,
+          "end": 160,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用了明确的顺序连接词，整体叙述逻辑从起因到结果层次分明。"
+      }
+    },
+    "factGaps": [
+      "未说明团队规模及协作方式",
+      "未提及具体的业务影响或用户侧指标变化"
+    ],
+    "topImprovement": "补充团队协作背景，以区分个人独立工作与协同成果",
+    "nextFacts": [
+      "该项目涉及的数据量级具体是多少TB/PB？",
+      "在灰度期间是否遇到过意外故障，是如何解决的？"
+    ],
+    "reviewVersion": "prompts@0.2.0"
+  }
+}
