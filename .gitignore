@@ -33,3 +33,6 @@ tmp/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# 任务临时下载（附件等）
+.scratch/

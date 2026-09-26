@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SessionMachine, LEGAL_TRANSITIONS } from '../src/state/machine.js';
+import { SessionMachine, ALL_ACCEPTED_TRANSITIONS, ALL_EVENTS, type MachineSnapshot } from '../src/state/machine.js';
 
 function fresh(): SessionMachine {
   return new SessionMachine();
@@ -159,9 +159,9 @@ test('修订后重评审：作废旧点评、基准切到修订版', () => {
   assert.equal(rev.actions.some((a) => a.type === 'switch_basis_to_revised'), true);
 });
 
-test('转移表文档与实现一致：LEGAL_TRANSITIONS 每条可实际执行', () => {
+test('转移表正向：ALL_ACCEPTED_TRANSITIONS 每条可实际执行且去向正确', () => {
   let checked = 0;
-  for (const t of LEGAL_TRANSITIONS) {
+  for (const t of ALL_ACCEPTED_TRANSITIONS) {
     const m = fresh();
     // 构造到 from 状态的最短路径
     if (t.event === 'REWRITE_DONE') {
@@ -210,10 +210,48 @@ test('转移表文档与实现一致：LEGAL_TRANSITIONS 每条可实际执行',
     assert.equal(m.snapshot().state, t.from, `前置构造应到达 ${t.from}`);
     const r = m.fire(t.event);
     assert.equal(r.accepted, true, `${t.from} --${t.event}--> 应被接受`);
-    if (!t.to.endsWith('question-or-report')) {
+    if (t.to === 'same') {
+      assert.equal(m.snapshot().state, t.from, `${t.from} --${t.event}--> 应停留原状态`);
+    } else if (t.to !== '*' && !t.to.endsWith('question-or-report')) {
       assert.equal(m.snapshot().state, t.to, `${t.from} --${t.event}--> ${t.to}`);
     }
     checked++;
   }
-  assert.ok(checked >= 17, `转移表条目 ${checked}`);
+  assert.ok(checked >= 33, `转移表条目 ${checked}`);
+});
+
+test('转移表反向断言：实现接受的任一 (状态,事件) 必在表内，且表内每条都确实可达', () => {
+  const pairKey = (s: MachineSnapshot, e: string): string => `${s.state}|${e}`;
+  const declared = new Set(ALL_ACCEPTED_TRANSITIONS.map((t) => `${t.from}|${t.event}`));
+  const reachable = new Set<string>();
+  const undeclared: string[] = [];
+
+  const start = new SessionMachine();
+  const seen = new Set<string>();
+  const queue: MachineSnapshot[] = [start.snapshot()];
+  seen.add(JSON.stringify(start.snapshot()));
+
+  while (queue.length > 0) {
+    const snap = queue.shift()!;
+    for (const event of ALL_EVENTS) {
+      const m = SessionMachine.restore(snap);
+      const out = m.fire(event);
+      if (!out.accepted) continue;
+      const pair = pairKey(snap, event);
+      reachable.add(pair);
+      if (!declared.has(pair)) undeclared.push(`${snap.state} --${event}--> ${out.state}`);
+      const next = m.snapshot();
+      const nk = JSON.stringify(next);
+      if (!seen.has(nk)) {
+        seen.add(nk);
+        queue.push(next);
+      }
+    }
+  }
+
+  assert.deepEqual(undeclared, [], `实现接受但未登记在 ALL_ACCEPTED_TRANSITIONS 的组合：${undeclared.join('; ')}`);
+  const declaredButNotReachable = [...declared].filter((p) => !reachable.has(p));
+  assert.deepEqual(declaredButNotReachable, [], `表内登记但实现不可达的组合：${declaredButNotReachable.join('; ')}`);
+  assert.equal(reachable.size, declared.size, `可达组合 ${reachable.size} 应与表内条目 ${declared.size} 一致`);
+  assert.ok(seen.size <= 600, `可达配置数 ${seen.size} 应在有界范围内`);
 });

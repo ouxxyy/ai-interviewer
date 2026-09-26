@@ -81,6 +81,23 @@ export class SessionMachine {
     return { state: this.state, questionIndex: this.questionIndex, followupCount: this.followupCount, rewriteUsed: this.rewriteUsed, completed: this.completed };
   }
 
+  /** 从快照恢复（断线恢复／重放／穷举核对用）。非法快照直接抛错，不做静默夹取。 */
+  static restore(snapshot: MachineSnapshot): SessionMachine {
+    if (!ALL_STATES.includes(snapshot.state)) throw new Error(`未知状态：${String(snapshot.state)}`);
+    for (const [field, value] of [['questionIndex', snapshot.questionIndex], ['followupCount', snapshot.followupCount], ['completed', snapshot.completed]] as const) {
+      if (!Number.isInteger(value) || value < 0) throw new Error(`${field} 必须是非负整数：${String(value)}`);
+    }
+    if (snapshot.followupCount > MAX_FOLLOWUPS) throw new Error(`followupCount 超出上限 ${MAX_FOLLOWUPS}`);
+    if (snapshot.questionIndex >= MAX_QUESTIONS) throw new Error(`questionIndex 超出上限 ${MAX_QUESTIONS - 1}`);
+    const m = new SessionMachine();
+    m.state = snapshot.state;
+    m.questionIndex = snapshot.questionIndex;
+    m.followupCount = snapshot.followupCount;
+    m.rewriteUsed = snapshot.rewriteUsed;
+    m.completed = snapshot.completed;
+    return m;
+  }
+
   /** 非法转移统一拒绝并返回原因，不抛异常，便于测试与日志。 */
   fire(event: SessionEvent): MachineOutput {
     const reject = (why: string): MachineOutput => ({ accepted: false, state: this.state, actions: [], error: why });
@@ -201,8 +218,11 @@ export class SessionMachine {
   }
 }
 
-/** 全部合法转移（供测试与文档核对）：[起始状态, 事件] → 目标状态。 */
-export const LEGAL_TRANSITIONS: Array<{ from: SessionState; event: SessionEvent; to: SessionState | 'question-or-report' }> = [
+/**
+ * 正常流转移表（**不含**异常/恢复路径；完整集合见 ALL_ACCEPTED_TRANSITIONS）。
+ * 供测试与文档核对：[起始状态, 事件] → 目标状态。
+ */
+export const NORMAL_FLOW_TRANSITIONS: Array<{ from: SessionState; event: SessionEvent; to: SessionState | 'question-or-report' }> = [
   { from: 'materials_review', event: 'MATERIALS_CONFIRMED', to: 'question' },
   { from: 'question', event: 'QUESTION_SENT', to: 'answer' },
   { from: 'answer', event: 'ANSWER_START', to: 'answer' },
@@ -221,4 +241,51 @@ export const LEGAL_TRANSITIONS: Array<{ from: SessionState; event: SessionEvent;
   { from: 'rewrite', event: 'NEXT_QUESTION', to: 'question-or-report' },
   { from: 'rewrite', event: 'REVISE_AFTER_REVIEW', to: 'review' },
   { from: 'report', event: 'REPORT_GENERATED', to: 'ended' },
+];
+
+/** 全部会话状态（用于穷举核对；顺序固定，便于测试与文档对齐）。 */
+export const ALL_STATES: SessionState[] = [
+  'materials_review', 'question', 'answer', 'followup', 'review', 'rewrite', 'report', 'ended',
+];
+
+/** 全部会话事件（用于穷举核对）。 */
+export const ALL_EVENTS: SessionEvent[] = [
+  'MATERIALS_CONFIRMED', 'QUESTION_SENT', 'ANSWER_START', 'ANSWER_DONE', 'FOLLOWUP_NEEDED', 'FOLLOWUP_DONE',
+  'NO_FOLLOWUP', 'REVIEW_DONE', 'REWRITE_START', 'REWRITE_DONE', 'SKIP_REWRITE', 'NEXT_QUESTION',
+  'REPORT_GENERATED', 'END_SESSION', 'TEXT_REVISED', 'REVISE_AFTER_REVIEW', 'ERROR_DISCONNECT',
+  'ERROR_TIMEOUT', 'ERROR_EMPTY_TRANSCRIPT', 'ERROR_MIC_DENIED', 'ERROR_PARSE_FAILURE',
+];
+
+/**
+ * 实现可接受的**全部** (状态, 事件) 集合，含异常/恢复路径与多目标项。
+ * 由 `test/state-machine.test.ts` 的可达性穷举做双向断言：实现接受的任一组合必须在此表内，
+ * 且此表内的每一条都必须真被实现接受——两者任一漂移即测试失败。
+ *
+ * `to` 说明：`question-or-report` 表示去向由已完成题数决定（afterReview）；
+ * `same` 表示停留原状态；`*` 表示多目标，具体见 `note`。
+ */
+export const ALL_ACCEPTED_TRANSITIONS: Array<{ from: SessionState; event: SessionEvent; to: SessionState | 'question-or-report' | 'same' | '*'; note?: string }> = [
+  // 正常流
+  ...NORMAL_FLOW_TRANSITIONS,
+  // 提前结束（D6）：任意非终态、非报告态均可提前结束 → report
+  { from: 'materials_review', event: 'END_SESSION', to: 'report' },
+  { from: 'question', event: 'END_SESSION', to: 'report' },
+  { from: 'answer', event: 'END_SESSION', to: 'report' },
+  { from: 'followup', event: 'END_SESSION', to: 'report' },
+  { from: 'review', event: 'END_SESSION', to: 'report' },
+  { from: 'rewrite', event: 'END_SESSION', to: 'report' },
+  // 断线恢复：回到 answer 重听，不可恢复时重做当前题
+  { from: 'answer', event: 'ERROR_DISCONNECT', to: 'answer' },
+  { from: 'followup', event: 'ERROR_DISCONNECT', to: 'answer' },
+  { from: 'review', event: 'ERROR_DISCONNECT', to: 'answer' },
+  // 麦克风拒绝 / 空转写：停留原状态并给出可重试出口
+  { from: 'answer', event: 'ERROR_MIC_DENIED', to: 'same' },
+  { from: 'followup', event: 'ERROR_MIC_DENIED', to: 'same' },
+  { from: 'answer', event: 'ERROR_EMPTY_TRANSCRIPT', to: 'same' },
+  { from: 'followup', event: 'ERROR_EMPTY_TRANSCRIPT', to: 'same' },
+  // 超时：回答/追问阶段停留原状态，点评阶段原地重试一次
+  { from: 'answer', event: 'ERROR_TIMEOUT', to: 'same' },
+  { from: 'followup', event: 'ERROR_TIMEOUT', to: 'same' },
+  // 材料解析失败：停留材料阶段，允许直接粘贴
+  { from: 'materials_review', event: 'ERROR_PARSE_FAILURE', to: 'same' },
 ];

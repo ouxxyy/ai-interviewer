@@ -19,6 +19,8 @@
 3. **CJK 专有标点不折叠**：`、。「」` 等 U+3000–U+303F 视为不同字符——引用与原文差一个字即拒绝。
 4. **明确拒绝**：空引用、长度 <2、找不到 → `located:false` + reason（`empty_quote` / `quote_too_short` / `not_found`）。**禁止模糊通过**；引用定位失败时该维度不展示等级（降级「暂无法评价」）。
 5. **应用层权威重定位**：评审流水线以定位器结果覆盖模型自报的区间与 `matchType`，杜绝自报漂移。
+6. **消费方注意**：`matchType:"normalized"` 时 `quote.text` 与 `basisText.slice(start,end)` **不逐字相等**——区间包含被折叠掉的空白（及其他被容忍的差异）。消费方（如 T3 的高亮渲染、重答对比）必须按 `foldText()` 比较，不得对该区间做严格字符串相等判定；只有 `matchType:"exact"` 才能逐字相等。
+7. **自检不变量（P0 修复）**：`normalized` 命中后反算区间，并自检 `foldText(basisText.slice(start,end)) === foldText(quote.text)`；不成立即返回 `located:false / not_found`。因此 `located:true` ⇒ `end` 为整数且区间可折叠还原，不存在含糊通过路径。
 
 ## 流程控制（状态机，D2/D5/D6）
 
@@ -31,4 +33,4 @@
 
 - `contract@0.1.0`：五对象 Schema（T1-S 冻结，T2 正式定稿后升版）。
 - `rules@0.1.0-t1s`：三入口共用训练规则文本版本。
-- `prompts@0.1.0-t1s`：中文提示词 v1 版本（**未标定**——标定需真实模型输出，属 T1-R）。
+- `prompts@0.1.0-t1r`：中文提示词 v1 版本（**未标定**——标定需真实模型输出，属 T1-R / T2）。T1-R 起四个模板内嵌的 JSON 示例**自身即通过对应 Schema**（由 `test/prompts-align.test.ts` 抽取后调用 `validateContract` 强制），占位符统一写作 `<…>`，模型不得照抄。

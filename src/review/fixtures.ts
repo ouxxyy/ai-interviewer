@@ -33,7 +33,7 @@ export function buildValidReviewJson(basisText: string, questionId: string, turn
     factGaps: ['个人在项目中的具体分工未说明'],
     topImprovement: '补充你个人负责的具体动作与可核对的结果',
     nextFacts: ['你在项目中的具体分工', '结果与你个人动作的对应关系'],
-    reviewVersion: 'prompts@0.1.0-t1s',
+    reviewVersion: 'prompts@0.1.0-t1r',
   });
 }
 

@@ -60,7 +60,7 @@ const feedback: Feedback = {
   factGaps: ['增长基线口径未说明'],
   topImprovement: '补充增长基线与个人动作的对应关系',
   nextFacts: ['上一期的投稿数量'],
-  reviewVersion: 'prompts@0.1.0-t1s',
+  reviewVersion: 'prompts@0.1.0-t1r',
 };
 
 const report: SessionReport = {
