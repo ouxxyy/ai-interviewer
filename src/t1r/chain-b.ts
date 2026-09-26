@@ -15,6 +15,19 @@ import { chunkPcm, pcmDurationSeconds, sha256, synthesizeAnswerPcm, speechToolin
 import type { EvidenceWriter } from './evidence.js';
 import { DATA_DIR } from './evidence.js';
 
+/** 可入库的音频记录：只有仓库根相对路径与摘要，绝不带本机绝对路径。 */
+export interface AudioRecord {
+  path: string;
+  bytes: number;
+  durationSeconds: number;
+  sha256: string;
+  peak: number;
+}
+
+function toAudioRecord(a: { path: string; bytes: number; durationSeconds: number; sha256: string; peak: number }): AudioRecord {
+  return { path: a.path, bytes: a.bytes, durationSeconds: a.durationSeconds, sha256: a.sha256, peak: a.peak };
+}
+
 export interface ChainBTurn {
   index: number;
   kind: 'question' | 'answer' | 'followup' | 'interrupt';
@@ -25,12 +38,12 @@ export interface ChainBTurn {
   /** 注入文本是否被逐字朗读（去掉标点空白后比较）。 */
   verbatim?: boolean;
   /** 用户音频（回答轮）。 */
-  userAudio?: { path: string; bytes: number; durationSeconds: number; sha256: string; peak: number };
+  userAudio?: AudioRecord;
   /** 服务端 ASR 得到的用户转写。 */
   userTranscript?: string;
   asrLatencyMs?: number;
   /** 面试官音频（服务端可持久化的证据）。 */
-  interviewerAudio?: { path: string; bytes: number; durationSeconds: number; sha256: string; peak: number };
+  interviewerAudio?: AudioRecord;
   firstAudioMs?: number | null;
   totalMs?: number;
   status?: string;
@@ -95,6 +108,7 @@ export async function runChainB(opts: ChainBOptions): Promise<ChainBResult> {
     '我先说明活动的整体背景，这次毕业季征稿是我们论坛全年最重要的一次内容活动，目标是同时拉高投稿量和注册转化。为了这件事我做了三件事，第一是前期调研，第二是渠道扩散，第三是规则设计，下面我分别展开说明每一件的具体做法和我个人的分工。';
 
   const tooling = speechToolingAvailable();
+  evidence.truncateJsonl('chain-b/events.jsonl');
   const turns: ChainBTurn[] = [];
   const audioDir = path.join(DATA_DIR, 'chain-b-audio');
 
@@ -127,7 +141,7 @@ export async function runChainB(opts: ChainBOptions): Promise<ChainBResult> {
         injectedText: questionText,
         spokenTranscript: res.transcript,
         verbatim: normalize(res.transcript) === normalize(questionText),
-        interviewerAudio: written,
+        interviewerAudio: toAudioRecord(written),
         firstAudioMs: res.firstAudioMs,
         totalMs: res.totalMs,
         status: res.status,
@@ -155,7 +169,7 @@ export async function runChainB(opts: ChainBOptions): Promise<ChainBResult> {
         index: 2,
         kind: 'answer',
         injectedText: answerText,
-        userAudio: written,
+        userAudio: toAudioRecord(written),
         userTranscript: asr.transcript,
         asrLatencyMs: asr.latencyMs,
         note: `推流 ${Math.round(streamedMs)}ms，pcm ${pcm.length} 字节 / ${pcmDurationSeconds(pcm, REALTIME_DEFAULTS.inputSampleRate)}s`,
@@ -174,7 +188,7 @@ export async function runChainB(opts: ChainBOptions): Promise<ChainBResult> {
         injectedText: followupText,
         spokenTranscript: res.transcript,
         verbatim: normalize(res.transcript) === normalize(followupText),
-        interviewerAudio: written,
+        interviewerAudio: toAudioRecord(written),
         firstAudioMs: res.firstAudioMs,
         totalMs: res.totalMs,
         status: res.status,
@@ -209,7 +223,7 @@ export async function runChainB(opts: ChainBOptions): Promise<ChainBResult> {
         kind: 'interrupt',
         injectedText: longTextForInterrupt,
         spokenTranscript: res.transcript,
-        interviewerAudio: writeAudio(audioDir, 'turn4-interviewer-interrupted', res.audio, REALTIME_DEFAULTS.outputSampleRate),
+        interviewerAudio: toAudioRecord(writeAudio(audioDir, 'turn4-interviewer-interrupted', res.audio, REALTIME_DEFAULTS.outputSampleRate)),
         totalMs: res.totalMs,
         status: res.status,
         interrupt: {

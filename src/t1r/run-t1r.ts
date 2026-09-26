@@ -10,7 +10,7 @@
  *
  * 凭证只从项目根 `.env` 显式读取，不依赖 shell；任何落盘内容先过密钥防线。
  */
-import { readFileSync, copyFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, copyFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { DashscopeTextClient, DASHSCOPE_DEFAULTS } from '../clients/dashscope.js';
 import { DashscopeRealtimeClient } from '../clients/realtime-dashscope.js';
@@ -73,7 +73,7 @@ function commitShortClips(writer: EvidenceWriter, clips: Array<{ src: string; na
   const out: Array<{ name: string; bytes: number; sha256: string; durationSeconds: number; note: string }> = [];
   for (const clip of clips) {
     const dest = path.join(dir, clip.name);
-    copyFileSync(clip.src, dest);
+    copyFileSync(path.resolve(REPO_ROOT, clip.src), dest);
     const buf = readFileSync(dest);
     const rel = path.relative(REPO_ROOT, dest);
     writer.artifacts.push({ path: rel, kind: 'wav', bytes: buf.length, sha256: sha256(buf), committed: true, note: clip.note });
@@ -90,7 +90,7 @@ async function main(): Promise<void> {
   const text = new DashscopeTextClient();
 
   writer.note('env', {
-    dotenvPath: envReport.path,
+    dotenvPath: path.relative(REPO_ROOT, envReport.path),
     filePresent: envReport.filePresent,
     injectedKeys: envReport.injectedKeys,
     emptyKeys: envReport.emptyKeys,
@@ -150,6 +150,49 @@ async function main(): Promise<void> {
     summary.chainB = { ok: result.ok, failure: result.failure, session: result.session, turns: result.turns, premiseInjectText: result.premiseInjectText, premisePersistInterviewerAudio: result.premisePersistInterviewerAudio, committedClips: clips };
   }
 
+  if (cmd === 'latency-realtime') {
+    const rt = new DashscopeRealtimeClient(credential, {});
+    const rtInfo = await rt.open('latency');
+    let realtimeRt: LatencyResult['realtime'];
+    try {
+      realtimeRt = await runRealtimeLatency(rt, { evidence: writer, rounds: 20 });
+    } finally {
+      rt.close();
+    }
+    const effectiveVoice = String((rtInfo.updated?.voice as string | undefined) ?? rtInfo.voice);
+    const section = { stats: realtimeRt.stats, asrStats: realtimeRt.asrStats, failures: realtimeRt.failures, samples: realtimeRt.samples };
+    writer.writeJson('latency/summary-realtime.json', { ...section, config: { realtimeModel: rtInfo.model, voice: effectiveVoice, rounds: 20 } });
+    // 与已有的评审延迟合并成一份 summary.json，避免同一次验收里两段证据来自不同文件
+    const mergedPath = path.join(EVIDENCE_DIR, 'latency', 'summary.json');
+    let merged: Record<string, unknown> = {};
+    if (existsSync(mergedPath)) {
+      try {
+        merged = JSON.parse(readFileSync(mergedPath, 'utf8')) as Record<string, unknown>;
+      } catch {
+        merged = {};
+      }
+    }
+    const prevConfig = (merged.config ?? {}) as Record<string, unknown>;
+    merged.realtime = section;
+    merged.config = { ...prevConfig, realtimeModel: rtInfo.model, voice: effectiveVoice, rounds: 20 };
+    delete merged.latencyReview;
+    writer.writeJson('latency/summary.json', merged);
+    summary.latencyRealtime = { ...section, voice: effectiveVoice };
+  }
+
+  if (cmd === 'latency-review') {
+    const review = await runReviewLatency(text, { evidence: writer, rounds: 20, enableThinking: false });
+    writer.writeJson('latency/summary-review.json', {
+      stats: review.stats,
+      successfulOnlyStats: review.successfulOnlyStats,
+      firstAttemptOk: review.firstAttemptOk,
+      failures: review.failures,
+      samples: review.samples,
+      config: { textModel: DASHSCOPE_DEFAULTS.model, rounds: 20, maxRetries: 2, jsonMode: true, enableThinking: false },
+    });
+    summary.latencyReview = { stats: review.stats, successfulOnlyStats: review.successfulOnlyStats, firstAttemptOk: review.firstAttemptOk, failures: review.failures, samples: review.samples };
+  }
+
   if (cmd === 'all' || cmd === 'latency') {
     const rt = new DashscopeRealtimeClient(credential, {});
     const rtInfo = await rt.open('latency');
@@ -162,8 +205,8 @@ async function main(): Promise<void> {
     const review = await runReviewLatency(text, { evidence: writer, rounds: 20, enableThinking: false });
     writer.writeJson('latency/summary.json', {
       realtime: { stats: realtime.stats, asrStats: realtime.asrStats, failures: realtime.failures, samples: realtime.samples },
-      review: { stats: review.stats, failures: review.failures, samples: review.samples },
-      config: { realtimeModel: rtInfo.model, voice: rtInfo.voice, textModel: DASHSCOPE_DEFAULTS.model, rounds: 20 },
+      review: { stats: review.stats, successfulOnlyStats: review.successfulOnlyStats, firstAttemptOk: review.firstAttemptOk, failures: review.failures, samples: review.samples },
+      config: { realtimeModel: rtInfo.model, voice: String((rtInfo.updated?.voice as string | undefined) ?? rtInfo.voice), textModel: DASHSCOPE_DEFAULTS.model, rounds: 20 },
     });
     summary.latency = {
       realtime: { stats: realtime.stats, asrStats: realtime.asrStats, failures: realtime.failures, samples: realtime.samples },
@@ -171,17 +214,39 @@ async function main(): Promise<void> {
     };
   }
 
-  // 成本估算（D7）：先给真实用量，单价能核实才给金额，核不到就如实标注。
-  const usage = collectUsage(summary);
-  summary.cost = {
-    usage,
-    note: 'token 数为百炼响应中的真实 usage；语音按音频秒数计量。单价以百炼官方定价页为准——若验收记录中标注「未核定」，表示本轮未能核实官方单价，只报用量不报金额。',
+  // 合并而非覆盖：一次验收往往分几个子命令跑，证据清单必须覆盖全部产物。
+  const summaryPath = path.join(EVIDENCE_DIR, 'run-summary.json');
+  let mergedSummary: Record<string, unknown> = {};
+  if (existsSync(summaryPath)) {
+    try {
+      mergedSummary = JSON.parse(readFileSync(summaryPath, 'utf8')) as Record<string, unknown>;
+    } catch {
+      mergedSummary = {};
+    }
+  }
+  // 成本估算（D7）：用量按**合并后**的全量摘要统计，否则分几个子命令跑时后一次会把前一次的用量清零。
+  const mergedForCost = { ...mergedSummary, ...summary };
+  mergedForCost.cost = {
+    usage: collectUsage(mergedForCost),
+    note: 'token 数为百炼响应中的真实 usage；语音按音频秒数计量。单价以百炼官方定价页为准——本文件中单价未核定时只报用量、不报金额。',
   };
+  writer.writeJson('run-summary.json', mergedForCost);
 
-  writer.writeJson('run-summary.json', summary);
+  const manifestPath = path.join(EVIDENCE_DIR, 'manifest.json');
+  let mergedManifest: { artifacts?: Array<{ path: string }>; notes?: unknown[] } = {};
+  if (existsSync(manifestPath)) {
+    try {
+      mergedManifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as typeof mergedManifest;
+    } catch {
+      mergedManifest = {};
+    }
+  }
+  const byPath = new Map<string, unknown>();
+  for (const a of mergedManifest.artifacts ?? []) byPath.set(a.path, a);
+  for (const a of writer.artifacts) byPath.set(a.path, a);
   writer.writeJson('manifest.json', {
     generatedAt: new Date().toISOString(),
-    artifacts: writer.artifacts,
+    artifacts: [...byPath.values()],
     notes: writer.notes,
   });
 

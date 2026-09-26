@@ -44,12 +44,14 @@ export interface ReviewLatencySample {
   schemaOk: boolean;
   quoteLocated: boolean;
   attempts: number;
+  firstAttemptOk: boolean;
+  attemptLog: Array<{ attempt: number; ok: boolean; cause?: string; detail?: string }>;
   ok: boolean;
 }
 
 export interface LatencyResult {
   realtime: { samples: RealtimeLatencySample[]; stats: ReturnType<typeof latencyStats>; asrStats: ReturnType<typeof latencyStats>; failures: number };
-  review: { samples: ReviewLatencySample[]; stats: ReturnType<typeof latencyStats>; failures: number };
+  review: { samples: ReviewLatencySample[]; stats: ReturnType<typeof latencyStats>; successfulOnlyStats: ReturnType<typeof latencyStats>; firstAttemptOk: number; failures: number };
   config: { realtimeModel: string; textModel: string; voice: string; region: string };
 }
 
@@ -71,6 +73,7 @@ export async function runRealtimeLatency(
   opts: { rounds?: number; evidence: EvidenceWriter },
 ): Promise<LatencyResult['realtime']> {
   const rounds = opts.rounds ?? 20;
+  opts.evidence.truncateJsonl('latency/realtime-turns.jsonl');
   const samples: RealtimeLatencySample[] = [];
   const tooling = speechToolingAvailable();
   if (!tooling.available) throw new Error(`无法生成回答音频：${tooling.reason ?? '未知原因'}`);
@@ -158,8 +161,12 @@ export async function runReviewLatency(
     const prompt = reviewPrompt({ questionText: c.questionText, answerText: c.firstAnswer, turnIds: ['t1'], textVersion: 'raw', isRewrite: false });
     const channel = new DashscopeReviewChannel(client, prompt, { jsonMode: true, enableThinking: opts.enableThinking ?? false });
     const startedAt = Date.now();
+    const attemptLog: Array<{ attempt: number; ok: boolean; cause?: string; detail?: string }> = [];
     try {
-      const outcome = await runReview({ channel, basisText: c.firstAnswer, turnIds: ['t1'], textVersion: 'raw', questionId: 'q1', maxRetries: 2 });
+      const outcome = await runReview({
+        channel, basisText: c.firstAnswer, turnIds: ['t1'], textVersion: 'raw', questionId: 'q1', maxRetries: 2,
+        onAttempt: (attempt, r) => attemptLog.push({ attempt, ok: r.ok, ...(r.cause === undefined ? {} : { cause: r.cause }), ...(r.detail === undefined ? {} : { detail: r.detail }) }),
+      });
       const latencyMs = Date.now() - startedAt;
       const schemaOk = validateContract('feedback', outcome.feedback).ok;
       const quoteLocated = outcome.kind === 'ok';
@@ -173,18 +180,24 @@ export async function runReviewLatency(
         schemaOk,
         quoteLocated,
         attempts: outcome.attempts,
+        firstAttemptOk: attemptLog[0]?.ok === true,
+        attemptLog,
         ok: schemaOk && quoteLocated,
       });
     } catch (e) {
       failures++;
-      samples.push({ round: i + 1, caseId: c.id, latencyMs: Date.now() - startedAt, totalTokens: 0, completionTokens: 0, schemaOk: false, quoteLocated: false, attempts: 0, ok: false });
+      samples.push({ round: i + 1, caseId: c.id, latencyMs: Date.now() - startedAt, totalTokens: 0, completionTokens: 0, schemaOk: false, quoteLocated: false, attempts: 0, firstAttemptOk: false, attemptLog, ok: false });
       opts.evidence.appendJsonl('latency/review-errors.jsonl', [{ round: i + 1, caseId: c.id, error: (e as Error).message.slice(0, 200) }]);
     }
   }
 
+  // 口径说明：延迟统计取**全部**样本（含重试与降级），因为用户等的是这一次提交的完整结果；
+  // 只统计成功样本会把重试成本藏起来，人为压低 P95。
   return {
     samples,
-    stats: latencyStats(samples.filter((s) => s.ok).map((s) => s.latencyMs)),
+    stats: latencyStats(samples.map((s) => s.latencyMs)),
+    successfulOnlyStats: latencyStats(samples.filter((s) => s.ok).map((s) => s.latencyMs)),
+    firstAttemptOk: samples.filter((s) => s.firstAttemptOk).length,
     failures,
   };
 }

@@ -6,6 +6,8 @@
  */
 import { validateContract } from '../contracts/validate.js';
 import { locateQuote } from '../contracts/quote-locator.js';
+import { CONTRACT_VERSION } from '../contracts/version.js';
+import { PROMPT_VERSION } from '../prompts/prompts.js';
 import type { Feedback, DimensionKey, TextVersion } from '../contracts/types.js';
 
 /**
@@ -55,6 +57,15 @@ export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
       input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
       continue;
     }
+
+    // 应用层权威回填「已知元数据」——这些字段的值由应用决定（用的是哪版契约、哪版提示词、
+    // 评审对象是谁），不该因为模型漏写就整份重试、更不该采信模型自报。与 reviewBasis 同一条原则。
+    // 只回填元数据，内容字段（dimensions / factGaps / topImprovement / nextFacts）一律不代写。
+    const meta = parsed as Partial<Feedback> & Record<string, unknown>;
+    meta.contractVersion = CONTRACT_VERSION;
+    meta.reviewVersion = PROMPT_VERSION;
+    meta.questionId = input.questionId;
+    meta.reviewBasis = { turnIds: input.turnIds, textVersion: input.textVersion };
 
     const schemaResult = validateContract('feedback', parsed);
     if (!schemaResult.ok) {

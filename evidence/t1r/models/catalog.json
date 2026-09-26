@@ -1,6 +1,6 @@
 {
   "httpStatus": 200,
-  "latencyMs": 332,
+  "latencyMs": 296,
   "total": 261,
   "realtimeIds": [
     "qwen-audio-3.0-realtime-flash",
@@ -36,11 +36,11 @@
   "verifiedTextModel": {
     "id": "qwen3.8-flash",
     "httpStatus": 200,
-    "latencyMs": 588,
+    "latencyMs": 1170,
     "totalTokens": 31,
     "replyChars": 2
   },
   "rateLimitHeaders": {
-    "x-request-id": "0df31c26-e909-9f71-af7b-5c9aab9265df"
+    "x-request-id": "3257187e-8b9f-97cd-87c3-14b5f1a71a36"
   }
 }

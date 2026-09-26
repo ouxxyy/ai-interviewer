@@ -1,47 +1,191 @@
 {
-  "generatedAt": "2026-09-26T15:44:38.131Z",
+  "generatedAt": "2026-09-26T16:24:43.748Z",
   "artifacts": [
+    {
+      "path": "evidence/t1r/models/catalog.json",
+      "kind": "json",
+      "bytes": 1512,
+      "committed": true
+    },
+    {
+      "path": "data/t1r/prompts/question-plan.prompt.txt",
+      "kind": "txt",
+      "bytes": 2865,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/question-plan.attempt1.txt",
+      "kind": "txt",
+      "bytes": 1358,
+      "committed": false
+    },
+    {
+      "path": "evidence/t1r/chain-a/question-plan.json",
+      "kind": "json",
+      "bytes": 1423,
+      "committed": true
+    },
+    {
+      "path": "data/t1r/prompts/review-C01.prompt.txt",
+      "kind": "txt",
+      "bytes": 5893,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C01.attempt1.txt",
+      "kind": "txt",
+      "bytes": 3387,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C01.attempt2.txt",
+      "kind": "txt",
+      "bytes": 2601,
+      "committed": false
+    },
+    {
+      "path": "evidence/t1r/chain-a/feedback-C01.json",
+      "kind": "json",
+      "bytes": 4645,
+      "committed": true
+    },
+    {
+      "path": "data/t1r/prompts/review-C02.prompt.txt",
+      "kind": "txt",
+      "bytes": 5877,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C02.attempt1.txt",
+      "kind": "txt",
+      "bytes": 2560,
+      "committed": false
+    },
+    {
+      "path": "evidence/t1r/chain-a/feedback-C02.json",
+      "kind": "json",
+      "bytes": 3812,
+      "committed": true
+    },
+    {
+      "path": "data/t1r/prompts/review-C03.prompt.txt",
+      "kind": "txt",
+      "bytes": 5731,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C03.attempt1.txt",
+      "kind": "txt",
+      "bytes": 2680,
+      "committed": false
+    },
+    {
+      "path": "evidence/t1r/chain-a/feedback-C03.json",
+      "kind": "json",
+      "bytes": 3932,
+      "committed": true
+    },
+    {
+      "path": "data/t1r/prompts/review-C15.prompt.txt",
+      "kind": "txt",
+      "bytes": 5773,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C15.attempt1.txt",
+      "kind": "txt",
+      "bytes": 2583,
+      "committed": false
+    },
+    {
+      "path": "evidence/t1r/chain-a/feedback-C15.json",
+      "kind": "json",
+      "bytes": 3807,
+      "committed": true
+    },
+    {
+      "path": "data/t1r/prompts/review-C19.prompt.txt",
+      "kind": "txt",
+      "bytes": 6083,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C19.attempt1.txt",
+      "kind": "txt",
+      "bytes": 2511,
+      "committed": false
+    },
+    {
+      "path": "data/t1r/raw/review-C19.attempt2.txt",
+      "kind": "txt",
+      "bytes": 2930,
+      "committed": false
+    },
+    {
+      "path": "evidence/t1r/chain-a/feedback-C19.json",
+      "kind": "json",
+      "bytes": 3675,
+      "committed": true
+    },
+    {
+      "path": "evidence/t1r/chain-a/summary.json",
+      "kind": "json",
+      "bytes": 7709,
+      "committed": true
+    },
     {
       "path": "evidence/t1r/chain-b/summary.json",
       "kind": "json",
-      "bytes": 58157,
+      "bytes": 57421,
       "committed": true
     },
     {
       "path": "evidence/t1r/chain-b/events.jsonl",
       "kind": "jsonl",
-      "bytes": 33000,
+      "bytes": 33260,
       "committed": true
     },
     {
       "path": "evidence/t1r/audio/clip-interviewer-question.wav",
       "kind": "wav",
-      "bytes": 284204,
-      "sha256": "906a1503d6b6a4ccb76ce0167a7bf94958671a6da96e5db9da29b52431fb4213",
+      "bytes": 291884,
+      "sha256": "13cf299919953d8ebf3ba4810716a16fbcd7e1a4757d9eb9d42bdb3c6379f993",
       "committed": true,
       "note": "面试官提问（服务端产出并落盘，取自链 B 轮 1）"
     },
     {
       "path": "evidence/t1r/audio/clip-interviewer-followup.wav",
       "kind": "wav",
-      "bytes": 230444,
-      "sha256": "9c4ac64cdb698816118d43115fb4c8810a0ad4ca8936101931403a90681e1f78",
+      "bytes": 226604,
+      "sha256": "e0c8f770ac762ed6b2cb72ba054d2c2966428a2126707c135dda6c23e538fa99",
       "committed": true,
       "note": "面试官追问（服务端注入文本后朗读，取自链 B 轮 3）"
     },
     {
+      "path": "evidence/t1r/latency/realtime-turns.jsonl",
+      "kind": "jsonl",
+      "bytes": 8129,
+      "committed": true
+    },
+    {
+      "path": "evidence/t1r/latency/summary.json",
+      "kind": "json",
+      "bytes": 20162,
+      "committed": true
+    },
+    {
       "path": "evidence/t1r/run-summary.json",
       "kind": "json",
-      "bytes": 9022,
+      "bytes": 35852,
       "committed": true
     }
   ],
   "notes": [
     {
-      "at": "2026-09-26T15:44:26.256Z",
+      "at": "2026-09-26T16:24:31.697Z",
       "key": "env",
       "value": {
-        "dotenvPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/.env",
+        "dotenvPath": ".env",
         "filePresent": true,
         "injectedKeys": [
           "DASHSCOPE_API_KEY",

@@ -22,6 +22,22 @@
 6. **消费方注意**：`matchType:"normalized"` 时 `quote.text` 与 `basisText.slice(start,end)` **不逐字相等**——区间包含被折叠掉的空白（及其他被容忍的差异）。消费方（如 T3 的高亮渲染、重答对比）必须按 `foldText()` 比较，不得对该区间做严格字符串相等判定；只有 `matchType:"exact"` 才能逐字相等。
 7. **自检不变量（P0 修复）**：`normalized` 命中后反算区间，并自检 `foldText(basisText.slice(start,end)) === foldText(quote.text)`；不成立即返回 `located:false / not_found`。因此 `located:true` ⇒ `end` 为整数且区间可折叠还原，不存在含糊通过路径。
 
+## 评审流水线的权威回填（T1-R）
+
+**元数据由应用层写，内容由模型写。** 下列字段的值由应用层完全掌握，模型漏写或写错都不该导致整份重试，
+更不该采信模型自报，因此在校验**之前**一律由应用层覆盖：
+
+| 字段 | 权威值来源 | 理由 |
+| --- | --- | --- |
+| `contractVersion` | `CONTRACT_VERSION` | 用的哪版契约是应用事实 |
+| `reviewVersion` | `PROMPT_VERSION` | 这次评审由哪版提示词产出是应用事实 |
+| `questionId` | 调用方入参 | 评审的是哪道题由应用状态机决定 |
+| `reviewBasis.turnIds` / `textVersion` | 调用方入参（D1/D11） | 评审对象口径由应用决定 |
+| `dimensions[].quote.start/end/matchType` | 引用定位器计算结果 | 应用层权威重定位（见上节第 5 条） |
+
+**不代写**：`dimensions[].level` / `reason` / `quote.text`、`factGaps`、`topImprovement`、`nextFacts`
+一律以模型输出为准；缺失或不合规就走重试，重试耗尽即降级「暂无法评价」，绝不由应用编造内容。
+
 ## 流程控制（状态机，D2/D5/D6）
 
 - 状态：`materials_review → question → answer → followup? → review → rewrite? → next_question | report → ended`。

@@ -7,9 +7,12 @@
 ## 当前状态（如实标注）
 
 - **T0 基线：已完成**（reviewer 独立复核 PASS）——工程初始化、可复现环境记录（`docs/environment-baseline.md`）、参考源码审计（`docs/reference-audit.md`）。
-- **T1-S 静态验收包：静态通过**——契约冻结（`contract@0.1.0`）、状态机、引用定位器、中文提示词 v1、24 案例起草、评审器 mock、音频 prototype（真跑 M1 Chrome，证据 `docs/t1s-audio-prototype-evidence.md`）、客户端抽象。全部静态验证，`npm test` 50/50。
-- **T1-R（真实模型链路）：未开始**——缺阿里百炼凭证；一切与真实模型相关的结论当前只能标「未验证」。mock 只证明契约与链路本身，不证明模型质量。
-- **已知缺口**：本机未发现阿里百炼凭证（环境变量与 shell 配置均无，只做存在性检查）。DashScope 端点直连可达（401 预期）。配好密钥后 `scripts/env-check.sh` 会自动转 PASS。
+- **T1-S 静态验收包：静态通过**（reviewer 独立复核 PASS）——契约冻结（`contract@0.1.0`）、状态机、引用定位器、中文提示词 v1、24 案例起草、评审器 mock、音频 prototype（真跑 M1 Chrome，证据 `docs/t1s-audio-prototype-evidence.md`）、客户端抽象。
+- **T1-R 实时验收包：两链实时通过**（2026-09-26，真实百炼调用，证据 `docs/t1r-acceptance.md` 与 `evidence/t1r/`）——
+  链 A：真实 QuestionPlan（3 题）＋ 5 份真实 Feedback 全部过 Schema、引用 23/23 可定位、0 降级；
+  链 B：真实 WebSocket 语音会话跑完「提问→回答→转写→追问→打断」，两个技术前提（服务端注入问题文本、面试官音频服务端持久化）均成立。
+- **性能**：语音腿「答完→首段回应音频」P95 **1,979 ms**（达标 ≤3 s）；评审腿「提交评审→完整点评」P95 **30,417 ms**（**未达标** ≤15 s，根因与建议见验收记录 §7.2）。
+- **仍未验证**：真人麦克风采集、浏览器↔服务端音频链路、提示词标定、24 案例模型侧全量校验、反抢话 A10、转写质量 A5、反注入 A9；单场成本金额与账号配额未核定（官方定价页在本机网络环境不可达）。
 
 ## 技术栈
 
@@ -18,7 +21,7 @@ TypeScript（NodeNext，零框架）。当前依赖仅 `ajv`（Schema 校验）�
 ## 可用命令（当前真实存在的）
 
 ```bash
-npm test                 # 构建并运行全部单测（node --test，当前 50 项）
+npm test                 # 构建并运行全部单测（node --test，当前 55 项）
 npm run build            # tsc 编译到 dist/
 npm run validate -- <file.json> <contract-name>   # 独立契约校验 CLI
 npm run prototype        # 启动音频 prototype mock 服务（127.0.0.1:8917）
@@ -26,6 +29,13 @@ npm run prototype:run    # 自动拉起 mock 服务+headless Chrome 跑完整音
 npm run check:env        # 环境基线核对（打印到 stdout）
 bash scripts/env-check.sh --write          # 重新生成 docs/environment-baseline.md
 bash scripts/checkout-references.sh        # 按固定 commit 检出两个 MIT 参考仓库到 reference/
+
+# T1-R 真实调用（需要项目根 .env 里的 DASHSCOPE_API_KEY；会产生 API 费用）
+node dist/src/t1r/run-t1r.js models        # 核定模型列表/文本模型可用性
+node dist/src/t1r/run-t1r.js chain-a       # 链 A：真实 QuestionPlan + 真实 Feedback
+node dist/src/t1r/run-t1r.js chain-b       # 链 B：真实语音会话（提问→回答→转写→追问→打断）
+node dist/src/t1r/run-t1r.js latency       # 延迟抽样（20 轮语音 + 20 轮评审）
+node dist/src/t1r/run-t1r.js all           # 以上全部，重写 evidence/t1r/
 ```
 
 注意：prototype 端口为 8917（8787 曾被本机 ActivityWatch 占用）。`prototype:run` 需要 Chrome（`/Applications/Google Chrome.app`）。
@@ -38,23 +48,29 @@ bash scripts/checkout-references.sh        # 按固定 commit 检出两个 MIT �
 │   ├── reference-audit.md      # 参考源码审计（固定 commit、行级证据、采用/改写/舍弃）
 │   ├── environment-baseline.md # T0 环境基线记录（脚本生成，含失败项与 PATH 快照说明）
 │   ├── contracts.md            # 契约口径：评审对象、引用定位规则、流程控制
-│   └── t1s-audio-prototype-evidence.md  # 音频 prototype 真跑证据（Chrome 153 · M1）
+│   ├── t1s-audio-prototype-evidence.md  # 音频 prototype 真跑证据（Chrome 153 · M1）
+│   └── t1r-acceptance.md       # T1-R 实时验收记录（核定参数、两链证据、延迟、未做到项）
 ├── src/
 │   ├── contracts/              # 五对象 TS 类型 + JSON Schema + 校验器 CLI + 引用定位器
 │   ├── state/machine.ts        # 应用层状态机（D2/D5/D6）
 │   ├── review/                 # 评审流水线（校验→重试→降级）与 mock fixture
 │   ├── prompts/prompts.ts      # 中文提示词 v1（四模板，未标定）
-│   ├── clients/                # 百炼/OpenAI 兼容客户端抽象（骨架，未接真实 API）
-│   └── prototype/              # 音频 prototype：mock 服务 + 页面 + CDP 证据采集
+│   ├── clients/                # 百炼文本适配器（真实调用已验证）+ Qwen-Omni-Realtime WS 客户端
+│   ├── prototype/              # 音频 prototype：mock 服务 + 页面 + CDP 证据采集
+│   └── t1r/                    # T1-R 验收运行器：.env 加载/密钥防线、音频工具、链 A/B、延迟、证据清单
 ├── cases/cases.json            # 24 个固定案例（全合成，人工预期标注）
+├── evidence/t1r/               # T1-R 真实调用证据（模型目录、QuestionPlan、Feedback、事件日志、延迟、短音频片段）
 ├── scripts/                    # env-check / checkout-references
-└── test/                       # 50 项单测（契约/定位器/状态机/mock/提示词/案例/基线）
+└── test/                       # 55 项单测（契约/定位器/状态机/mock/提示词/案例/基线）
 ```
 
 ## 已知限制
 
-1. 非可运行产品：无页面入口、无真实模型调用——T1-S 是静态验收包，按 PM 方案「静态通过」口径交付。
-2. 阿里百炼凭证缺失：模型 ID/地域/成本核定、真实评审质量、实时语音延迟与可控性、转写质量、提示词标定、案例模型侧校验均「未验证」（属 T1-R）。
-3. 提示词 v1 只做了结构与契约字段对齐（静态测试覆盖），未做标定；模型输出质量无任何声明。
-4. 客户端抽象为代码就绪的骨架，未经真实 API 调用验证（凭证到位前不可能验证）。
-5. 音频 prototype 的音频输入为 Chrome 官方 fake device（真实 getUserMedia/MediaRecorder API，非真人声音）；面试官回应为 mock 服务合成音频。
+1. 非可运行产品：无页面入口；后端链路已真实跑通，但产品形态（React＋Vite、SQLite）属 T3。
+2. **真人麦克风采集未验证**：T1-R 的「用户回答」音频由 macOS `say` 合成后推流，服务端 ASR／模型／事件链路真实。真人麦克风与环境噪声属 T3。
+3. **浏览器 ↔ 服务端音频链路未验证**：T1-R 全部在 Node 侧完成；T1-S prototype 覆盖浏览器侧 fake device 链路，两者未在同一次运行里接通。
+4. **提示词未标定**：只做了结构与契约对齐（含「引用必须连续逐字、禁止省略号拼接」等硬约束）；24 案例预期档位仍是人工标注。
+5. **评审延迟未达标**：P95 30.4 s（目标 15 s），根因是单次输出 ~800 tokens 与 25% 重试率；T3 建议流式渲染或五维拆分调用。
+6. 反抢话（A10）、转写质量（A5）、反注入（A9）对抗测试未做；单场成本金额与账号配额未核定。
+7. 音频 prototype 的音频输入为 Chrome 官方 fake device（真实 getUserMedia/MediaRecorder API，非真人声音）；面试官回应为 mock 服务合成音频。
+8. 百炼实时接口的服务端默认音色 `Chelsie` 实测**不可用**，必须显式指定（本项目固定 `Serena`）。

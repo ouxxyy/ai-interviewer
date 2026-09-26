@@ -13,7 +13,7 @@
         "id": "q1",
         "text": "请结合校内论坛运营经历，谈谈你对内容平台生态的理解。",
         "sourceExcerpt": "负责社区产品的内容运营与活动策划，要求熟悉内容平台生态",
-        "intent": "验证候选人是否具备JD要求的对内容平台生态的认知，并能将其与校园实践关联。",
+        "intent": "验证候选人是否具备JD要求的对内容平台生态的认知，并能将其与自身经历关联。",
         "topics": [
           "岗位相关经历"
         ]
@@ -22,7 +22,7 @@
         "id": "q2",
         "text": "在注册用户从8000增至1.2万的过程中，你具体做了哪些关键动作？",
         "sourceExcerpt": "注册用户从 8000 增至 1.2 万",
-        "intent": "考察候选人在数据增长背后的个人贡献及执行细节，区分团队成果与个人作用。",
+        "intent": "考察候选人在核心数据增长中的个人贡献及执行细节，区分团队成果与个人作用。",
         "topics": [
           "个人贡献"
         ]
@@ -30,8 +30,8 @@
       {
         "id": "q3",
         "text": "组织主题征稿活动时遇到过什么困难或权衡？你是如何复盘并迭代建议的？",
-        "sourceExcerpt": "能基于数据复盘活动效果，输出迭代建议",
-        "intent": "评估候选人面对挑战时的解决能力、反思深度以及基于数据驱动优化的思维习惯。",
+        "sourceExcerpt": "能基于数据复盘活动效果，输出迭代建议；有校园社团或实习经验者优先",
+        "intent": "评估候选人面对挑战时的解决思路、反思能力以及基于数据进行迭代优化的思维习惯。",
         "topics": [
           "处理困难／权衡与反思"
         ]
@@ -45,15 +45,15 @@
   },
   "planCall": {
     "attempt": 1,
-    "latencyMs": 5251,
+    "latencyMs": 5060,
     "httpStatus": 200,
     "model": "qwen3.8-flash",
     "promptTokens": 769,
-    "completionTokens": 342,
-    "totalTokens": 1111,
+    "completionTokens": 350,
+    "totalTokens": 1119,
     "jsonMode": true,
     "enableThinking": false,
-    "rawChars": 739
+    "rawChars": 756
   },
   "planSchemaOk": true,
   "planExcerptLocatable": [
@@ -69,7 +69,7 @@
     },
     {
       "questionId": "q3",
-      "excerpt": "能基于数据复盘活动效果，输出迭代建议",
+      "excerpt": "能基于数据复盘活动效果，输出迭代建议；有校园社团或实习经验者优先",
       "located": true
     }
   ],
@@ -78,17 +78,11 @@
       "caseId": "C01",
       "questionId": "q1",
       "outcomeKind": "ok",
-      "attempts": 2,
-      "firstAttemptOk": false,
+      "attempts": 1,
+      "firstAttemptOk": true,
       "attemptLog": [
         {
           "attempt": 1,
-          "ok": false,
-          "cause": "schema_error",
-          "detail": "/nextFacts: must NOT have fewer than 1 items"
-        },
-        {
-          "attempt": 2,
           "ok": true
         }
       ],
@@ -100,27 +94,15 @@
       "calls": [
         {
           "attempt": 1,
-          "latencyMs": 13854,
+          "latencyMs": 15198,
           "httpStatus": 200,
           "model": "qwen3.8-flash",
-          "promptTokens": 1478,
-          "completionTokens": 1004,
-          "totalTokens": 2482,
+          "promptTokens": 1567,
+          "completionTokens": 978,
+          "totalTokens": 2545,
           "jsonMode": true,
           "enableThinking": false,
-          "rawChars": 2160
-        },
-        {
-          "attempt": 2,
-          "latencyMs": 14116,
-          "httpStatus": 200,
-          "model": "qwen3.8-flash",
-          "promptTokens": 1550,
-          "completionTokens": 739,
-          "totalTokens": 2289,
-          "jsonMode": true,
-          "enableThinking": false,
-          "rawChars": 1766
+          "rawChars": 2131
         }
       ],
       "levels": {
@@ -135,17 +117,11 @@
       "caseId": "C02",
       "questionId": "q1",
       "outcomeKind": "ok",
-      "attempts": 2,
-      "firstAttemptOk": false,
+      "attempts": 1,
+      "firstAttemptOk": true,
       "attemptLog": [
         {
           "attempt": 1,
-          "ok": false,
-          "cause": "schema_error",
-          "detail": "(root): must have required property 'reviewVersion'"
-        },
-        {
-          "attempt": 2,
           "ok": true
         }
       ],
@@ -157,27 +133,15 @@
       "calls": [
         {
           "attempt": 1,
-          "latencyMs": 10424,
+          "latencyMs": 13265,
           "httpStatus": 200,
           "model": "qwen3.8-flash",
-          "promptTokens": 1440,
-          "completionTokens": 783,
-          "totalTokens": 2223,
+          "promptTokens": 1529,
+          "completionTokens": 735,
+          "totalTokens": 2264,
           "jsonMode": true,
           "enableThinking": false,
-          "rawChars": 1840
-        },
-        {
-          "attempt": 2,
-          "latencyMs": 12598,
-          "httpStatus": 200,
-          "model": "qwen3.8-flash",
-          "promptTokens": 1510,
-          "completionTokens": 731,
-          "totalTokens": 2241,
-          "jsonMode": true,
-          "enableThinking": false,
-          "rawChars": 1734
+          "rawChars": 1742
         }
       ],
       "levels": {
@@ -185,7 +149,7 @@
         "specificity": "证据不足",
         "contribution": "证据不足",
         "resultsReflection": "无法判断",
-        "structure": "部分清楚"
+        "structure": "证据不足"
       }
     },
     {
@@ -208,15 +172,15 @@
       "calls": [
         {
           "attempt": 1,
-          "latencyMs": 12065,
+          "latencyMs": 12763,
           "httpStatus": 200,
           "model": "qwen3.8-flash",
-          "promptTokens": 1419,
-          "completionTokens": 770,
-          "totalTokens": 2189,
+          "promptTokens": 1508,
+          "completionTokens": 802,
+          "totalTokens": 2310,
           "jsonMode": true,
           "enableThinking": false,
-          "rawChars": 1817
+          "rawChars": 1880
         }
       ],
       "levels": {
@@ -247,15 +211,15 @@
       "calls": [
         {
           "attempt": 1,
-          "latencyMs": 14226,
+          "latencyMs": 12512,
           "httpStatus": 200,
           "model": "qwen3.8-flash",
-          "promptTokens": 1449,
-          "completionTokens": 727,
-          "totalTokens": 2176,
+          "promptTokens": 1538,
+          "completionTokens": 763,
+          "totalTokens": 2301,
           "jsonMode": true,
           "enableThinking": false,
-          "rawChars": 1715
+          "rawChars": 1755
         }
       ],
       "levels": {
@@ -286,21 +250,21 @@
       "calls": [
         {
           "attempt": 1,
-          "latencyMs": 10584,
+          "latencyMs": 8468,
           "httpStatus": 200,
           "model": "qwen3.8-flash",
-          "promptTokens": 1531,
-          "completionTokens": 758,
-          "totalTokens": 2289,
+          "promptTokens": 1620,
+          "completionTokens": 777,
+          "totalTokens": 2397,
           "jsonMode": true,
           "enableThinking": false,
-          "rawChars": 1801
+          "rawChars": 1849
         }
       ],
       "levels": {
         "relevance": "充分清楚",
         "specificity": "充分清楚",
-        "contribution": "充分清楚",
+        "contribution": "部分清楚",
         "resultsReflection": "充分清楚",
         "structure": "充分清楚"
       }

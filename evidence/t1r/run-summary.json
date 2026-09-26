@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-09-26T15:44:26.257Z",
+  "startedAt": "2026-09-26T16:24:31.698Z",
   "command": "chain-b",
   "runtime": {
     "node": "v26.7.0",
@@ -14,10 +14,242 @@
     "present": true,
     "length": 116
   },
+  "models": {
+    "httpStatus": 200,
+    "latencyMs": 296,
+    "total": 261,
+    "realtimeIds": [
+      "qwen-audio-3.0-realtime-flash",
+      "qwen-audio-3.0-realtime-plus",
+      "qwen-audio-3.1-realtime-plus",
+      "qwen3-asr-flash-realtime",
+      "qwen3-asr-flash-realtime-2025-10-27",
+      "qwen3-asr-flash-realtime-2026-02-10",
+      "qwen3-livetranslate-flash-realtime",
+      "qwen3-livetranslate-flash-realtime-2025-09-22",
+      "qwen3-omni-flash-realtime",
+      "qwen3-omni-flash-realtime-2025-09-15",
+      "qwen3-omni-flash-realtime-2025-12-01",
+      "qwen3-s2s-flash-realtime-2025-09-22",
+      "qwen3-tts-flash-realtime",
+      "qwen3-tts-flash-realtime-2025-09-18",
+      "qwen3-tts-flash-realtime-2025-11-27",
+      "qwen3-tts-instruct-flash-realtime",
+      "qwen3-tts-instruct-flash-realtime-2026-01-22",
+      "qwen3-tts-vc-realtime-2025-11-27",
+      "qwen3-tts-vc-realtime-2026-01-15",
+      "qwen3-tts-vd-realtime-2025-12-16",
+      "qwen3-tts-vd-realtime-2026-01-15",
+      "qwen3.5-livetranslate-flash-realtime",
+      "qwen3.5-livetranslate-flash-realtime-2026-05-19",
+      "qwen3.5-omni-flash-realtime",
+      "qwen3.5-omni-flash-realtime-2026-03-15",
+      "qwen3.5-omni-plus-realtime",
+      "qwen3.5-omni-plus-realtime-2026-03-15",
+      "qwen3.8-livetranslate-flash-realtime",
+      "qwen3.8-omni-flash-realtime"
+    ],
+    "verifiedTextModel": {
+      "id": "qwen3.8-flash",
+      "httpStatus": 200,
+      "latencyMs": 1170,
+      "totalTokens": 31,
+      "replyChars": 2
+    },
+    "rateLimitHeaders": {
+      "x-request-id": "3257187e-8b9f-97cd-87c3-14b5f1a71a36"
+    }
+  },
+  "chainA": {
+    "planQuestions": 3,
+    "planSchemaOk": true,
+    "planCall": {
+      "attempt": 1,
+      "latencyMs": 5060,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 769,
+      "completionTokens": 350,
+      "totalTokens": 1119,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 756
+    },
+    "planExcerptLocatable": [
+      {
+        "questionId": "q1",
+        "excerpt": "负责社区产品的内容运营与活动策划，要求熟悉内容平台生态",
+        "located": true
+      },
+      {
+        "questionId": "q2",
+        "excerpt": "注册用户从 8000 增至 1.2 万",
+        "located": true
+      },
+      {
+        "questionId": "q3",
+        "excerpt": "能基于数据复盘活动效果，输出迭代建议；有校园社团或实习经验者优先",
+        "located": true
+      }
+    ],
+    "reviews": [
+      {
+        "caseId": "C01",
+        "outcomeKind": "ok",
+        "attempts": 1,
+        "schemaOk": true,
+        "quotesTotal": 5,
+        "quotesLocated": 5,
+        "quoteFailures": [],
+        "levels": {
+          "relevance": "充分清楚",
+          "specificity": "充分清楚",
+          "contribution": "充分清楚",
+          "resultsReflection": "充分清楚",
+          "structure": "充分清楚"
+        },
+        "calls": [
+          {
+            "attempt": 1,
+            "latencyMs": 15198,
+            "httpStatus": 200,
+            "model": "qwen3.8-flash",
+            "promptTokens": 1567,
+            "completionTokens": 978,
+            "totalTokens": 2545,
+            "jsonMode": true,
+            "enableThinking": false,
+            "rawChars": 2131
+          }
+        ]
+      },
+      {
+        "caseId": "C02",
+        "outcomeKind": "ok",
+        "attempts": 1,
+        "schemaOk": true,
+        "quotesTotal": 4,
+        "quotesLocated": 4,
+        "quoteFailures": [],
+        "levels": {
+          "relevance": "部分清楚",
+          "specificity": "证据不足",
+          "contribution": "证据不足",
+          "resultsReflection": "无法判断",
+          "structure": "证据不足"
+        },
+        "calls": [
+          {
+            "attempt": 1,
+            "latencyMs": 13265,
+            "httpStatus": 200,
+            "model": "qwen3.8-flash",
+            "promptTokens": 1529,
+            "completionTokens": 735,
+            "totalTokens": 2264,
+            "jsonMode": true,
+            "enableThinking": false,
+            "rawChars": 1742
+          }
+        ]
+      },
+      {
+        "caseId": "C03",
+        "outcomeKind": "ok",
+        "attempts": 1,
+        "schemaOk": true,
+        "quotesTotal": 5,
+        "quotesLocated": 5,
+        "quoteFailures": [],
+        "levels": {
+          "relevance": "部分清楚",
+          "specificity": "充分清楚",
+          "contribution": "证据不足",
+          "resultsReflection": "充分清楚",
+          "structure": "充分清楚"
+        },
+        "calls": [
+          {
+            "attempt": 1,
+            "latencyMs": 12763,
+            "httpStatus": 200,
+            "model": "qwen3.8-flash",
+            "promptTokens": 1508,
+            "completionTokens": 802,
+            "totalTokens": 2310,
+            "jsonMode": true,
+            "enableThinking": false,
+            "rawChars": 1880
+          }
+        ]
+      },
+      {
+        "caseId": "C15",
+        "outcomeKind": "ok",
+        "attempts": 1,
+        "schemaOk": true,
+        "quotesTotal": 4,
+        "quotesLocated": 4,
+        "quoteFailures": [],
+        "levels": {
+          "relevance": "部分清楚",
+          "specificity": "证据不足",
+          "contribution": "证据不足",
+          "resultsReflection": "无法判断",
+          "structure": "部分清楚"
+        },
+        "calls": [
+          {
+            "attempt": 1,
+            "latencyMs": 12512,
+            "httpStatus": 200,
+            "model": "qwen3.8-flash",
+            "promptTokens": 1538,
+            "completionTokens": 763,
+            "totalTokens": 2301,
+            "jsonMode": true,
+            "enableThinking": false,
+            "rawChars": 1755
+          }
+        ]
+      },
+      {
+        "caseId": "C19",
+        "outcomeKind": "ok",
+        "attempts": 1,
+        "schemaOk": true,
+        "quotesTotal": 5,
+        "quotesLocated": 5,
+        "quoteFailures": [],
+        "levels": {
+          "relevance": "充分清楚",
+          "specificity": "充分清楚",
+          "contribution": "部分清楚",
+          "resultsReflection": "充分清楚",
+          "structure": "充分清楚"
+        },
+        "calls": [
+          {
+            "attempt": 1,
+            "latencyMs": 8468,
+            "httpStatus": 200,
+            "model": "qwen3.8-flash",
+            "promptTokens": 1620,
+            "completionTokens": 777,
+            "totalTokens": 2397,
+            "jsonMode": true,
+            "enableThinking": false,
+            "rawChars": 1849
+          }
+        ]
+      }
+    ],
+    "promptVersion": "prompts@0.1.0-t1r"
+  },
   "chainB": {
     "ok": true,
     "session": {
-      "sessionId": "sess_NbQoAeN2AlpXR1rCOQyzH",
+      "sessionId": "sess_NJUgw9KC53975W9g6koAr",
       "model": "qwen3.8-omni-flash-realtime",
       "voice": "Chelsie",
       "inputAudioFormat": "pcm16",
@@ -31,9 +263,9 @@
         "create_response": true,
         "interrupt_response": true
       },
-      "handshakeMs": 249,
+      "handshakeMs": 227,
       "effective": {
-        "id": "sess_NbQoAeN2AlpXR1rCOQyzH",
+        "id": "sess_NJUgw9KC53975W9g6koAr",
         "object": "realtime.session",
         "model": "qwen3.8-omni-flash-realtime",
         "modalities": [
@@ -58,15 +290,13 @@
         "verbatim": true,
         "interviewerAudio": {
           "path": "data/t1r/chain-b-audio/turn1-interviewer-question.wav",
-          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn1-interviewer-question.wav",
-          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn1-interviewer-question.pcm",
-          "bytes": 284160,
-          "durationSeconds": 5.92,
-          "sha256": "fd3f847802e146b881ccc27edb4211ee79ffe659c4287c887c7918dd1578f4d9",
-          "peak": 0.3965
+          "bytes": 291840,
+          "durationSeconds": 6.08,
+          "sha256": "89b344974408b15a1a667be70e9ff5d9020c6d8e688b9b381f44107fb34e44ab",
+          "peak": 0.4824
         },
-        "firstAudioMs": 542,
-        "totalMs": 1411,
+        "firstAudioMs": 577,
+        "totalMs": 1454,
         "status": "completed"
       },
       {
@@ -75,16 +305,14 @@
         "injectedText": "我在毕业季征稿活动里负责整体策划和落地。前期我先用问卷收集了两百份同学偏好，然后把主题定成毕业故事。之后我联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
         "userAudio": {
           "path": "data/t1r/chain-b-audio/turn2-user-answer.wav",
-          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn2-user-answer.wav",
-          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn2-user-answer.pcm",
           "bytes": 802978,
           "durationSeconds": 25.093,
           "sha256": "12a445fb9a2f731405bd6957a4b7874e6764298236b1a8b9b9e65f98e8a91241",
           "peak": 0.6682
         },
         "userTranscript": "我在毕业季征稿活动里负责整体策划和落地。前期我先用问卷收集了两百份同学偏好，然后把主题定成毕业故事。之后我联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
-        "asrLatencyMs": 245,
-        "note": "推流 5572ms，pcm 802978 字节 / 25.093s"
+        "asrLatencyMs": 250,
+        "note": "推流 5631ms，pcm 802978 字节 / 25.093s"
       },
       {
         "index": 3,
@@ -94,15 +322,13 @@
         "verbatim": true,
         "interviewerAudio": {
           "path": "data/t1r/chain-b-audio/turn3-interviewer-followup.wav",
-          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn3-interviewer-followup.wav",
-          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn3-interviewer-followup.pcm",
-          "bytes": 230400,
-          "durationSeconds": 4.8,
-          "sha256": "3ec361cfd2cf7b09f0adcdff2ecbd2cd8b333a62909a04a5d17d5df98e098874",
+          "bytes": 226560,
+          "durationSeconds": 4.72,
+          "sha256": "72a26a61f1791e790f567f02ac57ea9eb5fd4b8d6279a5cc6a7f5ea1fc724e28",
           "peak": 0.4179
         },
-        "firstAudioMs": 575,
-        "totalMs": 1215,
+        "firstAudioMs": 592,
+        "totalMs": 1198,
         "status": "completed"
       },
       {
@@ -112,22 +338,20 @@
         "spokenTranscript": "我先说明活动的整体背景，这次毕业季征稿是我们论坛全年最重要的一次内容活动，目标是同时拉高投稿量和注册转化。为了这件事我做了三件事，第一是前期调研，第二是渠道扩散，第三是规则设计，下面我分别展开说明每一件的具体做法和我个人的分工。",
         "interviewerAudio": {
           "path": "data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav",
-          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav",
-          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn4-interviewer-interrupted.pcm",
           "bytes": 92160,
           "durationSeconds": 1.92,
-          "sha256": "deb077422f5f036d80afc1ff1e3988e4e5d67c298bae2dd09383a09e92405dfc",
-          "peak": 0.3906
+          "sha256": "77031a46ec59aaca9d282a3bbe3b498c6e71da8e796c69fcb16982417ca47336",
+          "peak": 0.3965
         },
-        "totalMs": 1006,
+        "totalMs": 1002,
         "status": "cancelled",
         "interrupt": {
-          "cancelSentAtMs": 1790437478038,
+          "cancelSentAtMs": 1790439883645,
           "audioDeltasBeforeCancel": 5,
           "audioDeltasAfterCancel": 1,
           "bytesAfterCancel": 15360,
           "finalStatus": "cancelled",
-          "stoppedWithinMs": 67
+          "stoppedWithinMs": 69
         }
       }
     ],
@@ -143,38 +367,766 @@
     "premisePersistInterviewerAudio": {
       "supported": true,
       "turnsWithAudio": 3,
-      "totalBytes": 606720,
+      "totalBytes": 610560,
       "evidence": [
-        "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜5.92s｜284160B｜sha256=fd3f847802e146b8…",
-        "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜4.8s｜230400B｜sha256=3ec361cfd2cf7b09…",
-        "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=deb077422f5f036d…"
+        "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜6.08s｜291840B｜sha256=89b344974408b15a…",
+        "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜4.72s｜226560B｜sha256=72a26a61f1791e79…",
+        "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=77031a46ec59aaca…"
       ]
     },
     "committedClips": [
       {
         "name": "evidence/t1r/audio/clip-interviewer-question.wav",
-        "bytes": 284204,
-        "sha256": "906a1503d6b6a4ccb76ce0167a7bf94958671a6da96e5db9da29b52431fb4213",
-        "durationSeconds": 5.92,
+        "bytes": 291884,
+        "sha256": "13cf299919953d8ebf3ba4810716a16fbcd7e1a4757d9eb9d42bdb3c6379f993",
+        "durationSeconds": 6.08,
         "note": "面试官提问（服务端产出并落盘，取自链 B 轮 1）"
       },
       {
         "name": "evidence/t1r/audio/clip-interviewer-followup.wav",
-        "bytes": 230444,
-        "sha256": "9c4ac64cdb698816118d43115fb4c8810a0ad4ca8936101931403a90681e1f78",
-        "durationSeconds": 4.8,
+        "bytes": 226604,
+        "sha256": "e0c8f770ac762ed6b2cb72ba054d2c2966428a2126707c135dda6c23e538fa99",
+        "durationSeconds": 4.72,
         "note": "面试官追问（服务端注入文本后朗读，取自链 B 轮 3）"
       }
     ]
   },
+  "latency": {
+    "realtime": {
+      "stats": {
+        "n": 20,
+        "min": 802,
+        "p50": 909,
+        "p95": 1979,
+        "max": 2184,
+        "mean": 1043.7
+      },
+      "asrStats": {
+        "n": 20,
+        "min": 230,
+        "p50": 258,
+        "p95": 402,
+        "max": 410,
+        "mean": 276.9
+      },
+      "failures": 0,
+      "samples": [
+        {
+          "round": 1,
+          "answerChars": 40,
+          "answerAudioSeconds": 9.129,
+          "commitToFirstAudioMs": 808,
+          "commitToAsrDoneMs": 230,
+          "asrToFirstAudioMs": 578,
+          "responseTotalMs": 835,
+          "userTranscriptChars": 40,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 2,
+          "answerChars": 41,
+          "answerAudioSeconds": 9.734,
+          "commitToFirstAudioMs": 808,
+          "commitToAsrDoneMs": 250,
+          "asrToFirstAudioMs": 558,
+          "responseTotalMs": 872,
+          "userTranscriptChars": 41,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 3,
+          "answerChars": 36,
+          "answerAudioSeconds": 8.238,
+          "commitToFirstAudioMs": 860,
+          "commitToAsrDoneMs": 267,
+          "asrToFirstAudioMs": 593,
+          "responseTotalMs": 894,
+          "userTranscriptChars": 37,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 4,
+          "answerChars": 39,
+          "answerAudioSeconds": 8.87,
+          "commitToFirstAudioMs": 835,
+          "commitToAsrDoneMs": 230,
+          "asrToFirstAudioMs": 605,
+          "responseTotalMs": 887,
+          "userTranscriptChars": 39,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 5,
+          "answerChars": 31,
+          "answerAudioSeconds": 7.393,
+          "commitToFirstAudioMs": 899,
+          "commitToAsrDoneMs": 278,
+          "asrToFirstAudioMs": 621,
+          "responseTotalMs": 928,
+          "userTranscriptChars": 31,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 6,
+          "answerChars": 27,
+          "answerAudioSeconds": 6.04,
+          "commitToFirstAudioMs": 1010,
+          "commitToAsrDoneMs": 393,
+          "asrToFirstAudioMs": 617,
+          "responseTotalMs": 901,
+          "userTranscriptChars": 27,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 7,
+          "answerChars": 39,
+          "answerAudioSeconds": 8.677,
+          "commitToFirstAudioMs": 1287,
+          "commitToAsrDoneMs": 259,
+          "asrToFirstAudioMs": 1028,
+          "responseTotalMs": 1851,
+          "userTranscriptChars": 39,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 8,
+          "answerChars": 33,
+          "answerAudioSeconds": 7.707,
+          "commitToFirstAudioMs": 912,
+          "commitToAsrDoneMs": 258,
+          "asrToFirstAudioMs": 654,
+          "responseTotalMs": 950,
+          "userTranscriptChars": 34,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 9,
+          "answerChars": 37,
+          "answerAudioSeconds": 8.688,
+          "commitToFirstAudioMs": 1005,
+          "commitToAsrDoneMs": 262,
+          "asrToFirstAudioMs": 743,
+          "responseTotalMs": 1071,
+          "userTranscriptChars": 37,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 10,
+          "answerChars": 41,
+          "answerAudioSeconds": 9.884,
+          "commitToFirstAudioMs": 854,
+          "commitToAsrDoneMs": 273,
+          "asrToFirstAudioMs": 581,
+          "responseTotalMs": 857,
+          "userTranscriptChars": 41,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 11,
+          "answerChars": 40,
+          "answerAudioSeconds": 9.129,
+          "commitToFirstAudioMs": 834,
+          "commitToAsrDoneMs": 255,
+          "asrToFirstAudioMs": 579,
+          "responseTotalMs": 855,
+          "userTranscriptChars": 40,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 12,
+          "answerChars": 41,
+          "answerAudioSeconds": 9.734,
+          "commitToFirstAudioMs": 802,
+          "commitToAsrDoneMs": 235,
+          "asrToFirstAudioMs": 567,
+          "responseTotalMs": 839,
+          "userTranscriptChars": 41,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 13,
+          "answerChars": 36,
+          "answerAudioSeconds": 8.238,
+          "commitToFirstAudioMs": 853,
+          "commitToAsrDoneMs": 259,
+          "asrToFirstAudioMs": 594,
+          "responseTotalMs": 902,
+          "userTranscriptChars": 37,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 14,
+          "answerChars": 39,
+          "answerAudioSeconds": 8.87,
+          "commitToFirstAudioMs": 1979,
+          "commitToAsrDoneMs": 251,
+          "asrToFirstAudioMs": 1728,
+          "responseTotalMs": 1994,
+          "userTranscriptChars": 39,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 15,
+          "answerChars": 31,
+          "answerAudioSeconds": 7.393,
+          "commitToFirstAudioMs": 1025,
+          "commitToAsrDoneMs": 410,
+          "asrToFirstAudioMs": 615,
+          "responseTotalMs": 917,
+          "userTranscriptChars": 31,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 16,
+          "answerChars": 27,
+          "answerAudioSeconds": 6.04,
+          "commitToFirstAudioMs": 2184,
+          "commitToAsrDoneMs": 402,
+          "asrToFirstAudioMs": 1782,
+          "responseTotalMs": 2059,
+          "userTranscriptChars": 27,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 17,
+          "answerChars": 39,
+          "answerAudioSeconds": 8.677,
+          "commitToFirstAudioMs": 1136,
+          "commitToAsrDoneMs": 286,
+          "asrToFirstAudioMs": 850,
+          "responseTotalMs": 956,
+          "userTranscriptChars": 39,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 18,
+          "answerChars": 33,
+          "answerAudioSeconds": 7.707,
+          "commitToFirstAudioMs": 909,
+          "commitToAsrDoneMs": 250,
+          "asrToFirstAudioMs": 659,
+          "responseTotalMs": 919,
+          "userTranscriptChars": 34,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 19,
+          "answerChars": 37,
+          "answerAudioSeconds": 8.688,
+          "commitToFirstAudioMs": 963,
+          "commitToAsrDoneMs": 249,
+          "asrToFirstAudioMs": 714,
+          "responseTotalMs": 1020,
+          "userTranscriptChars": 37,
+          "spokenTranscriptChars": 14,
+          "injectedText": "请继续说明你个人的具体分工。",
+          "spokenTranscript": "请继续说明你个人的具体分工。",
+          "verbatim": true,
+          "ok": true
+        },
+        {
+          "round": 20,
+          "answerChars": 41,
+          "answerAudioSeconds": 9.884,
+          "commitToFirstAudioMs": 910,
+          "commitToAsrDoneMs": 241,
+          "asrToFirstAudioMs": 669,
+          "responseTotalMs": 950,
+          "userTranscriptChars": 41,
+          "spokenTranscriptChars": 13,
+          "injectedText": "请补充这次活动的结果数据。",
+          "spokenTranscript": "请补充这次活动的结果数据。",
+          "verbatim": true,
+          "ok": true
+        }
+      ]
+    },
+    "review": {
+      "stats": {
+        "n": 20,
+        "min": 9144,
+        "p50": 13497,
+        "p95": 30417,
+        "max": 34198,
+        "mean": 16254.3
+      },
+      "failures": 0,
+      "samples": [
+        {
+          "round": 1,
+          "caseId": "C01",
+          "latencyMs": 15324,
+          "totalTokens": 2545,
+          "completionTokens": 978,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 2,
+          "caseId": "C02",
+          "latencyMs": 14509,
+          "totalTokens": 2291,
+          "completionTokens": 762,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 3,
+          "caseId": "C03",
+          "latencyMs": 13276,
+          "totalTokens": 2278,
+          "completionTokens": 770,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 4,
+          "caseId": "C04",
+          "latencyMs": 10648,
+          "totalTokens": 2272,
+          "completionTokens": 773,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 5,
+          "caseId": "C05",
+          "latencyMs": 12083,
+          "totalTokens": 2197,
+          "completionTokens": 691,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 6,
+          "caseId": "C06",
+          "latencyMs": 28675,
+          "totalTokens": 4871,
+          "completionTokens": 1717,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 2,
+          "firstAttemptOk": false,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": false,
+              "cause": "quote_not_locatable",
+              "detail": "structure: 引用无法在评审对象中定位（not_found）：我先花了一周...然后我申请了...做完…"
+            },
+            {
+              "attempt": 2,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 7,
+          "caseId": "C07",
+          "latencyMs": 14869,
+          "totalTokens": 2650,
+          "completionTokens": 1080,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 8,
+          "caseId": "C08",
+          "latencyMs": 13497,
+          "totalTokens": 2304,
+          "completionTokens": 774,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 9,
+          "caseId": "C09",
+          "latencyMs": 30417,
+          "totalTokens": 4765,
+          "completionTokens": 1572,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 2,
+          "firstAttemptOk": false,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": false,
+              "cause": "quote_not_locatable",
+              "detail": "structure: 引用无法在评审对象中定位（not_found）：我一开始用先查再改的方式...后来我在数…"
+            },
+            {
+              "attempt": 2,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 10,
+          "caseId": "C10",
+          "latencyMs": 15356,
+          "totalTokens": 2347,
+          "completionTokens": 827,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 11,
+          "caseId": "C11",
+          "latencyMs": 23037,
+          "totalTokens": 4524,
+          "completionTokens": 1399,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 2,
+          "firstAttemptOk": false,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": false,
+              "cause": "quote_not_locatable",
+              "detail": "structure: 引用无法在评审对象中定位（not_found）：其实我真实的经历就是...但这样听起来太…"
+            },
+            {
+              "attempt": 2,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 12,
+          "caseId": "C12",
+          "latencyMs": 9946,
+          "totalTokens": 2243,
+          "completionTokens": 722,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 13,
+          "caseId": "C13",
+          "latencyMs": 34198,
+          "totalTokens": 5207,
+          "completionTokens": 1892,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 2,
+          "firstAttemptOk": false,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": false,
+              "cause": "schema_error",
+              "detail": "/dimensions/structure/quote: must be null; /dimensions/structure/quote/textVersion: must be equal to one of the allowed values; /dimensions/structure/quote: must match a schema in anyOf"
+            },
+            {
+              "attempt": 2,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 14,
+          "caseId": "C14",
+          "latencyMs": 9415,
+          "totalTokens": 2325,
+          "completionTokens": 758,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 15,
+          "caseId": "C15",
+          "latencyMs": 13787,
+          "totalTokens": 2319,
+          "completionTokens": 781,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 16,
+          "caseId": "C16",
+          "latencyMs": 11549,
+          "totalTokens": 2333,
+          "completionTokens": 805,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 17,
+          "caseId": "C17",
+          "latencyMs": 13239,
+          "totalTokens": 2401,
+          "completionTokens": 831,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 18,
+          "caseId": "C18",
+          "latencyMs": 9144,
+          "totalTokens": 2241,
+          "completionTokens": 716,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 19,
+          "caseId": "C19",
+          "latencyMs": 10145,
+          "totalTokens": 2426,
+          "completionTokens": 806,
+          "schemaOk": true,
+          "quoteLocated": true,
+          "attempts": 1,
+          "firstAttemptOk": true,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": true
+            }
+          ],
+          "ok": true
+        },
+        {
+          "round": 20,
+          "caseId": "C20",
+          "latencyMs": 21971,
+          "totalTokens": 4632,
+          "completionTokens": 1479,
+          "schemaOk": true,
+          "quoteLocated": false,
+          "attempts": 2,
+          "firstAttemptOk": false,
+          "attemptLog": [
+            {
+              "attempt": 1,
+              "ok": false,
+              "cause": "schema_error",
+              "detail": "/dimensions/resultsReflection/quote: must be object; /dimensions/resultsReflection: must match \"then\" schema"
+            },
+            {
+              "attempt": 2,
+              "ok": false,
+              "cause": "quote_not_locatable",
+              "detail": "structure: 引用无法在评审对象中定位（not_found）：在召回侧...相关性层面...排序侧..…"
+            }
+          ],
+          "ok": false
+        }
+      ]
+    }
+  },
   "cost": {
     "usage": {
-      "planTokens": 0,
-      "reviewTokens": 0,
-      "latencyReviewTokens": 0,
-      "totalTextTokens": 0,
-      "userSpeechSeconds": 0
+      "planTokens": 1119,
+      "reviewTokens": 11817,
+      "latencyReviewTokens": 59171,
+      "totalTextTokens": 72107,
+      "userSpeechSeconds": 168.7
     },
-    "note": "token 数为百炼响应中的真实 usage；语音按音频秒数计量。单价以百炼官方定价页为准——若验收记录中标注「未核定」，表示本轮未能核实官方单价，只报用量不报金额。"
+    "note": "token 数为百炼响应中的真实 usage；语音按音频秒数计量。单价以百炼官方定价页为准——本文件中单价未核定时只报用量、不报金额。"
   }
 }

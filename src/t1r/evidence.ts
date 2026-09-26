@@ -6,7 +6,7 @@
  * 2. 大体积音频放 `data/t1r/`（gitignore），入库的只有 1–2 个短片段；验收记录里给出
  *    路径／时长／字节数／sha256，保证复核者能核对「记录描述的那段音频」确实是这段。
  */
-import { appendFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { appendFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { assertNoSecret, REPO_ROOT } from './env.js';
 
@@ -78,6 +78,13 @@ export class EvidenceWriter {
     appendFileSync(full, `${text}\n`);
     this.record(full, 'jsonl', text.length + 1, committed);
     return full;
+  }
+
+  /** 清空一个 JSONL（工具有多次运行时应重置，避免证据文件把两轮结果混在一起）。 */
+  truncateJsonl(relName: string, committed = true): void {
+    const base = committed ? this.evidenceDir : this.dataDir;
+    const full = path.join(base, relName);
+    if (existsSync(full)) rmSync(full);
   }
 
   note(key: string, value: unknown): void {

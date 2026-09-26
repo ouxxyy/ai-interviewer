@@ -15,17 +15,11 @@
     "个人动作与结果全部缺位"
   ],
   "outcomeKind": "ok",
-  "attempts": 2,
-  "firstAttemptOk": false,
+  "attempts": 1,
+  "firstAttemptOk": true,
   "attemptLog": [
     {
       "attempt": 1,
-      "ok": false,
-      "cause": "schema_error",
-      "detail": "(root): must have required property 'reviewVersion'"
-    },
-    {
-      "attempt": 2,
       "ok": true
     }
   ],
@@ -36,27 +30,15 @@
   "calls": [
     {
       "attempt": 1,
-      "latencyMs": 10424,
+      "latencyMs": 13265,
       "httpStatus": 200,
       "model": "qwen3.8-flash",
-      "promptTokens": 1440,
-      "completionTokens": 783,
-      "totalTokens": 2223,
+      "promptTokens": 1529,
+      "completionTokens": 735,
+      "totalTokens": 2264,
       "jsonMode": true,
       "enableThinking": false,
-      "rawChars": 1840
-    },
-    {
-      "attempt": 2,
-      "latencyMs": 12598,
-      "httpStatus": 200,
-      "model": "qwen3.8-flash",
-      "promptTokens": 1510,
-      "completionTokens": 731,
-      "totalTokens": 2241,
-      "jsonMode": true,
-      "enableThinking": false,
-      "rawChars": 1734
+      "rawChars": 1742
     }
   ],
   "feedback": {
@@ -79,7 +61,7 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "回应了数据复盘主题，但缺乏具体案例支撑"
+        "reason": "仅阐述观点未提供具体案例，偏离题目要求"
       },
       "specificity": {
         "level": "证据不足",
@@ -91,7 +73,7 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "仅描述日常习惯，未提供改进内容的具体事例"
+        "reason": "描述日常习惯而非特定事件，缺乏时间地点人物等细节"
       },
       "contribution": {
         "level": "证据不足",
@@ -103,15 +85,15 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "动作笼统，未说明个人在复盘中的具体决策或执行"
+        "reason": "动作模糊笼统，未说明具体做了哪些改进措施"
       },
       "resultsReflection": {
         "level": "无法判断",
         "quote": null,
-        "reason": "原文未提及任何具体的改进结果或深度反思内容"
+        "reason": "文中无具体数据结果或深度反思内容，信息缺失"
       },
       "structure": {
-        "level": "部分清楚",
+        "level": "证据不足",
         "quote": {
           "text": "总之我始终保持着数据敏感度，不断学习不断迭代，相信这套方法论可以复用到贵司的岗位上。",
           "start": 146,
@@ -120,19 +102,22 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "有观点总结，但整体呈流水账式罗列，逻辑层次较弱"
+        "reason": "缺乏STAR结构，逻辑松散且结尾强行关联岗位"
       }
     },
     "factGaps": [
-      "缺少具体的数据复盘案例背景",
-      "未说明发现的具体问题及分析过程",
-      "缺失改进后的量化结果或定性反馈"
+      "具体的某一次内容复盘案例背景",
+      "发现的具体数据异常或问题点",
+      "采取的具体改进动作（如标题、封面、选题）",
+      "改进后的量化结果对比",
+      "从该次经历中得出的具体结论"
     ],
-    "topImprovement": "补充一个包含“发现问题-分析原因-实施改进-验证结果”闭环的具体案例",
+    "topImprovement": "必须替换泛泛而谈的观点，提供一个包含起因、行动、结果的完整具体案例。",
     "nextFacts": [
-      "请提供一个具体的视频或内容案例，说明当时数据表现如何异常？",
-      "你通过什么数据分析方法定位到了问题根源？",
-      "调整后数据有什么具体变化（如播放量提升百分比）？"
+      "请回忆一个具体的视频或文章，当时数据表现如何？",
+      "你通过数据分析发现了什么具体问题？",
+      "你针对这个问题做了什么具体的修改？",
+      "修改后数据有什么变化？"
     ],
     "reviewVersion": "prompts@0.1.0-t1r"
   }

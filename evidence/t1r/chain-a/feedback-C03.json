@@ -30,15 +30,15 @@
   "calls": [
     {
       "attempt": 1,
-      "latencyMs": 12065,
+      "latencyMs": 12763,
       "httpStatus": 200,
       "model": "qwen3.8-flash",
-      "promptTokens": 1419,
-      "completionTokens": 770,
-      "totalTokens": 2189,
+      "promptTokens": 1508,
+      "completionTokens": 802,
+      "totalTokens": 2310,
       "jsonMode": true,
       "enableThinking": false,
-      "rawChars": 1817
+      "rawChars": 1880
     }
   ],
   "feedback": {
@@ -61,9 +61,33 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "仅列举团队整体分工，未明确回答个人具体职责。"
+        "reason": "描述了团队分工但未明确个人具体职责"
       },
       "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "活动当天我们设置了满减和秒杀两种玩法，我们在各个群里轮番发预告。",
+          "start": 72,
+          "end": 104,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "列举了具体的运营动作如设置玩法和发预告"
+      },
+      "contribution": {
+        "level": "证据不足",
+        "quote": {
+          "text": "我们提前两周开始筹备，先做了用户调研，然后我们确定了主打品类是零食和日用品。",
+          "start": 34,
+          "end": 72,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "全程使用“我们”主语，未区分个人独立贡献"
+      },
+      "resultsReflection": {
         "level": "充分清楚",
         "quote": {
           "text": "最后我们做到了 8 万 GMV，我们自己都挺惊喜的。",
@@ -73,31 +97,7 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "提供了具体的GMV数据及活动玩法细节，事例清晰。"
-      },
-      "contribution": {
-        "level": "证据不足",
-        "quote": {
-          "text": "我们在各个群里轮番发预告。",
-          "start": 91,
-          "end": 104,
-          "turnId": "t1",
-          "textVersion": "raw",
-          "matchType": "exact"
-        },
-        "reason": "全程使用“我们”主语，无法区分用户个人的独立贡献。"
-      },
-      "resultsReflection": {
-        "level": "充分清楚",
-        "quote": {
-          "text": "这段经历让我学会了团队协作和应急处理。",
-          "start": 158,
-          "end": 177,
-          "turnId": "t1",
-          "textVersion": "raw",
-          "matchType": "exact"
-        },
-        "reason": "明确给出了量化结果以及从经历中获得的反思总结。"
+        "reason": "提供了量化结果GMV及主观感受反思"
       },
       "structure": {
         "level": "充分清楚",
@@ -109,16 +109,19 @@
           "textVersion": "raw",
           "matchType": "exact"
         },
-        "reason": "按时间顺序叙述筹备、执行到结果，逻辑连贯结构完整。"
+        "reason": "按时间顺序叙述，逻辑清晰连贯"
       }
     },
     "factGaps": [
-      "用户个人在团队分工中的具体角色缺失",
-      "用户个人在执行环节（如发预告、换货）的具体动作不明"
+      "个人在团队中的具体角色定位",
+      "个人独立执行的关键任务细节",
+      "个人决策对结果的具体影响"
     ],
-    "topImprovement": "将“我们”改为“我”，明确说明自己负责的是选品、社群还是谈判中的哪一项。",
+    "topImprovement": "将“我们”改为“我”，明确个人在选品、社群或谈判中的具体职责",
     "nextFacts": [
-      "请补充说明在上述团队分工中，你个人主要承担了哪一部分工作？"
+      "我在活动中主要负责哪一块（如社群运营/选品/对接）",
+      "我独立完成了哪些具体动作（如撰写文案/筛选商品/协调缺货）",
+      "我的个人行动如何直接促成了8万GMV的结果"
     ],
     "reviewVersion": "prompts@0.1.0-t1r"
   }
