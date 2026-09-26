@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 面试官 · 音频 prototype（mock 实时服务）</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 20px; }
+  .hint { color: #666; font-size: 13px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  button { padding: 8px 14px; font-size: 14px; border: 1px solid #bbb; border-radius: 6px; background: #fff; cursor: pointer; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: #2b6cb0; border-color: #2b6cb0; color: #fff; }
+  button.danger { background: #c53030; border-color: #c53030; color: #fff; }
+  #status { margin: 8px 0; font-size: 14px; }
+  #log { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 10px; font-size: 12px; white-space: pre-wrap; max-height: 320px; overflow: auto; font-family: ui-monospace, monospace; }
+  .turns div { padding: 6px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+</style>
+</head>
+<body>
+<h1>AI 面试官 · 音频 prototype <span class="hint">（对接本地 mock 实时服务，无真实模型）</span></h1>
+<p class="hint">验证链路：采集 → 播放 → 打断清空待播 → 手动「回答完毕」→ 按轮次落盘 → 回放 → 删除无残留。服务仅本机回环。</p>
+
+<div class="controls">
+  <button id="btn-session" class="primary">开始会话</button>
+  <button id="btn-capture">开始采集</button>
+  <button id="btn-done" class="primary">回答完毕（手动结束）</button>
+  <button id="btn-interrupt" class="danger">打断</button>
+  <button id="btn-refresh">刷新轮次</button>
+  <button id="btn-delete" class="danger">删除会话</button>
+</div>
+<div id="status">idle</div>
+<div class="turns" id="turns"></div>
+<pre id="log"></pre>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const logEl = $('log'), statusEl = $('status'), turnsEl = $('turns');
+  const state = {
+    sid: null, ws: null, wsReady: false,
+    stream: null, recorder: null, chunks: [], recording: false,
+    captureStartedAt: null, lastBlobSize: 0,
+    injectedText: null, lastResponseText: null,
+    audioCtx: null, playQueue: [], playing: false, playedMs: 0,
+    turns: [], deleted: false, micDenied: false,
+  };
+  const setStatus = (s) => { statusEl.textContent = s; };
+  const log = (line) => {
+    const t = new Date().toISOString().slice(11, 23);
+    logEl.textContent += `[${t}] ${line}\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+
+  function ensureAudioCtx() {
+    if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return state.audioCtx;
+  }
+
+  /** 播放队列：逐段播放；interrupt 时停止当前段并清空队列。 */
+  function enqueuePlayback(buffer) {
+    state.playQueue.push(buffer);
+    if (!state.playing) playNext();
+  }
+  function playNext() {
+    const ctx = ensureAudioCtx();
+    const buf = state.playQueue.shift();
+    if (!buf) { state.playing = false; setStatus(state.recording ? 'recording' : 'idle'); return; }
+    state.playing = true;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    const startedAt = performance.now();
+    state._activeSince = startedAt;
+    src.onended = () => {
+      state.playedMs += performance.now() - startedAt;
+      state._activeSince = null;
+      if (state._currentSrc === src) state._currentSrc = null;
+      playNext();
+    };
+    state._currentSrc = src;
+    setStatus('playing interviewer audio');
+    src.start();
+  }
+  /** 进行时口径：已播完段 + 正在播段的已播时长。 */
+  function currentPlayedMs() {
+    return state.playedMs + (state.playing && state._activeSince ? performance.now() - state._activeSince : 0);
+  }
+  function interrupt() {
+    if (state._currentSrc) { try { state._currentSrc.stop(); } catch (e) { /* already stopped */ } state._currentSrc = null; }
+    const cleared = state.playQueue.length;
+    state.playQueue = [];
+    state.playing = false;
+    state.ws?.send(JSON.stringify({ type: 'interrupt' }));
+    setStatus('interrupted');
+    log(`interrupt：停止当前播放并清空待播队列（清空 ${cleared} 段）`);
+    return cleared;
+  }
+
+  async function createSession() {
+    const res = await fetch('/api/sessions', { method: 'POST' });
+    const { sid } = await res.json();
+    state.sid = sid; state.deleted = false; state.turns = [];
+    log(`会话创建：${sid}`);
+    await openWs();
+    await refreshTurns();
+    return sid;
+  }
+  function openWs() {
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(`ws://${location.host}/realtime`);
+      state.ws = ws;
+      ws.onopen = () => {
+        state.wsReady = true;
+        ws.send(JSON.stringify({ type: 'session_open', sid: state.sid }));
+        resolve();
+      };
+      ws.onerror = (e) => { log(`ws error：${e.type}`); reject(new Error('ws error')); };
+      ws.onclose = () => { state.wsReady = false; log('ws closed'); };
+      ws.onmessage = async (ev) => {
+        if (typeof ev.data !== 'string') {
+          const buf = await new Response(ev.data).arrayBuffer();
+          const ctx = ensureAudioCtx();
+          const audio = await ctx.decodeAudioData(buf);
+          enqueuePlayback(audio);
+          log(`收到面试官回应音频 ${buf.byteLength} 字节，已入播放队列`);
+          return;
+        }
+        const msg = JSON.parse(ev.data);
+        if (msg.type === 'inject_ack') log(`inject_ack：${msg.text}`);
+        if (msg.type === 'response_event') { state.lastResponseText = msg.text; log(`response_event：文本=${JSON.stringify(msg.text)}`); }
+        if (msg.type === 'interrupt_ack') log('interrupt_ack：服务端确认');
+      };
+    });
+  }
+
+  async function startCapture(seconds = 2.5) {
+    if (state.recording) throw new Error('已在采集中');
+    state.micDenied = false;
+    try {
+      state.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      state.micDenied = true;
+      setStatus('mic_denied');
+      log(`麦克风被拒绝：${e.name}`);
+      return { ok: false, micDenied: true };
+    }
+    state.chunks = [];
+    state.recorder = new MediaRecorder(state.stream);
+    state.recorder.ondataavailable = (e) => { if (e.data.size > 0) state.chunks.push(e.data); };
+    state.recorder.start(250);
+    state.recording = true;
+    state.captureStartedAt = new Date().toISOString();
+    setStatus('recording');
+    log(`开始采集（${seconds}s，sampleRate=${state.stream.getAudioTracks()[0].label ? 'ok' : '?'}）`);
+    await new Promise((r) => setTimeout(r, seconds * 1000));
+    await stopRecorderOnly();
+    return { ok: true, sampleRate: state.stream.getAudioContext?.().sampleRate ?? null };
+  }
+  function stopRecorderOnly() {
+    return new Promise((resolve) => {
+      if (!state.recorder || state.recorder.state === 'inactive') return resolve();
+      state.recorder.onstop = () => resolve();
+      state.recorder.stop();
+    }).then(() => {
+      state.recording = false;
+      state.stream?.getTracks().forEach((t) => t.stop());
+      state.lastBlobSize = state.chunks.reduce((n, c) => n + c.size, 0);
+      log(`采集停止：blob 大小 ${state.lastBlobSize} 字节`);
+    });
+  }
+
+  /** D2 mock：注入文本并触发服务端回应（面试官只朗读注入的文本）。 */
+  async function injectAndRespond(questionText) {
+    state.injectedText = questionText;
+    state.ws.send(JSON.stringify({ type: 'inject_text', text: questionText }));
+    state.ws.send(JSON.stringify({ type: 'answer_done', turnNo: state.turns.length + 1 }));
+    log(`已注入并请求回应：${questionText}`);
+    return true;
+  }
+
+  /** 手动「回答完毕」后的落盘：上传用户音频、关闭轮次。 */
+  async function finalizeTurn(questionText = '请介绍你负责过的最复杂项目') {
+    if (state.recording) await stopRecorderOnly();
+    const tid = String(state.turns.length + 1);
+    const blob = new Blob(state.chunks, { type: 'audio/webm' });
+    const up = await fetch(`/api/sessions/${state.sid}/turns/${tid}/user-audio`, { method: 'POST', body: blob });
+    const upRes = await up.json();
+    log(`用户音频已上传（turn ${tid}）：${upRes.bytes} 字节 → ${upRes.file}`);
+    const close = await fetch(`/api/sessions/${state.sid}/turns/${tid}/close`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questionText, startedAt: state.captureStartedAt }),
+    });
+    const closeRes = await close.json();
+    log(`轮次 ${tid} 已落盘：interviewer wav ${closeRes.interviewerWav} 字节`);
+    state.turns.push({ tid, userBytes: upRes.bytes, interviewerBytes: closeRes.interviewerWav });
+    setStatus('turn finalized');
+    return { tid, userBytes: upRes.bytes, interviewerBytes: closeRes.interviewerWav };
+  }
+
+  /** 按钮「回答完毕」：落盘并请求下一回应。 */
+  async function manualAnswerDone(questionText = '请介绍你负责过的最复杂项目') {
+    const r = await finalizeTurn(questionText);
+    await injectAndRespond(questionText);
+    return r;
+  }
+
+  async function refreshTurns() {
+    if (!state.sid) return;
+    const res = await fetch(`/api/sessions/${state.sid}`);
+    const data = await res.json();
+    turnsEl.innerHTML = '';
+    for (const t of data.turns) {
+      const div = document.createElement('div');
+      div.textContent = `轮次 ${t.tid}｜用户音频 ${t.userAudioBytes}B｜面试官音频 ${t.interviewerAudioBytes}B｜${t.endedAt ?? '未结束'}`;
+      const btn = document.createElement('button');
+      btn.textContent = '回放用户音频';
+      btn.onclick = () => replayTurn(t.tid).catch((e) => log(`回放失败：${e.message}`));
+      div.appendChild(btn);
+      turnsEl.appendChild(div);
+    }
+    return data;
+  }
+
+  async function replayTurn(tid) {
+    state.playedMs = 0;
+    const res = await fetch(`/api/files/${state.sid}/turn-${tid}-user.webm`);
+    if (!res.ok) throw new Error(`回放文件不存在：HTTP ${res.status}`);
+    const buf = await res.arrayBuffer();
+    const ctx = ensureAudioCtx();
+    const audio = await ctx.decodeAudioData(buf.slice(0));
+    enqueuePlayback(audio);
+    log(`回放 turn ${tid}：${buf.byteLength} 字节，解码时长 ${audio.duration.toFixed(2)}s`);
+    await new Promise((r) => setTimeout(r, 600));
+    return { tid, bytes: buf.byteLength, durationSec: Number(audio.duration.toFixed(2)), playedMs: Math.round(currentPlayedMs()) };
+  }
+
+  async function deleteSession() {
+    const res = await fetch(`/api/sessions/${state.sid}`, { method: 'DELETE' });
+    const data = await res.json();
+    state.deleted = true;
+    log(`会话已删除：移除 ${data.removedFiles.length} 个文件，数据目录剩余 ${data.remainingFilesInDataDir.length} 个，会话数 ${data.sessionCount}`);
+    setStatus('deleted');
+    turnsEl.innerHTML = '';
+    return data;
+  }
+
+  function status() {
+    return {
+      sid: state.sid, recording: state.recording, playing: state.playing,
+      queueLength: state.playQueue.length, playedMs: Math.round(currentPlayedMs()),
+      lastBlobSize: state.lastBlobSize, micDenied: state.micDenied,
+      injectedText: state.injectedText, lastResponseText: state.lastResponseText,
+      turns: state.turns, deleted: state.deleted, wsReady: state.wsReady,
+    };
+  }
+
+  // 按钮
+  $('btn-session').onclick = () => createSession().catch((e) => log(`失败：${e.message}`));
+  $('btn-capture').onclick = () => startCapture().catch((e) => log(`失败：${e.message}`));
+  $('btn-done').onclick = () => manualAnswerDone().then(refreshTurns).catch((e) => log(`失败：${e.message}`));
+  $('btn-interrupt').onclick = () => interrupt();
+  $('btn-refresh').onclick = () => refreshTurns();
+  $('btn-delete').onclick = () => deleteSession().catch((e) => log(`失败：${e.message}`));
+
+  // CDP 驱动接口（自动化证据采集用）
+  window.__protoDriver = { createSession, startCapture, injectAndRespond, finalizeTurn, manualAnswerDone, interrupt, replayTurn, deleteSession, refreshTurns, status, sleep: (ms) => new Promise((r) => setTimeout(r, ms)) };
+  log('prototype 页面就绪（mock 模式，无真实模型）');
+})();
+</script>
+</body>
+</html>
