@@ -1,0 +1,14 @@
+{
+  "startedAt": "2026-09-26T17:23:38.347Z",
+  "command": "manifest",
+  "versionStamp": "rules@0.2.0 ｜ contract@0.2.0 ｜ prompts@0.2.0 ｜ rulesDigest=8795410eb4fe98cb6c58067644040838625f17ce4690b97dfef981d74326fa54",
+  "credential": {
+    "key": "DASHSCOPE_API_KEY",
+    "present": true,
+    "length": 116
+  },
+  "dotenv": {
+    "path": ".env",
+    "filePresent": true
+  }
+}

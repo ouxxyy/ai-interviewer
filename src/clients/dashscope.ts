@@ -51,7 +51,20 @@ export class DashscopeTextClient implements TextLlmClient {
     return this.config.baseUrl;
   }
 
+  /**
+   * 多轮对话补全（T3 简版 Prompt 入口用）。
+   * 「把 Prompt 粘贴进普通聊天对话」在 API 层就是一次带历史的多轮 messages 调用——
+   * 用它来实测「自包含、不依赖仓库」这条。
+   */
+  async completeChat(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>, req: Omit<CompletionRequest, 'prompt'> = {}): Promise<CompletionResponse> {
+    return this.call({ ...req, prompt: '' }, messages);
+  }
+
   async complete(req: CompletionRequest): Promise<CompletionResponse> {
+    return this.call(req, null);
+  }
+
+  private async call(req: CompletionRequest, messages: Array<{ role: string; content: string }> | null): Promise<CompletionResponse> {
     const apiKey = readCredential(this.config.apiKeyEnv);
     const controller = new AbortController();
     const timeoutMs = req.timeoutMs ?? this.config.timeoutMs;
@@ -60,7 +73,7 @@ export class DashscopeTextClient implements TextLlmClient {
     try {
       const body: Record<string, unknown> = {
         model: this.config.model,
-        messages: [{ role: 'user', content: req.prompt }],
+        messages: messages ?? [{ role: 'user', content: req.prompt }],
         temperature: req.temperature ?? 0.2,
         max_tokens: req.maxTokens ?? 4096,
       };

@@ -12,6 +12,7 @@
   链 A：真实 QuestionPlan（3 题）＋ 5 份真实 Feedback 全部过 Schema、引用 23/23 可定位、0 降级；
   链 B：真实 WebSocket 语音会话跑完「提问→回答→转写→追问→打断」，两个技术前提（服务端注入问题文本、面试官音频服务端持久化）均成立。
 - **T2 契约与内容定稿：完成**（2026-09-27，证据 `docs/t2-acceptance.md`、`evidence/t2/`）——`contract@0.2.0`（与 0.1.0 结构相同、双版本并存可校验）、三入口共用规则文本 `rules@0.2.0`（单源 `src/rules/rules.ts` → `docs/rules.md`）、D1–D11 冻结登记 `docs/decisions.md`、24 案例标注规范、带对照的提示词标定（`t1s` 0% → `t1r` 67% → `t2` 83% 首次通过）、代表案例真实评审 ×3（档位不跨两档 4/4、引用 100% 可定位 4/4、与预期一致 3/4）。
+- **T3 纯文字两入口：已交付**（2026-09-27，证据 `docs/t3-acceptance.md`、`evidence/t3/`）——Skill 包（`skills/ai-interviewer/`，含 SKILL.md／references／INSTALL.md）与自包含简版 Prompt（`prompt/ai-interviewer-prompt.md`）。规则正文由 `src/rules/rules.ts` **同源生成**，两入口都带 `rules@0.2.0` ＋ 完整 `rulesDigest()`。Skill 全流程真实跑通（7 次调用、报告见 `evidence/t3/skill/report.md`）；简版 Prompt 多轮闭环实测引用 5/5 逐字。**Codex 宿主实测通过；Claude Code 撞 1310 配额，按止损未重试，标未验证**。
 - **性能**：语音腿「答完→首段回应音频」P95 **1,979 ms**（达标 ≤3 s）；评审腿「提交评审→完整点评」P95 **30,417 ms**（**未达标** ≤15 s，根因与建议见验收记录 §7.2）。T2 标定把单次 P50 从 ~12.5 s 降到 11.1 s，但**未改变未达标的结论**，已知限制保留。
 - **仍未验证**：真人麦克风采集、浏览器↔服务端音频链路、提示词标定、24 案例模型侧全量校验、反抢话 A10、转写质量 A5、反注入 A9；单场成本金额与账号配额未核定（官方定价页在本机网络环境不可达）。
 
@@ -69,12 +70,16 @@ node dist/src/t2/run.js all                # 以上全部
 │   ├── prototype/              # 音频 prototype：mock 服务 + 页面 + CDP 证据采集
 │   ├── t1r/                    # T1-R 验收运行器：.env 加载/密钥防线、音频工具、链 A/B、延迟、证据清单
 │   ├── t2/                     # T2 运行器：对照标定、代表案例复测、汇总与清单
+│   ├── t3/                     # T3 运行器：Skill／Prompt 内容生成、真实调用跑流程、宿主实测记录
 │   └── rules/rules.ts          # 三入口共用训练规则文本（唯一源）
 ├── cases/cases.json            # 24 个固定案例（全合成，人工预期标注）
 ├── evidence/t1r/               # T1-R 真实调用证据（模型目录、QuestionPlan、Feedback、事件日志、延迟、短音频片段）
 ├── evidence/t2/                # T2 证据（三版本对照标定、代表案例 ×3、manifest 带 sha256）
+├── evidence/t3/                # T3 证据（Skill 会话与报告、Prompt 会话、宿主实测原始输出）
+├── skills/ai-interviewer/      # Skill 包（SKILL.md ＋ references/rules.md ＋ INSTALL.md）
+├── prompt/ai-interviewer-prompt.md   # 自包含简版 Prompt
 ├── scripts/                    # env-check / checkout-references
-└── test/                       # 67 项单测（契约/定位器/状态机/mock/提示词/案例/基线/T1-R 护栏/T2 定稿）
+└── test/                       # 79 项单测（契约/定位器/状态机/mock/提示词/案例/基线/T1-R 护栏/T2 定稿/T3 入口/证据纪律）
 ```
 
 ## 已知限制
@@ -89,3 +94,6 @@ node dist/src/t2/run.js all                # 以上全部
 8. 百炼实时接口的服务端默认音色 `Chelsie` 实测**不可用**，必须显式指定（本项目固定 `Serena`，代码层已加前置断言）。
 9. **代表案例 C19 的 contribution 维度与人工预期不一致**（3 次里 1 次相邻下档），未解决，见 `docs/t2-acceptance.md` §4.2；24 案例的模型侧**全量**校验与提示词质量定标仍未做。
 10. **structure 维度的标尺收敛（`rules@0.2.0`）改了尺子，必须交 T4 红队复测**，本轮不自我背书。
+11. **Claude Code 宿主未验证**（配额 1310，按止损未重试）；网页入口未开工；**A8 三入口一致性验收**要等网页入口。
+12. 简版 Prompt **没有引用校验回环**：`structure` 维度曾连续 3 次写出省略号拼接稿，改成「按句切开、整句复制」的机械做法后 5/5 逐字（`docs/t3-acceptance.md` §2.3）。仓库流水线尚未采用该做法，属待评估的提示词变更。
+13. 简版 Prompt 的实测宿主是百炼 chat completions 多轮会话（粘贴进普通聊天的 API 等价物），**第三方聊天 UI 未实测**。

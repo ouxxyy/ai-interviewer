@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-09-26T17:23:38.349Z",
+  "artifacts": [
+    {
+      "path": "evidence/t3/hosts/codex-raw.txt",
+      "kind": "txt",
+      "bytes": 12706,
+      "sha256": "2756daca4287df34f132081594344c4226591327ad083856ab9efb1fae523130",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/hosts/summary.json",
+      "kind": "json",
+      "bytes": 1534,
+      "sha256": "bc83325bd068b26fbafb7979e41db9f5575d74aaa24b253be1e1499eefdfde96",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/prompt/summary.json",
+      "kind": "json",
+      "bytes": 7868,
+      "sha256": "8d1a930d95ae8e886738e2c90724aefe0047a8abf68ed719c5d6b374476d8022",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/prompt/transcript.json",
+      "kind": "json",
+      "bytes": 7659,
+      "sha256": "f76b7b68e2699508fc7fe845929036ca7885abb3ebcc4462dc1f5d4a4d342dab",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/run-summary.json",
+      "kind": "json",
+      "bytes": 379,
+      "sha256": "06f0026cba89e46b4ebca76778f95fc74dec9ebd36849fb7a52b863ea7fb3dbc",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/skill/report.md",
+      "kind": "md",
+      "bytes": 9847,
+      "sha256": "ca6b9b6760fb9bc560cb30f0a84591100e5a057a97e7535be34e09e9d349a9ab",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/skill/session.json",
+      "kind": "json",
+      "bytes": 31695,
+      "sha256": "555cfbb3a2fbd37a0574e660a92cb0008c06f584bdc0db6d94b0055d68403628",
+      "committed": true
+    }
+  ],
+  "verifiedAt": "2026-09-26T17:23:38.350Z",
+  "verifiedAgainstDisk": {
+    "total": 7,
+    "mismatches": []
+  }
+}

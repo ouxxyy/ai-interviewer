@@ -1,0 +1,52 @@
+# 安装与验证（ai-interviewer Skill）
+
+> 版本戳：`rules@0.2.0 ｜ contract@0.2.0 ｜ prompts@0.2.0 ｜ rulesDigest=8795410eb4fe98cb6c58067644040838625f17ce4690b97dfef981d74326fa54`
+> 本入口是**纯文字**训练：没有录音、没有实时语音、不能听也不能说。
+
+## 安装
+
+Skill 就是一个目录。选一种装法：
+
+**A. 项目内（推荐，不动全局配置）**
+
+```bash
+mkdir -p <你的项目>/.claude/skills <你的项目>/.codex/skills
+cp -R skills/ai-interviewer <你的项目>/.claude/skills/     # Claude Code
+cp -R skills/ai-interviewer <你的项目>/.codex/skills/      # Codex
+```
+
+**B. 全局（所有项目可用）**
+
+```bash
+cp -R skills/ai-interviewer ~/.claude/skills/              # Claude Code
+cp -R skills/ai-interviewer ~/.codex/skills/               # Codex
+```
+
+## 验证装上了
+
+对宿主说：
+
+> 请使用 ai-interviewer 技能开始一场中文经历面试训练。先告诉我你的能力边界和你遵循的规则版本号。
+
+期望回答里同时出现：**「没有录音／没有实时语音」**与 **`rules@0.2.0`**。
+两项缺一，就说明 Skill 没被加载（或加载到了别的版本）。
+
+## 卸载
+
+```bash
+rm -rf <你的项目>/.claude/skills/ai-interviewer   # 或 ~/.claude/skills/ai-interviewer
+rm -rf <你的项目>/.codex/skills/ai-interviewer    # 或 ~/.codex/skills/ai-interviewer
+```
+
+## 实测状态（截至 T3 交付）
+
+| 宿主 | 状态 | 依据 |
+| --- | --- | --- |
+| Codex CLI | ✅ 实测通过 | `codex exec` 真跑，Skill 被加载并原样报出能力边界与 `rules@0.2.0`；原始终端输出见仓库 `evidence/t3/hosts/codex-raw.txt` |
+| Claude Code | ⚠️ **未验证** | 首次尝试即返回 `API Error: Request rejected (429) · [1310] 您已达到每周/每月使用上限`（2026-09-28 06:07 重置）。按止损纪律**没有重试**，因此没有可报的实测结果 |
+
+## 边界
+
+- 规则正文来自 `references/rules.md`，它与仓库规则源 `src/rules/rules.ts` **同源生成**；
+  改规则要改源并重跑生成器，别直接编辑本目录里的 `rules.md`。
+- Skill 不产生录音、不产生音频文件，也不声称有回放能力。

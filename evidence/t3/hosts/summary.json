@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-09-26T17:23:08.659Z",
+  "hosts": [
+    {
+      "host": "codex",
+      "command": "codex exec --skip-git-repo-check \"<要求技能自报能力边界与规则版本>\"",
+      "status": "verified",
+      "exitCode": 0,
+      "checks": {
+        "boundaryStated": true,
+        "rulesVersionCited": true,
+        "matchedPhrases": [
+          "没有录音",
+          "没有实时语音",
+          "不能听也不能说",
+          "仅支持纯文字"
+        ]
+      },
+      "rawOutput": {
+        "path": "evidence/t3/hosts/codex-raw.txt",
+        "bytes": 12706,
+        "redacted": true
+      },
+      "note": "Skill 从 <项目>/.codex/skills/ 被加载；结论由本文件从原始输出匹配得出，不是手写断言。"
+    },
+    {
+      "host": "claude-code",
+      "command": "claude -p \"请使用 ai-interviewer 技能开始一场中文经历面试训练…\"",
+      "status": "blocked",
+      "exitCode": null,
+      "blocker": {
+        "kind": "provider_quota",
+        "message": "API Error: Request rejected (429) · [1310] 您已达到每周/每月使用上限，您的限额将在 2026-09-28 06:07:54 重置。",
+        "retried": false
+      },
+      "note": "Skill 已按 INSTALL.md 装好（~/.claude/skills 被沙箱拒绝后改用项目内 .claude/skills/），但宿主本身跑不起来：CLI 走的模型链配额打满。按派单的止损要求「撞上 1310 就停下回报、不要重试」，未做第二次尝试，因此没有可报的实测结果。"
+    }
+  ]
+}

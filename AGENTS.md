@@ -4,7 +4,8 @@
 
 中文经历面试训练工具（三入口 MVP：本地网页／Skill／简版 Prompt），基于 Multica 任务 MYW-84。需求与验收红线以 `MULTICA_EXECUTION_PLAN.md` 与 PM 方案（issue 附件 `MYW-84-PM方案-v1.md`）为准。
 
-- 当前阶段：**T1-S 静态通过**（reviewer 复核 PASS）＋ **T1-R 两链实时通过** ＋ **T2 契约与内容定稿完成**（证据 `docs/t1r-acceptance.md`、`docs/t2-acceptance.md`、`evidence/t1r/`、`evidence/t2/`）。评审延迟 P95 未达标（30.4s vs 15s），已知限制保留，未因 T2 标定删除。
+- 当前阶段：**T1-S 静态通过** ＋ **T1-R 两链实时通过** ＋ **T2 契约与内容定稿完成** ＋ **T3 纯文字两入口已交付**（Skill 包 `skills/ai-interviewer/` 与自包含 Prompt `prompt/ai-interviewer-prompt.md`；网页入口未开工，等 UX 挑选）（证据 `docs/t1r-acceptance.md`、`docs/t2-acceptance.md`、`evidence/t1r/`、`evidence/t2/`）。评审延迟 P95 未达标（30.4s vs 15s），已知限制保留，未因 T2 标定删除。
+- T3 入口：规则正文**同源生成**（`src/t3/content.ts` 渲染），改动 `src/rules/rules.ts` 后必须跑 `node dist/src/t3/cli.js skill:build`，否则测试红。`skill:run`／`prompt:run` 会真调模型。宿主实测结论由 `hosts:record` 从原始输出算出，不许手写。
 - 契约版本：`contract@0.2.0`（与 0.1.0 结构相同、双版本并存，历史证据仍可校验）；规则 `rules@0.2.0`（单源 `src/rules/rules.ts`，正文 `docs/rules.md` 由 `node dist/src/t2/run.js rules:write` 生成，**勿手改**）；提示词 `prompts@0.2.0`（**未标定**）。
 - 技术栈：TypeScript（NodeNext），依赖仅 `ajv` 与 `ws`。产品形态（React＋Vite、SQLite、实时语音）属 T3。
 - 真实调用：`src/t1r/` 为 T1-R 验收运行器；凭证**显式从项目根 `.env` 读取**（不依赖 shell 加载 `~/.zshrc`），落盘统一过 `assertNoSecret()` 防线。核定参数：文本 `qwen3.8-flash`，实时 `qwen3.8-omni-flash-realtime`，音色固定 `Serena`（服务端默认 `Chelsie` 实测被拒），输入 pcm16／输出 pcm24。
@@ -25,7 +26,7 @@
 ## Commands（当前真实可用）
 
 ```bash
-npm test                              # 构建并跑全部单测（当前 67 项）
+npm test                              # 构建并跑全部单测（当前 79 项）
 npm run build                         # tsc 编译到 dist/
 npm run validate -- <file> <name>     # 独立契约校验 CLI
 npm run prototype                     # 音频 prototype mock 服务（127.0.0.1:8917）
@@ -33,6 +34,13 @@ npm run prototype:run                 # headless Chrome 真跑音频链路并生
 npm run check:env                     # 环境基线核对（stdout）
 bash scripts/env-check.sh --write     # 重新生成 docs/environment-baseline.md
 bash scripts/checkout-references.sh   # 固定 commit 检出参考仓库（需 GitHub 代理）
+
+# T3（skill:build / hosts:record / manifest 不花钱；skill:run / prompt:run 真调模型）
+node dist/src/t3/cli.js skill:build    # 生成 Skill 包与简版 Prompt
+node dist/src/t3/cli.js skill:run      # 按 Skill 流程真跑一场
+node dist/src/t3/cli.js prompt:run     # 简版 Prompt 多轮闭环
+node dist/src/t3/cli.js hosts:record   # 判定宿主实测结论
+node dist/src/t3/cli.js manifest
 
 # T2（rules:write / manifest 不花钱；calibration / representative 真调模型）
 node dist/src/t2/run.js rules:write    # 生成 docs/rules.md（改了 rules.ts 必须重跑，否则单测红）
@@ -58,7 +66,7 @@ node dist/src/t1r/run-t1r.js all      # 全部（重写 evidence/t1r/）
 
 ## Delivery boundaries
 
-- 按 MYW-84 当前分派的阶段范围执行（T0/T1-S/T1-R/T2 已完成）；未获明确授权不进入 T3 页面开发。
+- 按 MYW-84 当前分派的阶段范围执行（T0/T1-S/T1-R/T2 与 T3 纯文字两入口已完成）；网页入口未获明确授权不开工。
 - 不上传远程仓库、不创建 GitHub 仓库、不执行 push、不修改全局 Git 配置。
 - 高风险操作（删除数据、覆盖配置、真实 API 花费）先确认；用户自行承担 API 费用。
 

@@ -9,9 +9,13 @@ import { DIMENSIONS, LEVELS, RULES_VERSION, rulesDigest, rulesMarkdown } from '.
 import { CONTRACT_VERSION } from '../contracts/version.js';
 import { PROMPT_VERSION } from '../prompts/prompts.js';
 
-/** 版本戳：三个入口产物里都要出现的同一组标识，A8 一致性验收靠它核对。 */
+/**
+ * 版本戳：三个入口产物里都要出现的同一组标识，A8 一致性验收靠它核对。
+ * `rulesDigest` 给**完整** sha256——截断虽然够用，但完整值才能让外部用一次
+ * `shasum` 就核对「三个入口是不是同一份规则」，不必知道我们截了几位。
+ */
 export function versionStamp(): string {
-  return `rules@${RULES_VERSION.replace(/^rules@/, '')} ｜ contract@${CONTRACT_VERSION} ｜ prompts@${PROMPT_VERSION.replace(/^prompts@/, '')} ｜ rulesDigest=${rulesDigest().slice(0, 16)}`;
+  return `rules@${RULES_VERSION.replace(/^rules@/, '')} ｜ contract@${CONTRACT_VERSION} ｜ prompts@${PROMPT_VERSION.replace(/^prompts@/, '')} ｜ rulesDigest=${rulesDigest()}`;
 }
 
 const NO_AUDIO_NOTICE = `> **能力边界（必须先告知用户）**：本入口是**纯文字**训练，**没有录音、没有实时语音、不能听也不能说**。
@@ -113,8 +117,14 @@ ${feedbackJsonTemplate()}
 - \`quote.text\` 必须是用户回答里**连续出现**的一段逐字原话，一个字、一个标点都不能改。
 - 禁止省略号拼接、禁止把不相邻的两段拼起来、禁止改写概括。
 - \`start\`/\`end\` 是该片段在回答文本里的字符区间 \`[start, end)\`；\`matchType\` 只能是 \`exact\` 或 \`normalized\`。
-- 自检：把你写的 \`quote.text\` 拿回回答原文里**按字符串查找**，找不到就重写这一维——
-  找不到的引用是不合格输出，宁可把该维判成「无法判断」也不要用拼接稿充数。
+- ❌ **绝对禁止**用省略号把不相邻的两段拼起来，例如
+  \`"前期我先用问卷收集了 200 份偏好...我个人联系了 5 个院系的宣传委员"\` ——
+  省略号两侧在原文里并不相邻，这种引用是废的。只取**一处**连续片段，其余证据写进 \`reason\`。
+- **structure（表达结构）维度必须用机械做法**（凭印象写几乎必错）：把回答按句号／问号／感叹号切成句子，
+  挑出**其中完整的一句**原样整句复制过来；没有任何完整句子能体现顺序就判「无法判断」。
+  实测：同一份规则用散文式表述时该维度 3/3 次写出省略号拼接稿，改成「整句复制」后 5/5 维全部逐字。
+- 自检：把你写的 \`quote.text\` 原样复制，拿回回答原文里**按字符串查找**，查不到就重写这一维——
+  宁可把该维判成「无法判断」也不要用拼接稿充数。
 
 ## 报告文件（D8）
 
@@ -189,10 +199,30 @@ ${dimensionTable()}
 ${feedbackJsonTemplate()}
 \`\`\`
 
-   **引用规则（最容易违反）**：\`quote.text\` 必须是**我回答里连续出现的一段逐字原话**——
-   不许用省略号拼接、不许把不相邻的两段拼起来、不许改写概括。\`start\`/\`end\` 是这段在回答文本里的字符区间。
-   写完请自己把 \`quote.text\` 拿回我的回答里做一次字符串查找，**找不到就重写这一维**；
-   实在找不到就把该维判成「无法判断」，不要用拼接稿充数。
+   **引用规则（本 Prompt 里最容易违反的一条，请当成硬约束）**
+
+   \`quote.text\` 必须是**我回答里连续出现的一段逐字原话**：一个字、一个标点都不能改。
+   \`start\`/\`end\` 是这段在我回答文本里的字符区间 \`[start, end)\`。
+
+   - ❌ **绝对禁止**用省略号把不相邻的两段拼起来。反例（**这是错的**）：
+     \`"前期我先用问卷收集了 200 份偏好...我个人联系了 5 个院系的宣传委员"\` ——
+     省略号两侧在原文里并不相邻，这种引用是废的。
+   - ❌ 禁止改写、概括、补字、翻译。
+   - ✅ 正确做法：只取**一处**能支撑该维判断的连续片段，哪怕短一点也没关系
+     （4 个字以上即可）；其余证据写在 \`reason\` 里，不要塞进 \`quote\`。
+
+   **特别提醒 \`structure\`（表达结构）这一维**：它天然横跨整段回答，最容易手滑写成
+   「开头…中间…结尾…」的拼接稿。**这一维请改用机械做法，不要凭印象写**：
+
+   1. 把我的回答按句号／问号／感叹号切成句子；
+   2. 挑出**其中完整的一句**（或分号隔开的完整一个小句），它自己能体现叙述顺序；
+   3. 把那一句**整句原样复制**过来当 \`quote.text\`，不要增删任何字。
+   整句复制几乎不可能出错；「取一段连续片段」这种说法容易让人下意识去拼接。
+   如果没有任何一个完整句子能体现顺序，就判「无法判断」并在 reason 里说明。
+
+   **输出前必须逐维自检**：把每个 \`quote.text\` 原样复制，到我回答的原文里做一次**字符串查找**。
+   查不到就重写这一维；实在找不到就把该维判成「无法判断」并在 reason 里说明——
+   **宁可少给一个档位，也不要交一条拼接出来的引用。**
 4. **可选重答**：每题我最多重答一次，**重答轮不再追问**。重答后告诉我对比结果：新增了什么、纠正了什么、仍缺什么。
    只比较我说的两版内容，不要把你自己建议过的东西当成我说过的。
 5. **全场报告**：3 题完成或我提前结束后，给我一份报告，包含：逐题反馈要点、重答对比（没有就写「未重答」）、
@@ -216,6 +246,63 @@ ${rulesMarkdown()}
 `;
 }
 
+/** Skill 安装说明（随包生成，版本戳与包内一致）。 */
+export function skillInstallMarkdown(): string {
+  return `# 安装与验证（ai-interviewer Skill）
+
+> 版本戳：\`${versionStamp()}\`
+> 本入口是**纯文字**训练：没有录音、没有实时语音、不能听也不能说。
+
+## 安装
+
+Skill 就是一个目录。选一种装法：
+
+**A. 项目内（推荐，不动全局配置）**
+
+\`\`\`bash
+mkdir -p <你的项目>/.claude/skills <你的项目>/.codex/skills
+cp -R skills/ai-interviewer <你的项目>/.claude/skills/     # Claude Code
+cp -R skills/ai-interviewer <你的项目>/.codex/skills/      # Codex
+\`\`\`
+
+**B. 全局（所有项目可用）**
+
+\`\`\`bash
+cp -R skills/ai-interviewer ~/.claude/skills/              # Claude Code
+cp -R skills/ai-interviewer ~/.codex/skills/               # Codex
+\`\`\`
+
+## 验证装上了
+
+对宿主说：
+
+> 请使用 ai-interviewer 技能开始一场中文经历面试训练。先告诉我你的能力边界和你遵循的规则版本号。
+
+期望回答里同时出现：**「没有录音／没有实时语音」**与 **\`${RULES_VERSION}\`**。
+两项缺一，就说明 Skill 没被加载（或加载到了别的版本）。
+
+## 卸载
+
+\`\`\`bash
+rm -rf <你的项目>/.claude/skills/ai-interviewer   # 或 ~/.claude/skills/ai-interviewer
+rm -rf <你的项目>/.codex/skills/ai-interviewer    # 或 ~/.codex/skills/ai-interviewer
+\`\`\`
+
+## 实测状态（截至 T3 交付）
+
+| 宿主 | 状态 | 依据 |
+| --- | --- | --- |
+| Codex CLI | ✅ 实测通过 | \`codex exec\` 真跑，Skill 被加载并原样报出能力边界与 \`rules@0.2.0\`；原始终端输出见仓库 \`evidence/t3/hosts/codex-raw.txt\` |
+| Claude Code | ⚠️ **未验证** | 首次尝试即返回 \`API Error: Request rejected (429) · [1310] 您已达到每周/每月使用上限\`（2026-09-28 06:07 重置）。按止损纪律**没有重试**，因此没有可报的实测结果 |
+
+## 边界
+
+- 规则正文来自 \`references/rules.md\`，它与仓库规则源 \`src/rules/rules.ts\` **同源生成**；
+  改规则要改源并重跑生成器，别直接编辑本目录里的 \`rules.md\`。
+- Skill 不产生录音、不产生音频文件，也不声称有回放能力。
+`;
+}
+
 export interface T3Artifact {
   path: string;
   content: string;
@@ -228,5 +315,6 @@ export function t3Artifacts(): T3Artifact[] {
     { path: 'skills/ai-interviewer/SKILL.md', content: skillMarkdown(), note: 'Skill 入口主文件' },
     { path: 'skills/ai-interviewer/references/rules.md', content: rulesMarkdown(), note: '规则正文（由 rules.ts 生成，勿手改）' },
     { path: 'prompt/ai-interviewer-prompt.md', content: simplePromptMarkdown(), note: '简版 Prompt（自包含，由生成器产出，勿手改）' },
+    { path: 'skills/ai-interviewer/INSTALL.md', content: skillInstallMarkdown(), note: 'Skill 安装与验证说明（含实测状态）' },
   ];
 }
