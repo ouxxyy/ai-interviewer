@@ -1,0 +1,35 @@
+# 依赖
+node_modules/
+.venv/
+vendor/
+
+# 构建产物
+dist/
+build/
+target/
+coverage/
+
+# 本地数据（SQLite、录音、会话记录）
+data/
+*.sqlite
+*.db
+recordings/
+
+# 环境与密钥（绝不提交）
+.env
+.env.*
+!.env.example
+
+# 参考源码缓存（第三方仓库，只读设计参考，不进入产品仓库）
+reference/
+
+# 日志与临时文件
+*.log
+logs/
+tmp/
+
+# IDE 与系统文件
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

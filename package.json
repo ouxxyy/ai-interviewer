@@ -1,0 +1,14 @@
+{
+  "name": "ai-interviewer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "基于 JD 与经历的中文 AI 面试训练工具（三入口 MVP）——T0 基线阶段",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check:env": "bash scripts/env-check.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
