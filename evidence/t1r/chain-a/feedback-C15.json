@@ -1,0 +1,120 @@
+{
+  "caseId": "C15",
+  "synthetic": true,
+  "sourceQuestion": "DAU 三倍增长里，你个人主导的是哪部分？",
+  "flawType": "团队冒充个人贡献",
+  "expectedDims": {
+    "relevance": "部分清楚",
+    "specificity": "证据不足",
+    "contribution": "证据不足",
+    "resultsReflection": "证据不足",
+    "structure": "部分清楚"
+  },
+  "expectedGaps": [
+    "“主导”与“参与”的边界不清：本人负责的具体项目、角色、决策未说明",
+    "“提过想法”无具体内容"
+  ],
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "firstAttemptOk": true,
+  "attemptLog": [
+    {
+      "attempt": 1,
+      "ok": true
+    }
+  ],
+  "schemaOk": true,
+  "quotesTotal": 4,
+  "quotesLocated": 4,
+  "quoteFailures": [],
+  "calls": [
+    {
+      "attempt": 1,
+      "latencyMs": 14226,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1449,
+      "completionTokens": 727,
+      "totalTokens": 2176,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 1715
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.1.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "我作为老员工深度参与了很多项目，几乎每个关键项目都有我的贡献。",
+          "start": 107,
+          "end": 138,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提及个人角色但未直接回答主导的具体部分"
+      },
+      "specificity": {
+        "level": "证据不足",
+        "quote": {
+          "text": "比如种树项目立项的时候我也在现场，提过不少想法。",
+          "start": 138,
+          "end": 162,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "仅举例现场参会和提想法，缺乏具体执行细节"
+      },
+      "contribution": {
+        "level": "证据不足",
+        "quote": {
+          "text": "我作为老员工深度参与了很多项目，几乎每个关键项目都有我的贡献。",
+          "start": 107,
+          "end": 138,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "使用“深度参与”等模糊词汇，未界定个人主导边界"
+      },
+      "resultsReflection": {
+        "level": "无法判断",
+        "quote": null,
+        "reason": "原文未包含针对个人主导部分的结果量化或反思内容"
+      },
+      "structure": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "这六年我们部门做了很多大事。",
+          "start": 0,
+          "end": 14,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "有开头背景铺垫，但核心论点分散且缺乏清晰层次"
+      }
+    },
+    "factGaps": [
+      "未明确列出个人独立负责或主导的具体项目名称",
+      "缺乏个人在项目中承担的具体职责描述（如设计、开发、运营）",
+      "没有区分团队成果与个人贡献的界限"
+    ],
+    "topImprovement": "将“深度参与”转化为具体的“主导动作”，例如明确指出由你发起并落地的某个子模块。",
+    "nextFacts": [
+      "请列举一个由你从0到1主导上线的功能或活动名称",
+      "说明在该功能中你做出的最关键的一个决策是什么"
+    ],
+    "reviewVersion": "prompts@0.1.0-t1r"
+  }
+}

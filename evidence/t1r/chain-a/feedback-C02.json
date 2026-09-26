@@ -1,0 +1,139 @@
+{
+  "caseId": "C02",
+  "synthetic": true,
+  "sourceQuestion": "讲一个你通过数据复盘改进内容的具体例子。",
+  "flawType": "空泛长答",
+  "expectedDims": {
+    "relevance": "部分清楚",
+    "specificity": "证据不足",
+    "contribution": "证据不足",
+    "resultsReflection": "证据不足",
+    "structure": "部分清楚"
+  },
+  "expectedGaps": [
+    "没有任何一次具体复盘的实例（哪条内容、什么数据、改了什么）",
+    "个人动作与结果全部缺位"
+  ],
+  "outcomeKind": "ok",
+  "attempts": 2,
+  "firstAttemptOk": false,
+  "attemptLog": [
+    {
+      "attempt": 1,
+      "ok": false,
+      "cause": "schema_error",
+      "detail": "(root): must have required property 'reviewVersion'"
+    },
+    {
+      "attempt": 2,
+      "ok": true
+    }
+  ],
+  "schemaOk": true,
+  "quotesTotal": 4,
+  "quotesLocated": 4,
+  "quoteFailures": [],
+  "calls": [
+    {
+      "attempt": 1,
+      "latencyMs": 10424,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1440,
+      "completionTokens": 783,
+      "totalTokens": 2223,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 1840
+    },
+    {
+      "attempt": 2,
+      "latencyMs": 12598,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1510,
+      "completionTokens": 731,
+      "totalTokens": 2241,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 1734
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.1.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "我认为数据复盘是运营的核心能力，我平时非常注重数据驱动。",
+          "start": 0,
+          "end": 28,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "回应了数据复盘主题，但缺乏具体案例支撑"
+      },
+      "specificity": {
+        "level": "证据不足",
+        "quote": {
+          "text": "做账号的时候我每天都会看后台数据，关注播放量、点赞、收藏这些指标",
+          "start": 28,
+          "end": 60,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "仅描述日常习惯，未提供改进内容的具体事例"
+      },
+      "contribution": {
+        "level": "证据不足",
+        "quote": {
+          "text": "然后根据数据调整内容方向。",
+          "start": 61,
+          "end": 74,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "动作笼统，未说明个人在复盘中的具体决策或执行"
+      },
+      "resultsReflection": {
+        "level": "无法判断",
+        "quote": null,
+        "reason": "原文未提及任何具体的改进结果或深度反思内容"
+      },
+      "structure": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "总之我始终保持着数据敏感度，不断学习不断迭代，相信这套方法论可以复用到贵司的岗位上。",
+          "start": 146,
+          "end": 188,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "有观点总结，但整体呈流水账式罗列，逻辑层次较弱"
+      }
+    },
+    "factGaps": [
+      "缺少具体的数据复盘案例背景",
+      "未说明发现的具体问题及分析过程",
+      "缺失改进后的量化结果或定性反馈"
+    ],
+    "topImprovement": "补充一个包含“发现问题-分析原因-实施改进-验证结果”闭环的具体案例",
+    "nextFacts": [
+      "请提供一个具体的视频或内容案例，说明当时数据表现如何异常？",
+      "你通过什么数据分析方法定位到了问题根源？",
+      "调整后数据有什么具体变化（如播放量提升百分比）？"
+    ],
+    "reviewVersion": "prompts@0.1.0-t1r"
+  }
+}

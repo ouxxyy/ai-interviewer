@@ -1,0 +1,180 @@
+{
+  "startedAt": "2026-09-26T15:44:26.257Z",
+  "command": "chain-b",
+  "runtime": {
+    "node": "v26.7.0",
+    "platform": "darwin arm64",
+    "host": "local",
+    "region": "cn-beijing（dashscope.aliyuncs.com，中国大陆地域）",
+    "egress": "本机直连（NO_PROXY 含 dashscope.aliyuncs.com；Node fetch/ws 不经系统代理）",
+    "network": "家庭／办公宽带（未做带宽测量，见验收记录「未核定项」）"
+  },
+  "credential": {
+    "key": "DASHSCOPE_API_KEY",
+    "present": true,
+    "length": 116
+  },
+  "chainB": {
+    "ok": true,
+    "session": {
+      "sessionId": "sess_NbQoAeN2AlpXR1rCOQyzH",
+      "model": "qwen3.8-omni-flash-realtime",
+      "voice": "Chelsie",
+      "inputAudioFormat": "pcm16",
+      "outputAudioFormat": "pcm24",
+      "inputAudioTranscriptionModel": "gummy-realtime-v1",
+      "turnDetection": {
+        "type": "server_vad",
+        "threshold": 0.5,
+        "prefix_padding_ms": 300,
+        "silence_duration_ms": 800,
+        "create_response": true,
+        "interrupt_response": true
+      },
+      "handshakeMs": 249,
+      "effective": {
+        "id": "sess_NbQoAeN2AlpXR1rCOQyzH",
+        "object": "realtime.session",
+        "model": "qwen3.8-omni-flash-realtime",
+        "modalities": [
+          "text",
+          "audio"
+        ],
+        "instructions": "你是中文面试官。当用户消息要求你朗读文本时，必须逐字朗读该文本，不得改写、增删、重复或追加任何内容；不要自行提问，不要评价回答。",
+        "voice": "Serena",
+        "input_audio_format": "pcm16",
+        "output_audio_format": "pcm24",
+        "input_audio_transcription": {
+          "model": "qwen3-asr-flash-realtime"
+        }
+      }
+    },
+    "turns": [
+      {
+        "index": 1,
+        "kind": "question",
+        "injectedText": "请介绍你在毕业季征稿活动中承担的具体工作，以及最后的投稿结果。",
+        "spokenTranscript": "请介绍你在毕业季征稿活动中承担的具体工作，以及最后的投稿结果。",
+        "verbatim": true,
+        "interviewerAudio": {
+          "path": "data/t1r/chain-b-audio/turn1-interviewer-question.wav",
+          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn1-interviewer-question.wav",
+          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn1-interviewer-question.pcm",
+          "bytes": 284160,
+          "durationSeconds": 5.92,
+          "sha256": "fd3f847802e146b881ccc27edb4211ee79ffe659c4287c887c7918dd1578f4d9",
+          "peak": 0.3965
+        },
+        "firstAudioMs": 542,
+        "totalMs": 1411,
+        "status": "completed"
+      },
+      {
+        "index": 2,
+        "kind": "answer",
+        "injectedText": "我在毕业季征稿活动里负责整体策划和落地。前期我先用问卷收集了两百份同学偏好，然后把主题定成毕业故事。之后我联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
+        "userAudio": {
+          "path": "data/t1r/chain-b-audio/turn2-user-answer.wav",
+          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn2-user-answer.wav",
+          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn2-user-answer.pcm",
+          "bytes": 802978,
+          "durationSeconds": 25.093,
+          "sha256": "12a445fb9a2f731405bd6957a4b7874e6764298236b1a8b9b9e65f98e8a91241",
+          "peak": 0.6682
+        },
+        "userTranscript": "我在毕业季征稿活动里负责整体策划和落地。前期我先用问卷收集了两百份同学偏好，然后把主题定成毕业故事。之后我联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
+        "asrLatencyMs": 245,
+        "note": "推流 5572ms，pcm 802978 字节 / 25.093s"
+      },
+      {
+        "index": 3,
+        "kind": "followup",
+        "injectedText": "你刚才提到联系了院系宣传委员，具体是怎么分工的？",
+        "spokenTranscript": "你刚才提到联系了院系宣传委员，具体是怎么分工的？",
+        "verbatim": true,
+        "interviewerAudio": {
+          "path": "data/t1r/chain-b-audio/turn3-interviewer-followup.wav",
+          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn3-interviewer-followup.wav",
+          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn3-interviewer-followup.pcm",
+          "bytes": 230400,
+          "durationSeconds": 4.8,
+          "sha256": "3ec361cfd2cf7b09f0adcdff2ecbd2cd8b333a62909a04a5d17d5df98e098874",
+          "peak": 0.4179
+        },
+        "firstAudioMs": 575,
+        "totalMs": 1215,
+        "status": "completed"
+      },
+      {
+        "index": 4,
+        "kind": "interrupt",
+        "injectedText": "我先说明活动的整体背景，这次毕业季征稿是我们论坛全年最重要的一次内容活动，目标是同时拉高投稿量和注册转化。为了这件事我做了三件事，第一是前期调研，第二是渠道扩散，第三是规则设计，下面我分别展开说明每一件的具体做法和我个人的分工。",
+        "spokenTranscript": "我先说明活动的整体背景，这次毕业季征稿是我们论坛全年最重要的一次内容活动，目标是同时拉高投稿量和注册转化。为了这件事我做了三件事，第一是前期调研，第二是渠道扩散，第三是规则设计，下面我分别展开说明每一件的具体做法和我个人的分工。",
+        "interviewerAudio": {
+          "path": "data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav",
+          "wavPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav",
+          "pcmPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/t1r/chain-b-audio/turn4-interviewer-interrupted.pcm",
+          "bytes": 92160,
+          "durationSeconds": 1.92,
+          "sha256": "deb077422f5f036d80afc1ff1e3988e4e5d67c298bae2dd09383a09e92405dfc",
+          "peak": 0.3906
+        },
+        "totalMs": 1006,
+        "status": "cancelled",
+        "interrupt": {
+          "cancelSentAtMs": 1790437478038,
+          "audioDeltasBeforeCancel": 5,
+          "audioDeltasAfterCancel": 1,
+          "bytesAfterCancel": 15360,
+          "finalStatus": "cancelled",
+          "stoppedWithinMs": 67
+        }
+      }
+    ],
+    "premiseInjectText": {
+      "supported": true,
+      "rounds": 2,
+      "verbatimRounds": 2,
+      "evidence": [
+        "轮 1（question）：注入=请介绍你在毕业季征稿活动中承担的具体工作，以及最后的投稿结果。｜朗读=请介绍你在毕业季征稿活动中承担的具体工作，以及最后的投稿结果。｜逐字=true",
+        "轮 3（followup）：注入=你刚才提到联系了院系宣传委员，具体是怎么分工的？｜朗读=你刚才提到联系了院系宣传委员，具体是怎么分工的？｜逐字=true"
+      ]
+    },
+    "premisePersistInterviewerAudio": {
+      "supported": true,
+      "turnsWithAudio": 3,
+      "totalBytes": 606720,
+      "evidence": [
+        "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜5.92s｜284160B｜sha256=fd3f847802e146b8…",
+        "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜4.8s｜230400B｜sha256=3ec361cfd2cf7b09…",
+        "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=deb077422f5f036d…"
+      ]
+    },
+    "committedClips": [
+      {
+        "name": "evidence/t1r/audio/clip-interviewer-question.wav",
+        "bytes": 284204,
+        "sha256": "906a1503d6b6a4ccb76ce0167a7bf94958671a6da96e5db9da29b52431fb4213",
+        "durationSeconds": 5.92,
+        "note": "面试官提问（服务端产出并落盘，取自链 B 轮 1）"
+      },
+      {
+        "name": "evidence/t1r/audio/clip-interviewer-followup.wav",
+        "bytes": 230444,
+        "sha256": "9c4ac64cdb698816118d43115fb4c8810a0ad4ca8936101931403a90681e1f78",
+        "durationSeconds": 4.8,
+        "note": "面试官追问（服务端注入文本后朗读，取自链 B 轮 3）"
+      }
+    ]
+  },
+  "cost": {
+    "usage": {
+      "planTokens": 0,
+      "reviewTokens": 0,
+      "latencyReviewTokens": 0,
+      "totalTextTokens": 0,
+      "userSpeechSeconds": 0
+    },
+    "note": "token 数为百炼响应中的真实 usage；语音按音频秒数计量。单价以百炼官方定价页为准——若验收记录中标注「未核定」，表示本轮未能核实官方单价，只报用量不报金额。"
+  }
+}

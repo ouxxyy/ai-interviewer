@@ -1,0 +1,144 @@
+{
+  "caseId": "C01",
+  "synthetic": true,
+  "sourceQuestion": "说说你在校内论坛负责征稿活动时，你个人做了哪些关键动作，结果如何？",
+  "flawType": "常规良好",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "部分清楚"
+  },
+  "expectedGaps": [
+    "增长 80% 的基线口径（上期多少篇）未说明",
+    "问卷 200 份的抽样方式未说明"
+  ],
+  "outcomeKind": "ok",
+  "attempts": 2,
+  "firstAttemptOk": false,
+  "attemptLog": [
+    {
+      "attempt": 1,
+      "ok": false,
+      "cause": "schema_error",
+      "detail": "/nextFacts: must NOT have fewer than 1 items"
+    },
+    {
+      "attempt": 2,
+      "ok": true
+    }
+  ],
+  "schemaOk": true,
+  "quotesTotal": 5,
+  "quotesLocated": 5,
+  "quoteFailures": [],
+  "calls": [
+    {
+      "attempt": 1,
+      "latencyMs": 13854,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1478,
+      "completionTokens": 1004,
+      "totalTokens": 2482,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 2160
+    },
+    {
+      "attempt": 2,
+      "latencyMs": 14116,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1550,
+      "completionTokens": 739,
+      "totalTokens": 2289,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 1766
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.1.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我负责的活动里最有代表性的是毕业季征稿。",
+          "start": 0,
+          "end": 20,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应问题，明确指出了具体活动及职责范围。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "前期我先用问卷收集了 200 份同学偏好",
+          "start": 20,
+          "end": 40,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的数据（200份）和动作细节，事例非常具体。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "又自己写了 2 篇范文做冷启动",
+          "start": 89,
+          "end": 104,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "清晰列举了个人执行的关键动作，如联系宣传、撰写范文等。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "复盘时我发现初审通过率只有 60%",
+          "start": 132,
+          "end": 149,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "给出了量化结果，并基于数据进行了原因分析和改进反思。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我的不足是当时完全没做获奖作品的二次传播",
+          "start": 192,
+          "end": 212,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "叙述逻辑清晰，按时间顺序从前期准备到结果再到反思不足。"
+      }
+    },
+    "factGaps": [
+      "未说明团队规模或协作模式",
+      "未提及征稿的具体渠道或平台名称"
+    ],
+    "topImprovement": "补充团队协作背景以凸显个人在其中的独特价值",
+    "nextFacts": [
+      "描述当时团队的人数及分工情况",
+      "说明征稿发布的具体平台或渠道"
+    ],
+    "reviewVersion": "prompts@0.1.0-t1r"
+  }
+}

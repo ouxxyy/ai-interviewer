@@ -105,9 +105,14 @@ ${input.answerText}
 【评审规则】
 1. 五个维度：relevance（切题）、specificity（事例具体性）、contribution（个人贡献）、resultsReflection（结果与反思）、structure（表达结构）。
 2. 每个维度给一档，只能是：证据不足、部分清楚、充分清楚；信息不足以判断时用 无法判断，并在 reason 写明无法判断的原因，不许猜低分。
-3. 三档维度必须附 quote：用户原话片段，必须逐字来自【评审对象】（一个字都不能改，标点空白也须一致）；无法判断 维度 quote 必须为 null。
+3. 三档维度必须附 quote，规则如下（违反会被程序直接拒绝，该维度只能降级为「暂无法评价」）：
+   - quote 必须是【评审对象】里**连续出现**的一段原话，逐字复制，一个字、一个标点、一个空格都不能改。
+   - **禁止省略号**：不得写「起因是…方案分两步…最终…」这类拼接稿——省略号连接的两段在原文里并不相邻。
+   - **禁止拼接**：需要多处证据时只选其中最有力的一处**连续**片段，其余证据写在 reason 里。
+   - 禁止改写、概括、翻译、补字；无法判断 维度 quote 必须为 null。
 4. quote 同时给出 start、end：该片段在【评审对象】文本中的字符区间 [start, end)，turnId 填该片段所在轮次 id，textVersion 填 "${input.textVersion}"，matchType 填 "exact"（逐字一致）或 "normalized"（仅空白／全角半角／大小写差异）。
-5. 每维度 reason 一句话给出判断依据。
+5. 每维度 reason 一句话给出判断依据，不超过 40 字。
+5.1 quote 只取**最能支撑该档位判断的最短连续片段**，控制在 8–60 字；禁止用省略号截断或改写标点。整段照抄会让反馈难以阅读，也会拖慢响应。
 6. factGaps 列出该回答的事实缺口；topImprovement 给最值得改的一点；nextFacts 列下一轮应补充的事实（至少 1 条）。
 7. ${input.isRewrite ? '本次是重答后的对比评审：只比较两版已确认回答，指出新增、纠正与仍缺失的证据，不把反馈中的建议当作用户经历。' : '不得把建议内容当作用户经历。'}
 
@@ -130,7 +135,8 @@ ${PLACEHOLDER_NOTE}
   "nextFacts": ["<下一轮应补充的事实>"],
   "reviewVersion": "${PROMPT_VERSION}"
 }
-五个维度键名固定，不得增删；无法判断 时 quote 为 null；questionId 与 reviewBasis.turnIds 必须与【当前问题】【评审对象轮次】一致。`;
+顶层字段一个都不能少，按顺序输出：contractVersion、questionId、reviewBasis、dimensions、factGaps、topImprovement、nextFacts、reviewVersion。
+五个维度键名固定，不得增删；无法判断 时 quote 为 null；questionId 与 reviewBasis.turnIds 必须与【当前问题】【评审对象轮次】一致；nextFacts 至少 1 条。`;
 }
 
 /** 4. 报告生成：逐题反馈汇总 → SessionReport */

@@ -16,11 +16,23 @@ export interface CompletionRequest {
   prompt: string;
   temperature?: number;
   maxTokens?: number;
+  /** 要求返回严格 JSON 对象（OpenAI 兼容 `response_format: json_object`）。 */
+  jsonMode?: boolean;
+  /** 单次调用超时覆盖。 */
+  timeoutMs?: number;
+  /** 关闭/开启思维链（百炼 `enable_thinking`）。结构化评审默认关闭，降低延迟与 token 抖动。 */
+  enableThinking?: boolean;
 }
 
 export interface CompletionResponse {
   text: string;
-  usage?: { promptTokens?: number; completionTokens?: number };
+  usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
+  /** T1-R 新增：真实调用的可观测字段（延迟／HTTP 状态／服务端 request id），供验收记录留证。 */
+  latencyMs?: number;
+  httpStatus?: number;
+  requestId?: string | null;
+  /** 请求的模型 ID（可能被服务端回写为具体快照版本）。 */
+  model?: string;
 }
 
 /** 文本模型客户端（问题计划／追问判定／评审／报告共用）。 */

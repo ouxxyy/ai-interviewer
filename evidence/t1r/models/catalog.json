@@ -1,0 +1,46 @@
+{
+  "httpStatus": 200,
+  "latencyMs": 332,
+  "total": 261,
+  "realtimeIds": [
+    "qwen-audio-3.0-realtime-flash",
+    "qwen-audio-3.0-realtime-plus",
+    "qwen-audio-3.1-realtime-plus",
+    "qwen3-asr-flash-realtime",
+    "qwen3-asr-flash-realtime-2025-10-27",
+    "qwen3-asr-flash-realtime-2026-02-10",
+    "qwen3-livetranslate-flash-realtime",
+    "qwen3-livetranslate-flash-realtime-2025-09-22",
+    "qwen3-omni-flash-realtime",
+    "qwen3-omni-flash-realtime-2025-09-15",
+    "qwen3-omni-flash-realtime-2025-12-01",
+    "qwen3-s2s-flash-realtime-2025-09-22",
+    "qwen3-tts-flash-realtime",
+    "qwen3-tts-flash-realtime-2025-09-18",
+    "qwen3-tts-flash-realtime-2025-11-27",
+    "qwen3-tts-instruct-flash-realtime",
+    "qwen3-tts-instruct-flash-realtime-2026-01-22",
+    "qwen3-tts-vc-realtime-2025-11-27",
+    "qwen3-tts-vc-realtime-2026-01-15",
+    "qwen3-tts-vd-realtime-2025-12-16",
+    "qwen3-tts-vd-realtime-2026-01-15",
+    "qwen3.5-livetranslate-flash-realtime",
+    "qwen3.5-livetranslate-flash-realtime-2026-05-19",
+    "qwen3.5-omni-flash-realtime",
+    "qwen3.5-omni-flash-realtime-2026-03-15",
+    "qwen3.5-omni-plus-realtime",
+    "qwen3.5-omni-plus-realtime-2026-03-15",
+    "qwen3.8-livetranslate-flash-realtime",
+    "qwen3.8-omni-flash-realtime"
+  ],
+  "verifiedTextModel": {
+    "id": "qwen3.8-flash",
+    "httpStatus": 200,
+    "latencyMs": 588,
+    "totalTokens": 31,
+    "replyChars": 2
+  },
+  "rateLimitHeaders": {
+    "x-request-id": "0df31c26-e909-9f71-af7b-5c9aab9265df"
+  }
+}

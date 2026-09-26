@@ -1,0 +1,121 @@
+{
+  "caseId": "C19",
+  "synthetic": true,
+  "sourceQuestion": "存储成本降 35% 这个项目，你是怎么定位问题和设计方案？",
+  "flawType": "常规良好",
+  "expectedDims": {
+    "relevance": "充分清楚",
+    "specificity": "充分清楚",
+    "contribution": "充分清楚",
+    "resultsReflection": "充分清楚",
+    "structure": "充分清楚"
+  },
+  "expectedGaps": [
+    "-35% 的核算口径（是否含归档层费用）未说明"
+  ],
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "firstAttemptOk": true,
+  "attemptLog": [
+    {
+      "attempt": 1,
+      "ok": true
+    }
+  ],
+  "schemaOk": true,
+  "quotesTotal": 5,
+  "quotesLocated": 5,
+  "quoteFailures": [],
+  "calls": [
+    {
+      "attempt": 1,
+      "latencyMs": 10584,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1531,
+      "completionTokens": 758,
+      "totalTokens": 2289,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 1801
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.1.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我先做了成本画像：把存储按表拆开，发现 80% 的费用来自 12 张大表",
+          "start": 31,
+          "end": 67,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "直接回应定位问题环节，逻辑清晰且紧扣题意。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "先把全部中间表和日志表的历史分区转 Parquet + ZSTD，冷分区下沉到对象存储归档层",
+          "start": 161,
+          "end": 207,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "方案包含具体技术选型、数据分层策略及执行细节。"
+      },
+      "contribution": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "迁移我用 Spark 重写作业做的双写校验，抽样比对行数和校验和",
+          "start": 219,
+          "end": 251,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确使用第一人称描述个人在迁移验证中的具体操作。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "权衡是我没敢动实时链路，那部分收益当时评估风险太高，留给了下一年度",
+          "start": 302,
+          "end": 335,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "不仅给出结果，还深入反思了未覆盖场景的风险权衡。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "起因是财务季度结算时数仓存储费用同比涨了 60%，老板让我查",
+          "start": 0,
+          "end": 30,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "遵循背景-分析-方案-结果-反思的完整叙事结构。"
+      }
+    },
+    "factGaps": [],
+    "topImprovement": "回答已非常完整，无需改进。",
+    "nextFacts": [
+      "可补充团队规模或协作角色以增强贡献度立体感"
+    ],
+    "reviewVersion": "prompts@0.1.0-t1r"
+  }
+}

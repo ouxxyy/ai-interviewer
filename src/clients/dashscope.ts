@@ -1,9 +1,11 @@
 /**
- * 阿里百炼（DashScope OpenAI 兼容模式）适配器骨架。
- * T1-S 状态：静态通过（接口与凭证注入点就绪）；真实调用未验证（无凭证，属 T1-R）。
+ * 阿里百炼（DashScope）OpenAI 兼容模式适配器。
  *
- * 注意（PM §4 T0 节）：百炼为国内端点。本机 Clash 全局代理会拦截国内 API，
- * 真实调用时须确保 NO_PROXY 含 dashscope.aliyuncs.com（见 .env.example）。
+ * 状态（2026-09-26 T1-R 实测）：**真实调用已验证**——模型 `qwen3.8-flash`、地域
+ * `cn-beijing`（dashscope.aliyuncs.com）。凭证只从环境变量／`.env` 注入，不进日志与错误信息。
+ *
+ * 注意（PM §4 T0 节）：百炼为国内端点。本机若开 Clash 全局代理会拦截国内 API，
+ * 真实调用时须确保 `NO_PROXY` 含 `dashscope.aliyuncs.com`（见 `.env.example`）。
  */
 import type { CompletionRequest, CompletionResponse, TextLlmClient, TextModelConfig } from './types.js';
 import { readCredential } from './types.js';
@@ -11,13 +13,22 @@ import { readCredential } from './types.js';
 export interface DashscopeOptions {
   model?: string;
   baseUrl?: string;
+  timeoutMs?: number;
 }
 
-export const DASHSCOPE_DEFAULTS: Required<Pick<DashscopeOptions, 'model' | 'baseUrl'>> = {
-  // 模型 ID 与地域在 T1-R 接入时按阿里官方实时文档核定后固定到验收记录，当前值仅为占位，未验证。
-  model: 'qwen-plus-TBD-at-t1r',
+export const DASHSCOPE_DEFAULTS: Required<Pick<DashscopeOptions, 'model' | 'baseUrl' | 'timeoutMs'>> = {
+  // T1-R 核定：账号下可用模型 261 个，文本默认取 qwen3.8-flash（实测 HTTP 200）。
+  model: 'qwen3.8-flash',
   baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+  timeoutMs: 120_000,
 };
+
+interface ChatCompletionPayload {
+  choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+  model?: string;
+  id?: string;
+}
 
 export class DashscopeTextClient implements TextLlmClient {
   readonly name = 'dashscope';
@@ -28,34 +39,60 @@ export class DashscopeTextClient implements TextLlmClient {
       baseUrl: opts.baseUrl ?? DASHSCOPE_DEFAULTS.baseUrl,
       model: opts.model ?? DASHSCOPE_DEFAULTS.model,
       apiKeyEnv: 'DASHSCOPE_API_KEY',
-      timeoutMs: 60_000,
+      timeoutMs: opts.timeoutMs ?? DASHSCOPE_DEFAULTS.timeoutMs,
     };
+  }
+
+  get model(): string {
+    return this.config.model;
+  }
+
+  get baseUrl(): string {
+    return this.config.baseUrl;
   }
 
   async complete(req: CompletionRequest): Promise<CompletionResponse> {
     const apiKey = readCredential(this.config.apiKeyEnv);
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.config.timeoutMs);
+    const timeoutMs = req.timeoutMs ?? this.config.timeoutMs;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const startedAt = Date.now();
     try {
+      const body: Record<string, unknown> = {
+        model: this.config.model,
+        messages: [{ role: 'user', content: req.prompt }],
+        temperature: req.temperature ?? 0.2,
+        max_tokens: req.maxTokens ?? 4096,
+      };
+      if (req.jsonMode) body.response_format = { type: 'json_object' };
+      if (req.enableThinking !== undefined) body.enable_thinking = req.enableThinking;
       const res = await fetch(`${this.config.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: this.config.model,
-          messages: [{ role: 'user', content: req.prompt }],
-          temperature: req.temperature ?? 0.2,
-          max_tokens: req.maxTokens ?? 4096,
-        }),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
+      const latencyMs = Date.now() - startedAt;
       if (!res.ok) {
-        const body = await res.text().catch(() => '');
-        throw new Error(`DashScope HTTP ${res.status}: ${body.slice(0, 200)}`);
+        // 错误体可能很长，截断且不含凭证；状态码与 request id 是排障关键。
+        const text = await res.text().catch(() => '');
+        throw new Error(`DashScope HTTP ${res.status}（model=${this.config.model}）：${text.slice(0, 300)}`);
       }
-      const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }>; usage?: object };
+      const data = (await res.json()) as ChatCompletionPayload;
       const text = data.choices?.[0]?.message?.content ?? '';
-      if (!text) throw new Error('DashScope 返回空内容');
-      return { text, usage: data.usage as CompletionResponse['usage'] };
+      if (text === '') throw new Error(`DashScope 返回空内容（model=${this.config.model}）`);
+      return {
+        text,
+        usage: {
+          promptTokens: data.usage?.prompt_tokens,
+          completionTokens: data.usage?.completion_tokens,
+          totalTokens: data.usage?.total_tokens,
+        },
+        latencyMs,
+        httpStatus: res.status,
+        requestId: res.headers.get('x-request-id'),
+        model: data.model ?? this.config.model,
+      };
     } finally {
       clearTimeout(timer);
     }

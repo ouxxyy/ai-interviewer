@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-09-26T15:44:38.131Z",
+  "artifacts": [
+    {
+      "path": "evidence/t1r/chain-b/summary.json",
+      "kind": "json",
+      "bytes": 58157,
+      "committed": true
+    },
+    {
+      "path": "evidence/t1r/chain-b/events.jsonl",
+      "kind": "jsonl",
+      "bytes": 33000,
+      "committed": true
+    },
+    {
+      "path": "evidence/t1r/audio/clip-interviewer-question.wav",
+      "kind": "wav",
+      "bytes": 284204,
+      "sha256": "906a1503d6b6a4ccb76ce0167a7bf94958671a6da96e5db9da29b52431fb4213",
+      "committed": true,
+      "note": "面试官提问（服务端产出并落盘，取自链 B 轮 1）"
+    },
+    {
+      "path": "evidence/t1r/audio/clip-interviewer-followup.wav",
+      "kind": "wav",
+      "bytes": 230444,
+      "sha256": "9c4ac64cdb698816118d43115fb4c8810a0ad4ca8936101931403a90681e1f78",
+      "committed": true,
+      "note": "面试官追问（服务端注入文本后朗读，取自链 B 轮 3）"
+    },
+    {
+      "path": "evidence/t1r/run-summary.json",
+      "kind": "json",
+      "bytes": 9022,
+      "committed": true
+    }
+  ],
+  "notes": [
+    {
+      "at": "2026-09-26T15:44:26.256Z",
+      "key": "env",
+      "value": {
+        "dotenvPath": "/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/.env",
+        "filePresent": true,
+        "injectedKeys": [
+          "DASHSCOPE_API_KEY",
+          "NO_PROXY"
+        ],
+        "emptyKeys": [],
+        "credential": {
+          "key": "DASHSCOPE_API_KEY",
+          "present": true,
+          "length": 116
+        }
+      }
+    }
+  ]
+}

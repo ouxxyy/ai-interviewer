@@ -1,0 +1,125 @@
+{
+  "caseId": "C03",
+  "synthetic": true,
+  "sourceQuestion": "这场双十一活动中你个人具体负责什么？",
+  "flawType": "团队冒充个人贡献",
+  "expectedDims": {
+    "relevance": "部分清楚",
+    "specificity": "部分清楚",
+    "contribution": "证据不足",
+    "resultsReflection": "部分清楚",
+    "structure": "部分清楚"
+  },
+  "expectedGaps": [
+    "五人团队中本人承担的具体角色未说明",
+    "缺货应急是“我们”做的，本人是否参与不明确"
+  ],
+  "outcomeKind": "ok",
+  "attempts": 1,
+  "firstAttemptOk": true,
+  "attemptLog": [
+    {
+      "attempt": 1,
+      "ok": true
+    }
+  ],
+  "schemaOk": true,
+  "quotesTotal": 5,
+  "quotesLocated": 5,
+  "quoteFailures": [],
+  "calls": [
+    {
+      "attempt": 1,
+      "latencyMs": 12065,
+      "httpStatus": 200,
+      "model": "qwen3.8-flash",
+      "promptTokens": 1419,
+      "completionTokens": 770,
+      "totalTokens": 2189,
+      "jsonMode": true,
+      "enableThinking": false,
+      "rawChars": 1817
+    }
+  ],
+  "feedback": {
+    "contractVersion": "0.1.0",
+    "questionId": "q1",
+    "reviewBasis": {
+      "turnIds": [
+        "t1"
+      ],
+      "textVersion": "raw"
+    },
+    "dimensions": {
+      "relevance": {
+        "level": "部分清楚",
+        "quote": {
+          "text": "我们团队当时分工是有人负责选品，有人负责社群，有人负责和商家谈折扣。",
+          "start": 0,
+          "end": 34,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "仅列举团队整体分工，未明确回答个人具体职责。"
+      },
+      "specificity": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "最后我们做到了 8 万 GMV，我们自己都挺惊喜的。",
+          "start": 104,
+          "end": 130,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "提供了具体的GMV数据及活动玩法细节，事例清晰。"
+      },
+      "contribution": {
+        "level": "证据不足",
+        "quote": {
+          "text": "我们在各个群里轮番发预告。",
+          "start": 91,
+          "end": 104,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "全程使用“我们”主语，无法区分用户个人的独立贡献。"
+      },
+      "resultsReflection": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "这段经历让我学会了团队协作和应急处理。",
+          "start": 158,
+          "end": 177,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "明确给出了量化结果以及从经历中获得的反思总结。"
+      },
+      "structure": {
+        "level": "充分清楚",
+        "quote": {
+          "text": "我们提前两周开始筹备，先做了用户调研，然后我们确定了主打品类是零食和日用品。",
+          "start": 34,
+          "end": 72,
+          "turnId": "t1",
+          "textVersion": "raw",
+          "matchType": "exact"
+        },
+        "reason": "按时间顺序叙述筹备、执行到结果，逻辑连贯结构完整。"
+      }
+    },
+    "factGaps": [
+      "用户个人在团队分工中的具体角色缺失",
+      "用户个人在执行环节（如发预告、换货）的具体动作不明"
+    ],
+    "topImprovement": "将“我们”改为“我”，明确说明自己负责的是选品、社群还是谈判中的哪一项。",
+    "nextFacts": [
+      "请补充说明在上述团队分工中，你个人主要承担了哪一部分工作？"
+    ],
+    "reviewVersion": "prompts@0.1.0-t1r"
+  }
+}

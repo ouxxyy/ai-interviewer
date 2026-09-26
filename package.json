@@ -10,7 +10,12 @@
     "validate": "node dist/src/contracts/validate-cli.js",
     "prototype": "node dist/src/prototype/server.js",
     "prototype:run": "npm run build && node dist/src/prototype/run-evidence.js",
-    "check:env": "bash scripts/env-check.sh"
+    "check:env": "bash scripts/env-check.sh",
+    "t1r": "npm run build && node dist/src/t1r/run-t1r.js",
+    "t1r:models": "npm run build && node dist/src/t1r/run-t1r.js models",
+    "t1r:chain-a": "npm run build && node dist/src/t1r/run-t1r.js chain-a",
+    "t1r:chain-b": "npm run build && node dist/src/t1r/run-t1r.js chain-b",
+    "t1r:latency": "npm run build && node dist/src/t1r/run-t1r.js latency"
   },
   "engines": {
     "node": ">=20"

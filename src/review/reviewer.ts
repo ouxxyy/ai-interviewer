@@ -8,9 +8,12 @@ import { validateContract } from '../contracts/validate.js';
 import { locateQuote } from '../contracts/quote-locator.js';
 import type { Feedback, DimensionKey, TextVersion } from '../contracts/types.js';
 
-/** 模型通道抽象：attempt 从 1 起；remediation 为上一次失败的整改提示（首次为 null）。 */
+/**
+ * 模型通道抽象：attempt 从 1 起；remediation 为上一次失败的整改提示（首次为 null）。
+ * 允许返回 Promise（真实 HTTP 通道），同步返回值同样接受（mock 通道）。
+ */
 export interface ReviewChannel {
-  call(attempt: number, remediation: string | null): string;
+  call(attempt: number, remediation: string | null): string | Promise<string>;
 }
 
 export interface RunReviewInput {
@@ -21,6 +24,11 @@ export interface RunReviewInput {
   textVersion: TextVersion;
   questionId: string;
   maxRetries?: number;
+  /**
+   * 观测钩子（不改变流水线行为）：每次尝试的判定结果。
+   * T1-R 用它把「第几次失败、为什么失败」写进验收证据，避免只看到最终的 ok/degraded。
+   */
+  onAttempt?(attempt: number, result: { ok: boolean; cause?: 'json_error' | 'schema_error' | 'quote_not_locatable'; detail?: string }): void;
 }
 
 export type ReviewOutcome =
@@ -29,14 +37,14 @@ export type ReviewOutcome =
 
 const DIMS: DimensionKey[] = ['relevance', 'specificity', 'contribution', 'resultsReflection', 'structure'];
 
-export function runReview(input: RunReviewInput): ReviewOutcome {
+export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
   const maxRetries = input.maxRetries ?? 2;
   let lastCause: ReviewOutcome extends { kind: 'degraded' } ? never : 'json_error' | 'schema_error' | 'quote_not_locatable' = 'json_error';
   let lastDetail = '';
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const remediation = attempt === 1 ? null : `上一次输出未通过校验：${lastCause}（${lastDetail}）。请严格按契约重新输出。`;
-    const raw = input.channel.call(attempt, remediation);
+    const remediation = attempt === 1 ? null : buildRemediation(lastCause, lastDetail);
+    const raw = await input.channel.call(attempt, remediation);
 
     let parsed: unknown;
     try {
@@ -44,6 +52,7 @@ export function runReview(input: RunReviewInput): ReviewOutcome {
     } catch (e) {
       lastCause = 'json_error';
       lastDetail = (e as Error).message.slice(0, 120);
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
       continue;
     }
 
@@ -51,6 +60,7 @@ export function runReview(input: RunReviewInput): ReviewOutcome {
     if (!schemaResult.ok) {
       lastCause = 'schema_error';
       lastDetail = schemaResult.errors.join('; ').slice(0, 200);
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
       continue;
     }
 
@@ -84,15 +94,29 @@ export function runReview(input: RunReviewInput): ReviewOutcome {
     if (quoteErrors.length > 0) {
       lastCause = 'quote_not_locatable';
       lastDetail = quoteErrors.join('; ').slice(0, 200);
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
       continue;
     }
 
     // 评审基准由应用层权威回填。
     fb.reviewBasis = { turnIds: input.turnIds, textVersion: input.textVersion };
+    input.onAttempt?.(attempt, { ok: true });
     return { kind: 'ok', feedback: fb, attempts: attempt };
   }
 
   return { kind: 'degraded', feedback: degradedFeedback(input, lastCause, lastDetail), attempts: maxRetries, cause: lastCause, detail: lastDetail };
+}
+
+/** 按失败原因给出针对性整改提示；泛泛的「请重试」会浪费一次调用。 */
+export function buildRemediation(cause: string, detail: string): string {
+  const tips: Record<string, string> = {
+    quote_not_locatable:
+      '引用必须是【评审对象】中**连续出现**的一段逐字原话：不得使用省略号、不得拼接不相邻的片段、不得改写字词或标点。请只保留一处最有力的连续片段，其余证据写进 reason。',
+    schema_error: '严格按输出结构逐字段填写：不新增字段、不省略必需字段、枚举值只能取给定取值。',
+    json_error: '只输出一个 JSON 对象，不要加解释文字、注释或 markdown 代码围栏。',
+  };
+  const tip = tips[cause] ?? '请严格按契约重新输出。';
+  return `上一次输出未通过校验：${cause}（${detail}）。${tip} 请重新输出完整 JSON。`;
 }
 
 function degradedFeedback(input: RunReviewInput, cause: string, detail: string): Feedback {
