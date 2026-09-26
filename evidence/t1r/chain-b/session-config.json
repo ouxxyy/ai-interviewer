@@ -1,0 +1,47 @@
+{
+  "observedAt": "2026-09-26T16:33:11.732Z",
+  "why": "F2-4：events.jsonl 只有 {t,dir,type} 投影，会话生效配置无法从入库证据复核；这里单独存一份脱敏载荷。",
+  "handshakeMs": 238,
+  "sessionCreatedDefaults": {
+    "object": "realtime.session",
+    "model": "qwen3.8-omni-flash-realtime",
+    "modalities": [
+      "text",
+      "audio"
+    ],
+    "voice": "Chelsie",
+    "input_audio_format": "pcm16",
+    "output_audio_format": "pcm24",
+    "input_audio_transcription": {
+      "model": "gummy-realtime-v1"
+    },
+    "turn_detection": {
+      "type": "server_vad",
+      "threshold": 0.5,
+      "prefix_padding_ms": 300,
+      "silence_duration_ms": 800,
+      "create_response": true,
+      "interrupt_response": true
+    },
+    "id": "sess_WF4FN59HkWk4gaTnYD1Kt"
+  },
+  "sessionUpdatedEffective": {
+    "id": "sess_WF4FN59HkWk4gaTnYD1Kt",
+    "object": "realtime.session",
+    "model": "qwen3.8-omni-flash-realtime",
+    "modalities": [
+      "text",
+      "audio"
+    ],
+    "instructions": "你是中文面试官。当用户消息要求你朗读文本时，必须逐字朗读该文本，不得改写、增删、重复或追加任何内容；不要自行提问，不要评价回答。",
+    "voice": "Serena",
+    "input_audio_format": "pcm16",
+    "output_audio_format": "pcm24",
+    "input_audio_transcription": {
+      "model": "qwen3-asr-flash-realtime"
+    }
+  },
+  "expectedVoice": "Serena",
+  "voiceAsserted": true,
+  "note": "session.created 报告的是服务端默认值（voice=Chelsie，实际不可用）；session.updated 才是本次会话的生效配置。"
+}

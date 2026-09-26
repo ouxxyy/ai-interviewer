@@ -6,8 +6,9 @@
  * 2. 大体积音频放 `data/t1r/`（gitignore），入库的只有 1–2 个短片段；验收记录里给出
  *    路径／时长／字节数／sha256，保证复核者能核对「记录描述的那段音频」确实是这段。
  */
-import { appendFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 import { assertNoSecret, REPO_ROOT } from './env.js';
 
 export const EVIDENCE_DIR = path.join(REPO_ROOT, 'evidence', 't1r');
@@ -95,11 +96,38 @@ export class EvidenceWriter {
     const rel = path.relative(REPO_ROOT, full);
     const existing = this.artifacts.findIndex((a) => a.path === rel);
     const stat = statSync(full);
-    const rec: ArtifactRecord = { path: rel, kind, bytes: stat.size, committed };
+    // 每条产物都记 sha256（F1-3）：只记路径与字节数时，复核者无法确认文件没被替换过。
+    const rec: ArtifactRecord = { path: rel, kind, bytes: stat.size, sha256: fileSha256(full), committed };
     void size;
     if (existing >= 0) this.artifacts[existing] = rec;
     else this.artifacts.push(rec);
   }
+}
+
+/** 单文件 sha256（流式读取，避免大文件一次性进内存）。 */
+export function fileSha256(full: string): string {
+  return createHash('sha256').update(readFileSync(full)).digest('hex');
+}
+
+/**
+ * 从磁盘重算 manifest 里每条产物的字节数与 sha256（内容一概不动）。
+ * 用于「补齐历史产物的摘要」这种纯派生操作——samples/音频本身必须原封不动。
+ */
+export function refreshManifest(manifestPath: string): { total: number; added: number; changed: number } {
+  const parsed = JSON.parse(readFileSync(manifestPath, 'utf8')) as { artifacts?: ArtifactRecord[] };
+  let added = 0;
+  let changed = 0;
+  for (const a of parsed.artifacts ?? []) {
+    const full = path.resolve(REPO_ROOT, a.path);
+    if (!existsSync(full)) continue;
+    const before = a.sha256;
+    a.bytes = statSync(full).size;
+    a.sha256 = fileSha256(full);
+    if (before === undefined) added++;
+    else if (before !== a.sha256) changed++;
+  }
+  writeFileSync(manifestPath, `${JSON.stringify(parsed, null, 2)}\n`);
+  return { total: (parsed.artifacts ?? []).length, added, changed };
 }
 
 /** 目录清单：用于验收记录里「data/ 下这些原始音频存在」的可核对证据。 */

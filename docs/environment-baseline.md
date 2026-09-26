@@ -13,7 +13,7 @@ INFO  git: git version 2.50.1 (Apple Git-155)
 INFO  python3: Python 3.9.6 @ /usr/bin/python3
 
 ## 2. 项目目录与 Git 状态
-INFO  Git 仓库: /Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官 @ 56ef42c (branch: main)
+INFO  Git 仓库: . (仓库根，相对路径；本机绝对路径不入文档) @ 56ef42c (branch: main)
 INFO  产品代码状态: 尚无产品代码（T0 基线阶段，预期如此）
 
 ## 3. 参考源码（固定 commit，MIT，只读设计参考）

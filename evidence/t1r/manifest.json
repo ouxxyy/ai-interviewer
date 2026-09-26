@@ -1,149 +1,173 @@
 {
-  "generatedAt": "2026-09-26T16:24:43.748Z",
+  "generatedAt": "2026-09-26T16:33:22.242Z",
   "artifacts": [
     {
       "path": "evidence/t1r/models/catalog.json",
       "kind": "json",
       "bytes": 1512,
-      "committed": true
+      "committed": true,
+      "sha256": "c6bceee76d9dc45a92fb61d8e07d85bdaad14a4376782313e54173c1cb270df8"
     },
     {
       "path": "data/t1r/prompts/question-plan.prompt.txt",
       "kind": "txt",
       "bytes": 2865,
-      "committed": false
+      "committed": false,
+      "sha256": "c6b8b71eac0d78ac551fde94887591f55f156d6f71cfbdfff133d4cccf400a1c"
     },
     {
       "path": "data/t1r/raw/question-plan.attempt1.txt",
       "kind": "txt",
       "bytes": 1358,
-      "committed": false
+      "committed": false,
+      "sha256": "1eca2053fb6bf7afa0c6ac76e3fcaa9c6b5acf7271d01ddd57b38ae712c4248d"
     },
     {
       "path": "evidence/t1r/chain-a/question-plan.json",
       "kind": "json",
       "bytes": 1423,
-      "committed": true
+      "committed": true,
+      "sha256": "61f95ac5488abd7e8209f277fe4e3d0d8c49ac9a2acfaef49536f07a1f740db6"
     },
     {
       "path": "data/t1r/prompts/review-C01.prompt.txt",
       "kind": "txt",
       "bytes": 5893,
-      "committed": false
+      "committed": false,
+      "sha256": "4bdba1fbebfd7276e9dba1d03b6f3392e3719d9341af16d366924c35d9f8e55a"
     },
     {
       "path": "data/t1r/raw/review-C01.attempt1.txt",
       "kind": "txt",
       "bytes": 3387,
-      "committed": false
+      "committed": false,
+      "sha256": "217eca68e81807896123d03cc661a105674da841205baf17b484d84058258cfd"
     },
     {
       "path": "data/t1r/raw/review-C01.attempt2.txt",
       "kind": "txt",
       "bytes": 2601,
-      "committed": false
+      "committed": false,
+      "sha256": "070c779afa6b483bd1bb1b2046ae6a0f1e05b926012d9cc88777b07d6f6b56f4"
     },
     {
       "path": "evidence/t1r/chain-a/feedback-C01.json",
       "kind": "json",
       "bytes": 4645,
-      "committed": true
+      "committed": true,
+      "sha256": "570fee2a84ec6d08146af2ab27dd8b98af2f6322a8da5a9c067d054dff272f0f"
     },
     {
       "path": "data/t1r/prompts/review-C02.prompt.txt",
       "kind": "txt",
       "bytes": 5877,
-      "committed": false
+      "committed": false,
+      "sha256": "6759baa347efdc695898f96fcb741d349b5b0e0784d813e241395fb0c752c5b8"
     },
     {
       "path": "data/t1r/raw/review-C02.attempt1.txt",
       "kind": "txt",
       "bytes": 2560,
-      "committed": false
+      "committed": false,
+      "sha256": "e682c6ebc1bccf78e018912462ab5d2de17b353ce0dbca871a62861bc300ea70"
     },
     {
       "path": "evidence/t1r/chain-a/feedback-C02.json",
       "kind": "json",
       "bytes": 3812,
-      "committed": true
+      "committed": true,
+      "sha256": "e7bc174279f7f96c1967c2d78cf1bf3fac39841233a2e029a4328f5aa18c47a9"
     },
     {
       "path": "data/t1r/prompts/review-C03.prompt.txt",
       "kind": "txt",
       "bytes": 5731,
-      "committed": false
+      "committed": false,
+      "sha256": "5953199892964370f03aaba85f801858cba9304c24d0fc9cb52f799e0bbcc242"
     },
     {
       "path": "data/t1r/raw/review-C03.attempt1.txt",
       "kind": "txt",
       "bytes": 2680,
-      "committed": false
+      "committed": false,
+      "sha256": "03aa9a05231f7c9f0704b4af9163b37ffd628522c700b6bb99904549f503f995"
     },
     {
       "path": "evidence/t1r/chain-a/feedback-C03.json",
       "kind": "json",
       "bytes": 3932,
-      "committed": true
+      "committed": true,
+      "sha256": "aff7521887cc10bc01dbe332b4d325040d33c8cfd57f3f1a9ed49bbb4652b2e6"
     },
     {
       "path": "data/t1r/prompts/review-C15.prompt.txt",
       "kind": "txt",
       "bytes": 5773,
-      "committed": false
+      "committed": false,
+      "sha256": "7faaa19d34e59b0a7e0f7709d9ba9bd2693d5f23aabae9865716857c71017749"
     },
     {
       "path": "data/t1r/raw/review-C15.attempt1.txt",
       "kind": "txt",
       "bytes": 2583,
-      "committed": false
+      "committed": false,
+      "sha256": "81286b633a20011658861a9cf97b043c4b66cec246f7004cb18c7ab20900bf02"
     },
     {
       "path": "evidence/t1r/chain-a/feedback-C15.json",
       "kind": "json",
       "bytes": 3807,
-      "committed": true
+      "committed": true,
+      "sha256": "7354a100402584f445c2c06383034fde8d3c1781dabb562dc2478cc962eed612"
     },
     {
       "path": "data/t1r/prompts/review-C19.prompt.txt",
       "kind": "txt",
       "bytes": 6083,
-      "committed": false
+      "committed": false,
+      "sha256": "e4ab6e00e84c704df0157fc8a529aad3ba878056bd4b1f2b7f74adc606188c8d"
     },
     {
       "path": "data/t1r/raw/review-C19.attempt1.txt",
       "kind": "txt",
       "bytes": 2511,
-      "committed": false
+      "committed": false,
+      "sha256": "b1b528f01ae81b0bb3025ccff8cc8dd5c0b43efafd5aa9c0471955f784f68eea"
     },
     {
       "path": "data/t1r/raw/review-C19.attempt2.txt",
       "kind": "txt",
       "bytes": 2930,
-      "committed": false
+      "committed": false,
+      "sha256": "2c9f68428a4ff89e6119cf3c2994688bf1da163e874e99b8700af07c315eee33"
     },
     {
       "path": "evidence/t1r/chain-a/feedback-C19.json",
       "kind": "json",
       "bytes": 3675,
-      "committed": true
+      "committed": true,
+      "sha256": "93836d31e7ec21b565d56317844c6fe1693e4ee9e511e05d76daea2d51526c2c"
     },
     {
       "path": "evidence/t1r/chain-a/summary.json",
       "kind": "json",
       "bytes": 7709,
-      "committed": true
+      "committed": true,
+      "sha256": "466f83e4d2ed03b2f21553078c0eae8d0dc6917193214ee4c03358c4e60c3434"
     },
     {
       "path": "evidence/t1r/chain-b/summary.json",
       "kind": "json",
       "bytes": 57421,
-      "committed": true
+      "committed": true,
+      "sha256": "a0940db33a116d958d36c2d09616d52750b83322f19e8910b4a97e5f2a458ea8"
     },
     {
       "path": "evidence/t1r/chain-b/events.jsonl",
       "kind": "jsonl",
       "bytes": 33260,
-      "committed": true
+      "committed": true,
+      "sha256": "2e158fbd9c9a87a3b257f00f4bd40d821a3ccdf87beb9ae253c92ce8fa5d6b55"
     },
     {
       "path": "evidence/t1r/audio/clip-interviewer-question.wav",
@@ -165,24 +189,34 @@
       "path": "evidence/t1r/latency/realtime-turns.jsonl",
       "kind": "jsonl",
       "bytes": 8129,
-      "committed": true
+      "committed": true,
+      "sha256": "3e7185e26ce50aa1bcba89c1df497222f2df0b89959162b92ddf85dc9d02808f"
     },
     {
       "path": "evidence/t1r/latency/summary.json",
       "kind": "json",
-      "bytes": 20162,
+      "bytes": 20931,
+      "sha256": "b6800290270f4a2886f95e25d117ec59eb68296a8b61a4fd497875cab33cd6a2",
       "committed": true
     },
     {
       "path": "evidence/t1r/run-summary.json",
       "kind": "json",
-      "bytes": 35852,
+      "bytes": 36878,
+      "sha256": "25447f719193947f947cce7f02fca908486bc516146f6076179c4dd386577380",
+      "committed": true
+    },
+    {
+      "path": "evidence/t1r/chain-b/session-config.json",
+      "kind": "json",
+      "bytes": 1615,
+      "sha256": "f9975e67b035ba85c4da9ae89b88a6b2f0c3ecc7cb31f706a29d36702ff23f72",
       "committed": true
     }
   ],
   "notes": [
     {
-      "at": "2026-09-26T16:24:31.697Z",
+      "at": "2026-09-26T16:33:22.239Z",
       "key": "env",
       "value": {
         "dotenvPath": ".env",

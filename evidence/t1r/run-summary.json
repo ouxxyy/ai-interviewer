@@ -1,6 +1,6 @@
 {
-  "startedAt": "2026-09-26T16:24:31.698Z",
-  "command": "chain-b",
+  "startedAt": "2026-09-26T16:33:22.240Z",
+  "command": "latency:recount",
   "runtime": {
     "node": "v26.7.0",
     "platform": "darwin arm64",
@@ -1128,5 +1128,38 @@
       "userSpeechSeconds": 168.7
     },
     "note": "token 数为百炼响应中的真实 usage；语音按音频秒数计量。单价以百炼官方定价页为准——本文件中单价未核定时只报用量、不报金额。"
+  },
+  "sessionConfig": {
+    "expectedVoice": "Serena",
+    "voiceAsserted": true,
+    "handshakeMs": 238
+  },
+  "recount": {
+    "at": "2026-09-26T16:33:22.241Z",
+    "why": "F1-1：failures 原先只统计「抛异常/不合规」，把契约内降级漏掉了，与 successfulOnlyStats.n 自相矛盾。这里只重算汇总字段。",
+    "samplesUnchanged": true,
+    "samplesSha256Before": {
+      "realtime": "f4772a0d6ac5850499102ce38c8520305f536af5b21f5645811be657f3ded35d",
+      "review": "70cb8c10fdae3551edbdacc09e57548905ee401d7d0c08d003ce35469e67c641"
+    },
+    "samplesSha256After": {
+      "realtime": "f4772a0d6ac5850499102ce38c8520305f536af5b21f5645811be657f3ded35d",
+      "review": "70cb8c10fdae3551edbdacc09e57548905ee401d7d0c08d003ce35469e67c641"
+    }
+  },
+  "latencyFailures": {
+    "realtime": {
+      "exceptions": 0,
+      "degraded": 0
+    },
+    "review": {
+      "exceptions": 0,
+      "degraded": 1
+    }
+  },
+  "manifestRefresh": {
+    "total": 30,
+    "added": 25,
+    "changed": 0
   }
 }

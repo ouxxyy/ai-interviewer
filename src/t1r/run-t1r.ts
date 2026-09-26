@@ -16,7 +16,9 @@ import { DashscopeTextClient, DASHSCOPE_DEFAULTS } from '../clients/dashscope.js
 import { DashscopeRealtimeClient } from '../clients/realtime-dashscope.js';
 import { credentialStatus, loadDotEnv, REPO_ROOT, requireCredential } from './env.js';
 import { sha256 } from './audio.js';
-import { EvidenceWriter, DATA_DIR, EVIDENCE_DIR } from './evidence.js';
+import { EvidenceWriter, DATA_DIR, EVIDENCE_DIR, fileSha256, refreshManifest } from './evidence.js';
+import { countFailures, latencyStats } from './latency.js';
+import { createHash } from 'node:crypto';
 import { runChainA, type ChainAResult } from './chain-a.js';
 import { runChainB, type ChainBResult } from './chain-b.js';
 import { runRealtimeLatency, runReviewLatency, type LatencyResult } from './latency.js';
@@ -148,6 +150,84 @@ async function main(): Promise<void> {
         : []),
     ]);
     summary.chainB = { ok: result.ok, failure: result.failure, session: result.session, turns: result.turns, premiseInjectText: result.premiseInjectText, premisePersistInterviewerAudio: result.premisePersistInterviewerAudio, committedClips: clips };
+  }
+
+  // ---- 纯派生命令：只重算汇总字段/摘要，绝不改动原始样本 ----
+  if (cmd === 'latency:recount') {
+    const summaryPath = path.join(EVIDENCE_DIR, 'latency', 'summary.json');
+    const raw = readFileSync(summaryPath, 'utf8');
+    const doc = JSON.parse(raw) as Record<string, unknown>;
+    // 记录重算前后样本段的哈希，证明「样本一个字节都没动」。
+    // 只对 samples 段取哈希——这才是「原始样本没被改动」的证据（汇总字段本来就要重算）。
+    const samplesSha = (key: string): string => {
+      const section = doc[key] as { samples?: unknown } | undefined;
+      return createHash('sha256').update(JSON.stringify(section?.samples ?? null)).digest('hex');
+    };
+    const before = { realtime: samplesSha('realtime'), review: samplesSha('review') };
+    for (const leg of ['realtime', 'review'] as const) {
+      const section = doc[leg] as
+        | {
+            samples?: Array<{ ok: boolean; attempts?: number; latencyMs?: number; firstAttemptOk?: boolean }>;
+            stats?: unknown; asrStats?: unknown; successfulOnlyStats?: unknown; firstAttemptOk?: number; failures?: unknown;
+          }
+        | undefined;
+      if (!section?.samples) continue;
+      const withLatency: number[] = [];
+      for (const sample of section.samples) {
+        if (leg === 'realtime') {
+          const v = (sample as unknown as { commitToFirstAudioMs: number | null }).commitToFirstAudioMs;
+          if (sample.ok && v !== null && v !== undefined) withLatency.push(v);
+        } else if (typeof sample.latencyMs === 'number') {
+          withLatency.push(sample.latencyMs);
+        }
+      }
+      if (leg === 'realtime') {
+        section.stats = latencyStats(withLatency);
+        section.asrStats = latencyStats(
+          section.samples.filter((x) => x.ok).map((x) => (x as unknown as { commitToAsrDoneMs: number }).commitToAsrDoneMs),
+        );
+        section.failures = countFailures(section.samples);
+      } else {
+        section.stats = latencyStats(withLatency);
+        section.successfulOnlyStats = latencyStats(section.samples.filter((x) => x.ok).map((x) => x.latencyMs!));
+        section.firstAttemptOk = section.samples.filter((x) => x.firstAttemptOk).length;
+        section.failures = countFailures(section.samples);
+      }
+    }
+    const after = { realtime: samplesSha('realtime'), review: samplesSha('review') };
+    doc.recount = {
+      at: new Date().toISOString(),
+      why: 'F1-1：failures 原先只统计「抛异常/不合规」，把契约内降级漏掉了，与 successfulOnlyStats.n 自相矛盾。这里只重算汇总字段。',
+      samplesUnchanged: before.realtime === after.realtime && before.review === after.review,
+      samplesSha256Before: before,
+      samplesSha256After: after,
+    };
+    writer.writeJson('latency/summary.json', doc);
+    summary.recount = doc.recount;
+    summary.latencyFailures = { realtime: (doc.realtime as { failures: unknown }).failures, review: (doc.review as { failures: unknown }).failures };
+  }
+
+  if (cmd === 'manifest:refresh') {
+    const res = refreshManifest(path.join(EVIDENCE_DIR, 'manifest.json'));
+    summary.manifestRefresh = res;
+  }
+
+  if (cmd === 'session-config') {
+    const rt = new DashscopeRealtimeClient(credential, {});
+    const info = await rt.open('session-config');
+    const payloads = rt.redactedSessionPayloads();
+    rt.close();
+    writer.writeJson('chain-b/session-config.json', {
+      observedAt: new Date().toISOString(),
+      why: 'F2-4：events.jsonl 只有 {t,dir,type} 投影，会话生效配置无法从入库证据复核；这里单独存一份脱敏载荷。',
+      handshakeMs: info.handshakeMs,
+      sessionCreatedDefaults: payloads.created,
+      sessionUpdatedEffective: payloads.updated,
+      expectedVoice: payloads.expectedVoice,
+      voiceAsserted: payloads.voiceAsserted,
+      note: 'session.created 报告的是服务端默认值（voice=Chelsie，实际不可用）；session.updated 才是本次会话的生效配置。',
+    });
+    summary.sessionConfig = { expectedVoice: payloads.expectedVoice, voiceAsserted: payloads.voiceAsserted, handshakeMs: info.handshakeMs };
   }
 
   if (cmd === 'latency-realtime') {

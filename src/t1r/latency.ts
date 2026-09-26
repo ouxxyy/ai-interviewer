@@ -14,8 +14,38 @@ import { validateContract } from '../contracts/validate.js';
 import { reviewPrompt } from '../prompts/prompts.js';
 import { chunkPcm, pcmDurationSeconds, synthesizeAnswerPcm, speechToolingAvailable } from './audio.js';
 import { latencyStats, type EvidenceWriter } from './evidence.js';
+export { latencyStats };
 import { DATA_DIR } from './evidence.js';
 import { DashscopeReviewChannel, loadCases } from './chain-a.js';
+
+/** 失败计数（F1-1）：抛异常/不合规 与 契约内降级 必须分开，否则「failures: 0」会掩盖降级。 */
+export interface LatencyFailures {
+  /** 调用抛异常（网络/超时/HTTP 错误）或输出始终不合规。 */
+  exceptions: number;
+  /** 契约内降级：重试耗尽后以「暂无法评价」收场——这是正确行为，但必须计入失败面。 */
+  degraded: number;
+}
+
+/** 每轮的结局。历史样本没有该字段时由 recount 推导（见 deriveOutcome）。 */
+export type LatencyOutcome = 'ok' | 'degraded' | 'exception';
+
+export function deriveOutcome(s: { ok: boolean; attempts?: number; outcome?: LatencyOutcome }): LatencyOutcome {
+  if (s.outcome) return s.outcome;
+  if (s.ok) return 'ok';
+  // 历史样本（T1-R 那批）没有 outcome 字段：attempts>0 说明走到过重试→按契约降级；
+  // attempts===0 说明在调用层就抛了异常。
+  return (s.attempts ?? 0) > 0 ? 'degraded' : 'exception';
+}
+
+export function countFailures(samples: Array<{ ok: boolean; attempts?: number; outcome?: LatencyOutcome }>): LatencyFailures {
+  const out: LatencyFailures = { exceptions: 0, degraded: 0 };
+  for (const s of samples) {
+    const o = deriveOutcome(s);
+    if (o === 'exception') out.exceptions++;
+    else if (o === 'degraded') out.degraded++;
+  }
+  return out;
+}
 
 export interface RealtimeLatencySample {
   round: number;
@@ -32,6 +62,7 @@ export interface RealtimeLatencySample {
   spokenTranscript: string;
   verbatim: boolean;
   ok: boolean;
+  outcome: LatencyOutcome;
   error?: string;
 }
 
@@ -47,11 +78,12 @@ export interface ReviewLatencySample {
   firstAttemptOk: boolean;
   attemptLog: Array<{ attempt: number; ok: boolean; cause?: string; detail?: string }>;
   ok: boolean;
+  outcome: LatencyOutcome;
 }
 
 export interface LatencyResult {
-  realtime: { samples: RealtimeLatencySample[]; stats: ReturnType<typeof latencyStats>; asrStats: ReturnType<typeof latencyStats>; failures: number };
-  review: { samples: ReviewLatencySample[]; stats: ReturnType<typeof latencyStats>; successfulOnlyStats: ReturnType<typeof latencyStats>; firstAttemptOk: number; failures: number };
+  realtime: { samples: RealtimeLatencySample[]; stats: ReturnType<typeof latencyStats>; asrStats: ReturnType<typeof latencyStats>; failures: LatencyFailures };
+  review: { samples: ReviewLatencySample[]; stats: ReturnType<typeof latencyStats>; successfulOnlyStats: ReturnType<typeof latencyStats>; firstAttemptOk: number; failures: LatencyFailures };
   config: { realtimeModel: string; textModel: string; voice: string; region: string };
 }
 
@@ -78,7 +110,6 @@ export async function runRealtimeLatency(
   const tooling = speechToolingAvailable();
   if (!tooling.available) throw new Error(`无法生成回答音频：${tooling.reason ?? '未知原因'}`);
   const audioDir = path.join(DATA_DIR, 'latency-audio');
-  let failures = 0;
 
   for (let i = 0; i < rounds; i++) {
     const answer = ANSWERS[i % ANSWERS.length]!;
@@ -116,6 +147,7 @@ export async function runRealtimeLatency(
         spokenTranscript: res.transcript,
         verbatim: norm(res.transcript) === norm(injected),
         ok: true,
+        outcome: 'ok',
       });
       opts.evidence.appendJsonl('latency/realtime-turns.jsonl', [
         {
@@ -129,11 +161,11 @@ export async function runRealtimeLatency(
         },
       ]);
     } catch (e) {
-      failures++;
       samples.push({
         round: i + 1, answerChars: answer.length, answerAudioSeconds: 0,
         commitToFirstAudioMs: null, commitToAsrDoneMs: 0, asrToFirstAudioMs: null, responseTotalMs: 0,
-        userTranscriptChars: 0, spokenTranscriptChars: 0, injectedText: '', spokenTranscript: '', verbatim: false, ok: false, error: (e as Error).message,
+        userTranscriptChars: 0, spokenTranscriptChars: 0, injectedText: '', spokenTranscript: '', verbatim: false,
+        ok: false, outcome: 'exception', error: (e as Error).message,
       });
     }
   }
@@ -143,7 +175,7 @@ export async function runRealtimeLatency(
     samples,
     stats: latencyStats(okFirst),
     asrStats: latencyStats(samples.filter((s) => s.ok).map((s) => s.commitToAsrDoneMs)),
-    failures,
+    failures: countFailures(samples),
   };
 }
 
@@ -154,7 +186,6 @@ export async function runReviewLatency(
   const rounds = opts.rounds ?? 20;
   const cases = loadCases();
   const samples: ReviewLatencySample[] = [];
-  let failures = 0;
 
   for (let i = 0; i < rounds; i++) {
     const c = cases[i % cases.length]!;
@@ -170,7 +201,6 @@ export async function runReviewLatency(
       const latencyMs = Date.now() - startedAt;
       const schemaOk = validateContract('feedback', outcome.feedback).ok;
       const quoteLocated = outcome.kind === 'ok';
-      if (!schemaOk) failures++;
       samples.push({
         round: i + 1,
         caseId: c.id,
@@ -183,10 +213,10 @@ export async function runReviewLatency(
         firstAttemptOk: attemptLog[0]?.ok === true,
         attemptLog,
         ok: schemaOk && quoteLocated,
+        outcome: schemaOk && quoteLocated ? 'ok' : 'degraded',
       });
     } catch (e) {
-      failures++;
-      samples.push({ round: i + 1, caseId: c.id, latencyMs: Date.now() - startedAt, totalTokens: 0, completionTokens: 0, schemaOk: false, quoteLocated: false, attempts: 0, firstAttemptOk: false, attemptLog, ok: false });
+      samples.push({ round: i + 1, caseId: c.id, latencyMs: Date.now() - startedAt, totalTokens: 0, completionTokens: 0, schemaOk: false, quoteLocated: false, attempts: 0, firstAttemptOk: false, attemptLog, ok: false, outcome: 'exception' });
       opts.evidence.appendJsonl('latency/review-errors.jsonl', [{ round: i + 1, caseId: c.id, error: (e as Error).message.slice(0, 200) }]);
     }
   }
@@ -198,7 +228,7 @@ export async function runReviewLatency(
     stats: latencyStats(samples.map((s) => s.latencyMs)),
     successfulOnlyStats: latencyStats(samples.filter((s) => s.ok).map((s) => s.latencyMs)),
     firstAttemptOk: samples.filter((s) => s.firstAttemptOk).length,
-    failures,
+    failures: countFailures(samples),
   };
 }
 

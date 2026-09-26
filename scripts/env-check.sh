@@ -41,7 +41,7 @@ echo
 echo "## 2. 项目目录与 Git 状态"
 if git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   SHORT="$(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null || echo '尚无提交')"
-  info "Git 仓库: $ROOT @ ${SHORT} (branch: $(git -C "$ROOT" branch --show-current))"
+  info "Git 仓库: . (仓库根，相对路径；本机绝对路径不入文档) @ ${SHORT} (branch: $(git -C "$ROOT" branch --show-current))"
 else
   bad "Git 仓库未初始化"
 fi

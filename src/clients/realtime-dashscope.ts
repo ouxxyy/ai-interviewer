@@ -113,10 +113,67 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
   private commitSentAt = 0;
   private responseActive = false;
 
+  /** 生效配置回显（session.updated 的载荷），供证据留档；已做脱敏。 */
+  sessionCreatedPayload: Record<string, unknown> | null = null;
+  sessionUpdatedPayload: Record<string, unknown> | null = null;
+  /** 音色前置断言是否通过。未通过前禁止触发任何 response.create。 */
+  private voiceAsserted = false;
+
   constructor(
     private readonly credential: string,
-    private readonly opts: { model?: string; voice?: string; instructions?: string; baseUrl?: string; inputTranscriptionModel?: string } = {},
+    private readonly opts: { model?: string; voice?: string; instructions?: string; baseUrl?: string; inputTranscriptionModel?: string; requireVoiceAssertion?: boolean } = {},
   ) {}
+
+  get expectedVoice(): string {
+    return this.opts.voice ?? REALTIME_DEFAULTS.defaultVoice;
+  }
+
+  get isVoiceAsserted(): boolean {
+    return this.voiceAsserted;
+  }
+
+  /**
+   * 音色前置断言（T2 硬要求）。
+   *
+   * 实测事实：服务端 `session.created` 自报的默认音色 `Chelsie` 在真正生成时会被
+   * `<400> Voice 'Chelsie' is not supported` 拒掉；而且**在同一个连接里撞 400 之后再
+   * `session.update` 到正确音色，服务端不回 `session.updated`、也不出音频——连接不会自愈**。
+   * 所以不能等撞墙再补救：必须在发首个 `response.create` 之前，用 `session.updated` 的回显
+   * 确认生效音色，不符就当场失败（由调用方新开连接重试）。
+   */
+  private assertVoice(): void {
+    const effective = this.session?.updated?.voice;
+    if (typeof effective !== 'string' || effective === '') {
+      throw new Error(`音色前置断言失败：session.updated 未回显生效音色（期望 ${this.expectedVoice}）`);
+    }
+    if (effective !== this.expectedVoice) {
+      throw new Error(`音色前置断言失败：生效音色 ${effective} ≠ 期望 ${this.expectedVoice}（不要在同一连接里重试，请新开连接）`);
+    }
+    this.voiceAsserted = true;
+  }
+
+  /** 脱敏后的会话配置载荷，用于入库证据（凭证与 sk-* 一律抹掉）。 */
+  redactedSessionPayloads(): { created: Record<string, unknown> | null; updated: Record<string, unknown> | null; expectedVoice: string; voiceAsserted: boolean } {
+    const redact = (v: unknown): unknown => {
+      if (typeof v === 'string') {
+        const key = this.credential;
+        let out = key.length >= 8 ? v.split(key).join('<redacted-credential>') : v;
+        out = out.replace(/sk-[A-Za-z0-9._-]{12,}/g, '<redacted-sk-key>');
+        return out;
+      }
+      if (Array.isArray(v)) return v.map(redact);
+      if (v !== null && typeof v === 'object') {
+        return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, val]) => [k, redact(val)]));
+      }
+      return v;
+    };
+    return {
+      created: (redact(this.sessionCreatedPayload) as Record<string, unknown> | null) ?? null,
+      updated: (redact(this.sessionUpdatedPayload) as Record<string, unknown> | null) ?? null,
+      expectedVoice: this.expectedVoice,
+      voiceAsserted: this.voiceAsserted,
+    };
+  }
 
   get info(): SessionInfo | null {
     return this.session;
@@ -183,10 +240,15 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
       });
       this.send({ type: 'session.update', session });
     });
+    // 前置断言：生效音色必须是显式指定的那个（服务端自报默认值不可信）。
+    this.assertVoice();
   }
 
   /** D2：服务端注入要朗读的文本。模型不得自行生成问题。 */
   injectText(text: string): void {
+    if (this.opts.requireVoiceAssertion !== false && !this.voiceAsserted) {
+      throw new Error('拒绝注入文本：音色前置断言未通过（先 connect()+updateSession()，断言失败请新开连接）');
+    }
     this.transcriptBuf = '';
     this.transcriptFinal = '';
     this.send({
@@ -313,13 +375,17 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
           updated: null,
         };
         this.session = info;
+        this.sessionCreatedPayload = s;
         for (const w of this.sessionWaiters.splice(0)) w.resolve(info);
         break;
       }
-      case 'session.updated':
-        if (this.session) this.session.updated = (obj.session ?? {}) as Record<string, unknown>;
+      case 'session.updated': {
+        const payload = (obj.session ?? {}) as Record<string, unknown>;
+        if (this.session) this.session.updated = payload;
+        this.sessionUpdatedPayload = payload;
         for (const w of this.createdWaiters.splice(0)) { clearTimeout(w.timer); w.resolve(); }
         break;
+      }
       case 'response.audio_transcript.done':
         if (typeof obj.transcript === 'string' && obj.transcript !== '') {
           this.transcriptFinal = obj.transcript;
