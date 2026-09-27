@@ -6,7 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "outDir": "dist",
+    "outDir": "dist/webtest",
     "rootDir": ".",
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,6 +16,6 @@
     "web-client/src/audio.ts",
     "web-client/src/types.ts",
     "web-client/src/lib/**/*.ts",
-    "test/web-client-audio.test.ts"
+    "test/web-client-*.test.ts"
   ]
 }

@@ -100,10 +100,11 @@ export function previewBundle(name: string): PreviewData | null {
     disclosure: null,
     needsDisclosure: false,
     snapshot: null,
+    transcript: null,
     detail: null,
   };
   if (name === 'home') return { ...base, kind: 'home', disclosure: previewDisclosure, needsDisclosure: true };
-  if (name === 'session') return { ...base, kind: 'session', snapshot: previewSession };
+  if (name === 'session') return { ...base, kind: 'session', snapshot: previewSession, transcript: '我负责把每周的用户反馈拆成三类，先与产研确认优先级。' };
   if (name === 'report') return { ...base, kind: 'report', detail: previewReport };
   if (name === 'errors') return { ...base, kind: 'errors' };
   return null;

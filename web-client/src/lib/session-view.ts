@@ -79,8 +79,54 @@ export type RecoveryStep =
   | { type: 'http'; name: string; body?: unknown }
   | { type: 'start_answer' }
   | { type: 'resend_commit' }
+  | { type: 'adopt_snapshot' }
   | { type: 'refresh'; reason: 'unknown_state' }
   | { type: 'none'; reason: 'no_context' | 'not_retryable' | 'halted' };
+
+interface HttpRecoveryTransition {
+  before: readonly SessionState[];
+  succeeded: readonly SessionState[];
+}
+
+/**
+ * 非幂等 HTTP 动作的恢复边界。
+ *
+ * `before` 表示服务端仍未执行、可以安全重放；`succeeded` 表示服务端已经推进，必须采用
+ * 权威快照而不能再发一次。没有登记的动作一律不猜、不重放。
+ */
+export const HTTP_RECOVERY_TRANSITIONS: Readonly<Record<string, HttpRecoveryTransition>> = {
+  materials: { before: ['materials_review'], succeeded: ['question', 'answer'] },
+  'materials/retry-plan': { before: ['question'], succeeded: ['question', 'answer'] },
+  review: { before: ['answer', 'followup'], succeeded: ['review', 'rewrite'] },
+  'rewrite/start': { before: ['rewrite'], succeeded: ['answer'] },
+  next: { before: ['rewrite'], succeeded: ['question', 'answer', 'report', 'ended'] },
+  end: {
+    before: ['materials_review', 'question', 'answer', 'followup', 'review', 'rewrite'],
+    succeeded: ['report', 'ended'],
+  },
+  report: { before: ['report'], succeeded: ['ended'] },
+};
+
+function recoverHttp(op: Extract<FailedOp, { kind: 'http' }>, observed: ObservedSession | null): RecoveryStep {
+  if (observed === null) return { type: 'refresh', reason: 'unknown_state' };
+  const transition = HTTP_RECOVERY_TRANSITIONS[op.name];
+  if (transition === undefined) return { type: 'none', reason: 'not_retryable' };
+
+  // retry-plan 在生成计划期间仍是 question；planReady 才能区分「尚未执行」与「已经生效」。
+  if (op.name === 'materials/retry-plan') {
+    if (observed.state === 'question' && !observed.planReady) {
+      return { type: 'http', name: op.name, ...(op.body === undefined ? {} : { body: op.body }) };
+    }
+    if (observed.planReady && transition.succeeded.includes(observed.state)) return { type: 'adopt_snapshot' };
+    return { type: 'none', reason: 'not_retryable' };
+  }
+
+  if (transition.succeeded.includes(observed.state)) return { type: 'adopt_snapshot' };
+  if (transition.before.includes(observed.state)) {
+    return { type: 'http', name: op.name, ...(op.body === undefined ? {} : { body: op.body }) };
+  }
+  return { type: 'none', reason: 'not_retryable' };
+}
 
 /**
  * 把「哪一步失败了」+「服务端现在在哪一阶段」映射成一个**不会被状态机拒绝**的恢复动作。
@@ -98,7 +144,7 @@ export function recoveryStep(op: FailedOp | null, observed: ObservedSession | nu
   if (op === null) return { type: 'none', reason: 'no_context' };
   switch (op.kind) {
     case 'http':
-      return { type: 'http', name: op.name, ...(op.body === undefined ? {} : { body: op.body }) };
+      return recoverHttp(op, observed);
     case 'answer_start':
       return { type: 'start_answer' };
     case 'answer_commit':
@@ -108,6 +154,7 @@ export function recoveryStep(op: FailedOp | null, observed: ObservedSession | nu
       if (observed === null) return { type: 'refresh', reason: 'unknown_state' };
       if (observed.state === 'materials_review') return { type: 'http', name: 'materials', body: op.draft };
       if (observed.state === 'question' && !observed.planReady) return { type: 'http', name: 'materials/retry-plan' };
+      if (observed.planReady && (observed.state === 'question' || observed.state === 'answer')) return { type: 'adopt_snapshot' };
       return { type: 'none', reason: 'not_retryable' };
   }
 }

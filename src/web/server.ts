@@ -231,6 +231,9 @@ export function createServer(deps: ServerDeps): RunningServer {
         if (req.method === 'GET' && rest === '') {
           return json(res, 200, manager.detail(sid));
         }
+        if (req.method === 'GET' && rest === '/snapshot') {
+          return json(res, 200, { snapshot: manager.requireLive(sid).snapshot() });
+        }
         if (req.method === 'DELETE' && rest === '') {
           const report = manager.delete(sid);
           return json(res, 200, report);

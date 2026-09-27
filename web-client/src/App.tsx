@@ -118,7 +118,7 @@ export default function App() {
   if (settings === null) {
     content = bootError !== null ? <main className="standalone-state"><ErrorState error={bootError} onAction={() => location.reload()} /></main> : <main className="app-loading" aria-live="polite"><div className="loading-logo">8</div><p>正在打开欧八面试陪练…</p></main>;
   } else if (previewKind === 'session' && previewData?.snapshot != null) {
-    content = <SessionPage sid={previewData.snapshot.sid} preview={previewData.snapshot} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
+    content = <SessionPage sid={previewData.snapshot.sid} preview={previewData.snapshot} previewTranscript={previewData.transcript ?? undefined} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
   } else if (previewKind === 'report' && previewData?.detail != null) {
     content = <ReportPage sid={previewData.detail.sid} preview={previewData.detail} onNavigate={navigate} />;
   } else if (previewKind === 'errors' && errorGallery !== null) {

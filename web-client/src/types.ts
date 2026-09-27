@@ -191,6 +191,7 @@ export interface PreviewData {
   disclosure: Disclosure | null;
   needsDisclosure: boolean;
   snapshot: Snapshot | null;
+  transcript: string | null;
   detail: SessionDetail | null;
 }
 

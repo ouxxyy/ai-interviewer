@@ -6,13 +6,14 @@ import { RealtimeAudio } from '../audio';
 import { BrandHeader } from '../components/BrandHeader';
 import { ErrorState } from '../components/ErrorState';
 import { verifiedQuote } from '../lib/report';
-import { defaultRetry, isSnapshot, observedFromDetail, questionProgress, recoveryNotice, recoveryStep, type FailedOp, type ObservedSession, type RecoveryStep } from '../lib/session-view';
+import { defaultRetry, isSnapshot, questionProgress, recoveryNotice, recoveryStep, type FailedOp, type ObservedSession, type RecoveryStep } from '../lib/session-view';
 import type { AppErrorBody, MaterialsDraft, SessionDetail, Snapshot } from '../types';
 
 interface SessionPageProps {
   sid: string;
   setup?: MaterialsDraft;
   preview?: Snapshot;
+  previewTranscript?: string;
   onSetupConsumed(): void;
   onNavigate(path: string): void;
 }
@@ -23,7 +24,7 @@ function toErrorBody(caught: unknown, fallback: AppErrorBody): AppErrorBody {
   return caught instanceof ApiError ? caught.body : fallback;
 }
 
-export function SessionPage({ sid, setup, preview, onSetupConsumed, onNavigate }: SessionPageProps) {
+export function SessionPage({ sid, setup, preview, previewTranscript, onSetupConsumed, onNavigate }: SessionPageProps) {
   /**
    * `detail` 与 `snapshot` 是**两种不同的东西**（P0-1）：
    * 详情接口没有 `machine`，只有 WS `state`／动作响应里的 `{snapshot}` 才是 live 快照。
@@ -31,7 +32,7 @@ export function SessionPage({ sid, setup, preview, onSetupConsumed, onNavigate }
    */
   const [detail, setDetail] = useState<SessionDetail | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(preview ?? null);
-  const [transcript, setTranscript] = useState(preview ? '我负责把每周的用户反馈拆成三类，先与产研确认优先级。' : '');
+  const [transcript, setTranscript] = useState(previewTranscript ?? '');
   const [finalTranscript, setFinalTranscript] = useState(false);
   const [audioStatus, setAudioStatus] = useState<AudioStatus>(preview ? 'listening' : 'connecting');
   const [offline, setOffline] = useState(false);
@@ -202,12 +203,17 @@ export function SessionPage({ sid, setup, preview, onSetupConsumed, onNavigate }
    */
   const runRecovery = useCallback(async (allowDefaultStart: boolean) => {
     const op = failedOpRef.current;
-    let observed: ObservedSession | null = snapshotRef.current === null
-      ? null
-      : { state: snapshotRef.current.state, planReady: snapshotRef.current.plan !== null };
-    if (op !== null && (op.kind === 'materials' || op.kind === 'answer_commit')) {
-      const fresh = await api.detail(sid).catch(() => null);
-      if (fresh !== null) observed = observedFromDetail(fresh);
+    let authoritative: Snapshot | null = null;
+    let observed: ObservedSession | null = op === null && snapshotRef.current !== null
+      ? { state: snapshotRef.current.state, planReady: snapshotRef.current.plan !== null }
+      : null;
+    if (op !== null) {
+      const fresh = await api.snapshot(sid).catch(() => null);
+      if (fresh !== null) {
+        authoritative = fresh.snapshot;
+        applySnapshot(authoritative);
+        observed = { state: authoritative.state, planReady: authoritative.plan !== null };
+      }
     }
     let step: RecoveryStep;
     if (errorRef.current?.halt === true || errorRef.current?.code === 'E_QUOTA') step = { type: 'none', reason: 'halted' };
@@ -223,11 +229,20 @@ export function SessionPage({ sid, setup, preview, onSetupConsumed, onNavigate }
       if (allowDefaultStart) setNotice(recoveryNotice(step));
       return;
     }
+    if (step.type === 'adopt_snapshot') {
+      // 服务端已经完成动作：当前权威快照就是结果。清掉失败上下文，绝不能再执行一次。
+      failedOpRef.current = null;
+      errorRef.current = null;
+      setError(null);
+      setNotice('');
+      if (authoritative?.state === 'ended') onNavigate(`/report/${encodeURIComponent(sid)}`);
+      return;
+    }
     setNotice('');
     if (step.type === 'http') return action(step.name, step.body);
     if (step.type === 'resend_commit') return commitAnswer();
     if (step.type === 'start_answer') return startAnswer();
-  }, [action, commitAnswer, sid, startAnswer]);
+  }, [action, applySnapshot, commitAnswer, onNavigate, sid, startAnswer]);
 
   const handleErrorAction = (next: string) => {
     if (next === 'repeat') { setNotice(''); audioRef.current?.repeatQuestion(); }

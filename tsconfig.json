@@ -13,6 +13,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "web-client/src/lib/**/*.ts", "web-client/src/types.ts"],
-  "exclude": ["test/web-client-audio.test.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["test/web-client-*.test.ts"]
 }

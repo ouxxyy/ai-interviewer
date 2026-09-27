@@ -7,6 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  HTTP_RECOVERY_TRANSITIONS,
   isSnapshot,
   isAnswering,
   observedFromDetail,
@@ -96,8 +97,8 @@ test('P1-2：材料提交失败按对账结果分流到 materials 或 materials/
   assert.deepEqual(recoveryStep(op, { state: 'materials_review', planReady: false }), { type: 'http', name: 'materials', body: op.draft });
   // 服务端已受理但计划没出来（超时/计划失败）：只能重试出题，重发 materials 必然 E_STATE。
   assert.deepEqual(recoveryStep(op, { state: 'question', planReady: false }), { type: 'http', name: 'materials/retry-plan' });
-  // 计划已经在了：没有可重试的动作，明确说不能重试。
-  assert.deepEqual(recoveryStep(op, { state: 'answer', planReady: true }), { type: 'none', reason: 'not_retryable' });
+  // 计划已经在了：服务端已经完成，采用权威快照并清掉失败上下文。
+  assert.deepEqual(recoveryStep(op, { state: 'answer', planReady: true }), { type: 'adopt_snapshot' });
 });
 
 test('P1-2：断线后重发的动作必须由服务端阶段决定，不会发出注定被拒的请求', () => {
@@ -110,10 +111,41 @@ test('P1-2：断线后重发的动作必须由服务端阶段决定，不会发�
   assert.equal(isAnswering('review'), false);
 });
 
-test('P1-2：额度止损态一律不给重试；HTTP 动作按原名重放', () => {
+test('P1-2：HTTP 恢复明确声明前置态与成功后置态', () => {
+  assert.deepEqual(HTTP_RECOVERY_TRANSITIONS['rewrite/start'], {
+    before: ['rewrite'],
+    succeeded: ['answer'],
+  });
+  assert.deepEqual(HTTP_RECOVERY_TRANSITIONS.next, {
+    before: ['rewrite'],
+    succeeded: ['question', 'answer', 'report', 'ended'],
+  });
+  assert.deepEqual(HTTP_RECOVERY_TRANSITIONS.end, {
+    before: ['materials_review', 'question', 'answer', 'followup', 'review', 'rewrite'],
+    succeeded: ['report', 'ended'],
+  });
+});
+
+test('P1-2：请求已生效但响应丢失时采用权威快照，只有仍在前置态才重放', () => {
+  const next: FailedOp = { kind: 'http', name: 'next' };
+  assert.deepEqual(recoveryStep(next, { state: 'rewrite', planReady: true }), { type: 'http', name: 'next' }, '服务端尚未执行');
+  assert.deepEqual(recoveryStep(next, { state: 'answer', planReady: true }), { type: 'adopt_snapshot' }, '服务端已进入下一题');
+  assert.deepEqual(recoveryStep(next, { state: 'ended', planReady: true }), { type: 'adopt_snapshot' }, '最后一题已生成报告');
+
+  const rewrite: FailedOp = { kind: 'http', name: 'rewrite/start' };
+  assert.deepEqual(recoveryStep(rewrite, { state: 'rewrite', planReady: true }), { type: 'http', name: 'rewrite/start' });
+  assert.deepEqual(recoveryStep(rewrite, { state: 'answer', planReady: true }), { type: 'adopt_snapshot' });
+
+  const end: FailedOp = { kind: 'http', name: 'end' };
+  assert.deepEqual(recoveryStep(end, { state: 'answer', planReady: true }), { type: 'http', name: 'end' });
+  assert.deepEqual(recoveryStep(end, { state: 'report', planReady: true }), { type: 'adopt_snapshot' });
+  assert.deepEqual(recoveryStep(end, { state: 'ended', planReady: true }), { type: 'adopt_snapshot' });
+});
+
+test('P1-2：额度止损态一律不给重试；未知 HTTP 动作不盲重放', () => {
   const halted: AppErrorBody = { code: 'E_QUOTA', message: '额度不足', halt: true };
   assert.deepEqual(recoveryStep({ kind: 'answer_start' }, { state: 'answer', planReady: true }, halted), { type: 'none', reason: 'halted' });
-  assert.deepEqual(recoveryStep({ kind: 'http', name: 'next' }, { state: 'rewrite', planReady: true }), { type: 'http', name: 'next' });
+  assert.deepEqual(recoveryStep({ kind: 'http', name: 'unknown/action' }, { state: 'answer', planReady: true }), { type: 'none', reason: 'not_retryable' });
 });
 
 test('P1-2：没有失败上下文时 recoveryStep 不下结论（重连不许冒充重试）', () => {

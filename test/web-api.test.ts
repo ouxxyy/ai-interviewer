@@ -145,6 +145,25 @@ test('未经告知确认不得创建会话（428），确认后可创建', async
   }
 });
 
+test('HTTP 恢复可读取 live 权威快照，而不会把详情形状冒充 Snapshot', async () => {
+  const api = await boot('live-snapshot');
+  try {
+    await call(api.url, 'PATCH', '/api/settings', { disclosureAck: true });
+    const created = await call(api.url, 'POST', '/api/sessions', {});
+    const sid = created.body.sid as string;
+    const detail = await call(api.url, 'GET', `/api/sessions/${sid}`);
+    const current = await call(api.url, 'GET', `/api/sessions/${sid}/snapshot`);
+    assert.equal(detail.status, 200);
+    assert.equal('machine' in detail.body, false, '详情仍保持历史兼容形状');
+    assert.equal(current.status, 200);
+    assert.equal(current.body.snapshot.sid, sid);
+    assert.equal(current.body.snapshot.machine.state, 'materials_review');
+  } finally {
+    await api.close();
+    rmSync(api.dataDir, { recursive: true, force: true });
+  }
+});
+
 test('统一错误响应与输入校验：400/404/409 都是同一形状', async () => {
   const api = await boot('errors');
   try {

@@ -74,6 +74,7 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | GET | `/api/sessions?limit&offset&includeSynthetic` | 历史列表，**带分页**（limit 1–100） |
 | POST | `/api/sessions` | 建会话：`{synthetic?, saveHistory?, saveAudio?, disclosureAck?}`；未确认告知 → 428 |
 | GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告，以及 `reportSource`、`reviewMeta`、`reviewBasis`。**这是「详情形状」，不是 live 快照**：不含 `machine`／`currentQuestion`／`pending`／`lastError`／`halted`（回归见 `test/web-api.test.ts`） |
+| GET | `/api/sessions/:sid/snapshot` | 只读 live 权威快照；用于非幂等 HTTP 动作响应丢失后的状态对账，历史会话返回冲突，不把详情形状冒充快照 |
 | DELETE | `/api/sessions/:sid` | 显式删除，返回**删除前后对照**（`before`/`after`/`removed`/`verified`） |
 | POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 真出题 + 朗读第一题 |
 | POST | `/api/sessions/:sid/materials/upload?filename=` | 上传 PDF／DOCX（原始字节，≤12MB）→ 提取文本；失败 422 并给退路 |
@@ -170,7 +171,7 @@ materials_review → question → answer → followup? → review → rewrite? �
 ### live 快照的唯一来源
 
 `machine`／`currentQuestion`／`pending`／`lastError`／`halted` 只出现在**完整快照**里，即：
-`POST /api/sessions` 的 `snapshot`、各动作响应的 `{snapshot}`、以及 WS 的 `state` 消息。
+`POST /api/sessions` 的 `snapshot`、`GET /api/sessions/:sid/snapshot`、各动作响应的 `{snapshot}`、以及 WS 的 `state` 消息。
 前端把这三种之外的响应（尤其是 `GET /api/sessions/:sid`）当快照用，会在 `machine.questionIndex`
 上直接抛异常并让页面白屏；会话页因此用运行时守卫 `isSnapshot()` 拦住非快照值，并在收到 WS 首帧前保持 loading。
 

@@ -45,6 +45,7 @@ export const api = {
   updateSettings: (patch: Partial<Pick<WebSettings, 'saveHistory' | 'saveAudio'>>) => request<{ settings: WebSettings; needsDisclosure: boolean }>('PATCH', '/api/settings', patch),
   createSession: (body: { synthetic: false; saveHistory: boolean; saveAudio: boolean }) => request<{ sid: string; snapshot: Snapshot }>('POST', '/api/sessions', body),
   detail: (sid: string) => request<SessionDetail>('GET', `/api/sessions/${encodeURIComponent(sid)}`),
+  snapshot: (sid: string) => request<{ snapshot: Snapshot }>('GET', `/api/sessions/${encodeURIComponent(sid)}/snapshot`),
   action: (sid: string, action: string, body?: unknown) => request<{ snapshot: Snapshot }>('POST', `/api/sessions/${encodeURIComponent(sid)}/${action}`, body),
   listSessions: (limit = 50, offset = 0) => request<{ items: SessionListItem[]; total: number; limit: number; offset: number }>('GET', `/api/sessions?includeSynthetic=false&limit=${limit}&offset=${offset}`),
   deleteSession: (sid: string) => request<{ verified: boolean; removed: { sessions: number; turns: number; audioFiles: string[] } }>('DELETE', `/api/sessions/${encodeURIComponent(sid)}`),
