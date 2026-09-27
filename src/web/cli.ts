@@ -16,7 +16,7 @@ import { DISCLOSURE, DISCLOSURE_VERSION } from './disclosure.js';
 import { AppError } from './errors.js';
 import { Logger } from './log.js';
 import { SessionManager } from './manager.js';
-import { SERVER_DEFAULTS, dataRoot, realtimeModelOverride, webPaths } from './paths.js';
+import { SERVER_DEFAULTS, dataRoot, realtimeModelOverride, webPaths, webStaticRoot } from './paths.js';
 import { createServer } from './server.js';
 import { SettingsStore } from './settings.js';
 import { Store } from './store.js';
@@ -42,6 +42,7 @@ function parseArgs(argv: string[]): Map<string, string> {
 export interface ServeOptions {
   port?: number;
   dataDir?: string;
+  staticDir?: string;
   logger?: Logger;
   /** 测试用：注入自定义文本客户端与实时桥工厂。 */
   textClient?: TextLlmClient;
@@ -83,7 +84,7 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     ...(opts.createBridge === undefined ? {} : { createBridge: opts.createBridge }),
   });
   const port = opts.port ?? Number(process.env.AI_INTERVIEWER_PORT ?? SERVER_DEFAULTS.port);
-  const running = createServer({ manager, store, settings, logger, paths, port, host: SERVER_DEFAULTS.host });
+  const running = createServer({ manager, store, settings, logger, paths, staticDir: opts.staticDir ?? webStaticRoot(), port, host: SERVER_DEFAULTS.host });
   await new Promise<void>((resolve, reject) => {
     running.server.once('error', reject);
     running.server.listen(port, SERVER_DEFAULTS.host, () => resolve());
@@ -124,7 +125,7 @@ function printStartupBanner(url: string, paths: ReturnType<typeof webPaths>, set
     ``,
     `【怎么停】Ctrl+C（或 kill 本进程）`,
     `【怎么删】按会话：DELETE /api/sessions/<id>（返回删除前后对照）；整库：停服后删掉上面那个数据目录`,
-    `【验收用最小客户端】${url}/harness（不是产品界面：A／B／C 方案未定）`,
+    `【验收用最小客户端】${url}/harness（不是产品界面：方案 C 已选定，正式前端尚未构建）`,
   ];
   process.stdout.write(`${lines.join('\n')}\n`);
 }

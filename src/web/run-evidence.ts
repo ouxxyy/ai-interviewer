@@ -435,7 +435,7 @@ async function startServerProcess(): Promise<ChildProcess> {
 
 /** 验收记录里必须如实列出的未做到项（与 docs/web-server.md §8 对应）。 */
 export const KNOWN_LIMITS: string[] = [
-  '**产品界面未实现**：`/harness` 是验收用最小客户端（无设计、无移动端适配）；A／B／C 方案选定后另开前端包。',
+  '**产品界面未实现**：方案 C 已选定并完成设计稿，但正式前端尚未构建；`/harness` 仍是验收用最小客户端。',
   '**真人麦克风未验证**：本机 Chrome 153 的 `--use-file-for-fake-audio-capture` 预检为静音（RMS 0.0，默认假设备 0.72），所以「带内容的作答」由页面按同一 WS 协议推流注入 `say` 合成语音；真实麦克风链路由 Chrome 假设备（提示音）单独覆盖（空转写状态）。**真人说话、环境噪声、真实语速仍未验证**。',
   '**自动 VAD 未启用**：沿用 T1-R 的 `turn_detection: null` 手动模式，自动抢话（A10）仍未验证，不写「自动模式已通过」。',
   '**评审延迟 P95 未达标**：T1-R 的 30.4s（目标 15s）结论依旧成立；本包未做流式渲染或五维拆分。',

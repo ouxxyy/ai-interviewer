@@ -39,12 +39,37 @@ test('迁移：可重复执行，第二次不重复应用', () => {
   const root = tmpRoot('migrate');
   const db = new InterviewDb(path.join(root, 'x.sqlite'));
   const first = db.migrate();
-  assert.deepEqual(first.applied, [1]);
-  assert.equal(first.version, 1);
+  assert.deepEqual(first.applied, MIGRATIONS.map((migration) => migration.version));
+  assert.equal(first.version, MIGRATIONS.at(-1)!.version);
   const second = db.migrate();
   assert.deepEqual(second.applied, []);
-  assert.deepEqual(second.alreadyApplied, [1]);
+  assert.deepEqual(second.alreadyApplied, MIGRATIONS.map((migration) => migration.version));
   assert.equal(second.version, MIGRATIONS.length);
+  db.close();
+  rmSync(root, { recursive: true, force: true });
+});
+
+test('迁移 002：为历史详情追加报告来源与评审元数据，且保留 001 数据', () => {
+  const root = tmpRoot('migrate-002');
+  const db = new InterviewDb(path.join(root, 'x.sqlite'));
+  const initial = db.migrate([MIGRATIONS[0]!]);
+  assert.deepEqual(initial.applied, [1]);
+  db.raw
+    .prepare(
+      `INSERT INTO sessions (id, created_at, updated_at, status, state, synthetic, save_audio, rule_version, completed_questions)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run('s-old', '2026-09-27T00:00:00.000Z', '2026-09-27T00:00:00.000Z', 'active', 'materials_review', 0, 1, 'rules@0.2.0', 0);
+
+  const upgraded = db.migrate();
+  assert.deepEqual(upgraded.applied, [2]);
+  const columns = (db.raw.prepare('PRAGMA table_info(sessions)').all() as Array<{ name: string }>).map((column) => column.name);
+  assert.ok(columns.includes('report_source'));
+  assert.ok(columns.includes('review_meta_json'));
+  const row = db.raw.prepare('SELECT id, report_source, review_meta_json FROM sessions WHERE id = ?').get('s-old') as Record<string, unknown>;
+  assert.equal(row.id, 's-old');
+  assert.equal(row.report_source, null);
+  assert.equal(row.review_meta_json, null);
   db.close();
   rmSync(root, { recursive: true, force: true });
 });

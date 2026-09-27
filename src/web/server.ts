@@ -7,11 +7,11 @@
  * - WebSocket `/realtime`：浏览器 ↔ 服务端音频与阶段事件；服务端再经 `RealtimeBridge` 代理到百炼。
  *   **服务端 → 浏览器的任何消息里都不含凭证**（测试里逐条断言）。
  *
- * 静态页只有验收用的最小客户端（`src/web/public/harness.html`），不是产品界面：
- * 用户还没挑 A／B／C 方案，视觉/交互层不在本包内。
+ * `/harness` 保留验收用最小客户端；方案 C 的正式产品构建产物由同一服务同源托管。
+ * 本模块只负责托管，不包含视觉/交互层实现。
  */
 import http from 'node:http';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { validateContract } from '../contracts/validate.js';
@@ -36,6 +36,7 @@ export interface ServerDeps {
   settings: SettingsStore;
   logger: Logger;
   paths: WebPaths;
+  staticDir: string;
   port: number;
   host: string;
 }
@@ -55,6 +56,50 @@ function json(res: http.ServerResponse, status: number, body: unknown): void {
 function errorJson(res: http.ServerResponse, err: AppError): void {
   const body: ErrorBody = err.toBody();
   json(res, err.httpStatus, body);
+}
+
+const STATIC_CONTENT_TYPES: Record<string, string> = {
+  '.css': 'text/css; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.ico': 'image/x-icon',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
+  '.js': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml; charset=utf-8',
+  '.webp': 'image/webp',
+  '.woff2': 'font/woff2',
+};
+
+/** 同源托管 Vite 构建产物；无扩展名路由回退 index.html，API 与 harness 不走这里。 */
+function serveStatic(staticDir: string, pathname: string, res: http.ServerResponse): boolean {
+  const root = path.resolve(staticDir);
+  const index = path.join(root, 'index.html');
+  if (!existsSync(index)) return false;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return false;
+  }
+  if (decoded.includes('\0') || decoded.includes('\\')) return false;
+  const relative = decoded.replace(/^\/+/, '');
+  const candidate = path.resolve(root, relative === '' ? 'index.html' : relative);
+  const relativeToRoot = path.relative(root, candidate);
+  if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) return false;
+  const candidateIsFile = existsSync(candidate) && statSync(candidate).isFile();
+  const file = candidateIsFile ? candidate : path.extname(relative) === '' ? index : null;
+  if (file === null) return false;
+  const body = readFileSync(file);
+  res.writeHead(200, {
+    'Content-Type': STATIC_CONTENT_TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream',
+    'Content-Length': String(body.length),
+    'Cache-Control': path.extname(file) === '.html' ? 'no-cache' : 'public, max-age=3600',
+  });
+  res.end(body);
+  return true;
 }
 
 async function readBody(req: http.IncomingMessage, limit = MAX_BODY_BYTES): Promise<Buffer> {
@@ -284,10 +329,11 @@ export function createServer(deps: ServerDeps): RunningServer {
         res.end(readFileSync(HARNESS_FILE));
         return;
       }
+      if (req.method === 'GET' && url.pathname !== '/api' && !url.pathname.startsWith('/api/') && serveStatic(deps.staticDir, url.pathname, res)) return;
       if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
         return json(res, 200, {
           service: 'ai-interviewer-web',
-          note: '产品界面（A／B／C 方案）未定，本包只交付服务端与数据层；验收用最小客户端在 /harness',
+          note: '方案 C 已选定但正式产品前端尚未构建；本包交付服务端与数据层，并提供同源静态托管，验收用最小客户端在 /harness',
           docs: ['GET /api/health', 'GET /api/disclosure', 'GET /api/sessions'],
         });
       }

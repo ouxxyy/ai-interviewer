@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, rmSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createServer as createHttpServer } from 'node:http';
 import WebSocket from 'ws';
@@ -35,14 +35,15 @@ async function freePort(): Promise<number> {
   });
 }
 
-async function boot(label: string, opts: { text?: TextScript; realtime?: MockRealtimeScript; dataDir?: string } = {}): Promise<Api & { dataDir: string; text: ScriptedTextClient }> {
+async function boot(label: string, opts: { text?: TextScript; realtime?: MockRealtimeScript; dataDir?: string; staticDir?: string } = {}): Promise<Api & { dataDir: string; text: ScriptedTextClient }> {
   const dataDir = opts.dataDir ?? path.join(REPO_ROOT, 'data', `web-test-api-${label}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`);
   mkdirSync(dataDir, { recursive: true });
   const text = new ScriptedTextClient(opts.text ?? {});
   const port = await freePort();
-  const started = await startServer({
+  const serveOptions: Parameters<typeof startServer>[0] & { staticDir?: string } = {
     port,
     dataDir,
+    ...(opts.staticDir === undefined ? {} : { staticDir: opts.staticDir }),
     logger: new Logger(() => {}, 'error'),
     textClient: text,
     createBridge: (): RealtimeBridge =>
@@ -51,7 +52,8 @@ async function boot(label: string, opts: { text?: TextScript; realtime?: MockRea
         logger: new Logger(() => {}, 'error'),
         createClient: () => new MockRealtimeClient(opts.realtime ?? {}),
       }),
-  });
+  };
+  const started = await startServer(serveOptions);
   return { url: started.url, dataDir, text, close: started.close };
 }
 
@@ -246,6 +248,8 @@ test('HTTP + WS 全链路：三题闭环、音频下行、暂停拒收、打断�
       assert.equal(final.body.snapshot.report.completedQuestions, 3);
       assert.equal(final.body.snapshot.report.sessionStatus, 'completed');
       assert.ok(final.body.snapshot.report.priorityPractice.length >= 1);
+      assert.equal(final.body.snapshot.reviewBasis.q1.questionId, 'q1');
+      assert.deepEqual(final.body.snapshot.reviewBasis.q1.turnIds, final.body.snapshot.reviews.q1.reviewBasis.turnIds);
 
       // 服务端 → 浏览器的任何消息都不含凭证或 sk- 模式
       const dump = JSON.stringify(messages);
@@ -254,6 +258,21 @@ test('HTTP + WS 全链路：三题闭环、音频下行、暂停拒收、打断�
 
       // 回放：两轨都能下载
       const detail = await call(api.url, 'GET', `/api/sessions/${sid}`);
+      assert.equal(detail.body.reportSource, final.body.snapshot.reportSource);
+      assert.deepEqual(detail.body.reviewMeta, final.body.snapshot.reviewMeta);
+      const q1Feedback = detail.body.reviews.q1;
+      const q1Basis = detail.body.reviewBasis.q1;
+      assert.equal(q1Basis.questionId, 'q1');
+      assert.deepEqual(q1Basis.turnIds, q1Feedback.reviewBasis.turnIds);
+      assert.equal(q1Basis.textVersion, q1Feedback.reviewBasis.textVersion);
+      const turnById = new Map(detail.body.turns.map((turn: any) => [turn.id, turn]));
+      const expectedBasisText = q1Basis.turnIds
+        .map((turnId: string) => {
+          const turn = turnById.get(turnId) as any;
+          return turn.revisedText ?? turn.rawTranscript;
+        })
+        .join('\n');
+      assert.equal(q1Basis.text, expectedBasisText, '详情应返回服务端权威重建的评审基准文本');
       const userTurn = detail.body.turns.find((t: any) => t.speaker === 'user');
       const interviewerTurn = detail.body.turns.find((t: any) => t.speaker === 'interviewer');
       const userAudio = await fetch(`${api.url}/api/sessions/${sid}/turns/${userTurn.id}/audio/user`);
@@ -375,6 +394,10 @@ test('重启后：历史会话可读、可回放，但不能再继续作答（40
     conn.ws.send(JSON.stringify({ type: 'audio.append', audio: PCM.toString('base64') }));
     await conn.waitFor((m) => m.type === 'audio.ack', '音频回执');
     await call(first.url, 'POST', `/api/sessions/${sid}/answer/done`);
+    const ended = await call(first.url, 'POST', `/api/sessions/${sid}/end`);
+    assert.equal(ended.status, 200);
+    assert.ok(ended.body.snapshot.reportSource);
+    assert.ok(ended.body.snapshot.reviewMeta.length > 0);
     conn.ws.close();
     assert.equal((await call(first.url, 'GET', '/api/sessions')).body.total, 1);
   } finally {
@@ -387,6 +410,10 @@ test('重启后：历史会话可读、可回放，但不能再继续作答（40
     const detail = await call(second.url, 'GET', `/api/sessions/${sid}`);
     assert.equal(detail.status, 200);
     assert.equal(detail.body.live, false);
+    assert.ok(detail.body.reportSource, '报告来源必须跨重启保留');
+    assert.ok(detail.body.reviewMeta.length > 0, '评审审计元数据必须跨重启保留');
+    assert.equal(detail.body.reviewBasis.q1.questionId, 'q1');
+    assert.deepEqual(detail.body.reviewBasis.q1.turnIds, detail.body.reviews.q1.reviewBasis.turnIds);
     assert.ok(detail.body.turns.length >= 2, '轮次可从库里读回');
     const userTurn = detail.body.turns.find((t: any) => t.speaker === 'user');
     assert.equal(userTurn.audio.user, true, '重启后录音仍可回放');
@@ -418,5 +445,40 @@ test('/harness 提供验收用最小客户端，并显式声明不是产品界�
   } finally {
     await api.close();
     rmSync(api.dataDir, { recursive: true, force: true });
+  }
+});
+
+test('产品构建产物由后端同源托管：静态资源与 SPA 回退可用，且不添加 CORS', async () => {
+  const staticDir = path.join(REPO_ROOT, 'data', `web-test-static-${Date.now().toString(36)}`);
+  mkdirSync(path.join(staticDir, 'assets'), { recursive: true });
+  writeFileSync(path.join(staticDir, 'index.html'), '<!doctype html><html><body>欧八面试陪练</body></html>');
+  writeFileSync(path.join(staticDir, 'assets', 'app.js'), 'globalThis.__OUBA_APP__ = true;');
+  const api = await boot('static', { staticDir });
+  try {
+    const root = await fetch(`${api.url}/`);
+    assert.equal(root.status, 200);
+    assert.match(root.headers.get('content-type') ?? '', /^text\/html/);
+    assert.equal(root.headers.get('access-control-allow-origin'), null, '同源托管不应放开 CORS');
+    assert.match(await root.text(), /欧八面试陪练/);
+
+    const asset = await fetch(`${api.url}/assets/app.js`);
+    assert.equal(asset.status, 200);
+    assert.match(asset.headers.get('content-type') ?? '', /javascript/);
+    assert.match(await asset.text(), /__OUBA_APP__/);
+
+    const spa = await fetch(`${api.url}/reports/s-example`);
+    assert.equal(spa.status, 200);
+    assert.match(await spa.text(), /欧八面试陪练/);
+
+    const unknownApi = await call(api.url, 'GET', '/api/nope');
+    assert.equal(unknownApi.status, 404, 'SPA 回退不能吞掉未知 API');
+    assert.equal(unknownApi.body.error.code, 'E_NOT_FOUND');
+    const apiRoot = await call(api.url, 'GET', '/api');
+    assert.equal(apiRoot.status, 404, 'SPA 回退也不能吞掉精确的 /api 命名空间根');
+    assert.equal(apiRoot.body.error.code, 'E_NOT_FOUND');
+  } finally {
+    await api.close();
+    rmSync(api.dataDir, { recursive: true, force: true });
+    rmSync(staticDir, { recursive: true, force: true });
   }
 });

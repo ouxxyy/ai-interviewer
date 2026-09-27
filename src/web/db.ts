@@ -80,6 +80,14 @@ CREATE TABLE settings (
 );
 `,
   },
+  {
+    version: 2,
+    name: 'session-review-provenance',
+    sql: `
+ALTER TABLE sessions ADD COLUMN report_source TEXT;
+ALTER TABLE sessions ADD COLUMN review_meta_json TEXT;
+`,
+  },
 ];
 
 export interface MigrationResult {

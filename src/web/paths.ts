@@ -38,6 +38,13 @@ export function webPaths(root = dataRoot()): WebPaths {
   };
 }
 
+/** Vite 产品构建产物目录；生产服务从这里同源托管，开发期仍走 Vite 同源代理。 */
+export function webStaticRoot(env: NodeJS.ProcessEnv = process.env): string {
+  const raw = env.AI_INTERVIEWER_WEB_DIST?.trim();
+  if (!raw) return path.join(REPO_ROOT, 'dist', 'web-client');
+  return path.isAbsolute(raw) ? raw : path.join(REPO_ROOT, raw);
+}
+
 /** 单会话音频目录；sid 只允许 `[A-Za-z0-9_-]`，避免路径穿越。 */
 export function sessionAudioDir(paths: WebPaths, sid: string): string {
   if (!/^[A-Za-z0-9_-]+$/.test(sid)) throw new Error(`非法会话 id：${sid}`);

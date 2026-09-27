@@ -22,6 +22,7 @@ import { RealtimeBridge } from './realtime-bridge.js';
 import type { Store } from './store.js';
 import { AppError, asAppError, type ErrorCode } from './errors.js';
 import type { Logger } from './log.js';
+import { buildReviewBasis, type ReportSource, type ReviewBasisDetail, type ReviewMeta } from './session-metadata.js';
 
 const MAX_FOLLOWUPS = 2;
 const TOTAL_QUESTIONS = 3;
@@ -34,16 +35,6 @@ export interface RunnerError {
   message: string;
   hint?: string;
   at: string;
-}
-
-export interface ReviewMeta {
-  questionId: string;
-  kind: 'ok' | 'degraded';
-  attempts: number;
-  cause?: string;
-  quotesTotal: number;
-  quotesLocated: number;
-  firstAttemptOk: boolean;
 }
 
 export type Pending =
@@ -71,10 +62,11 @@ export interface RunnerSnapshot {
   halted: boolean;
   turns: Turn[];
   reviews: Record<string, Feedback>;
+  reviewBasis: Record<string, ReviewBasisDetail>;
   reviewMeta: ReviewMeta[];
   rewriteDeltas: Record<string, RewriteDelta>;
   report: SessionReport | null;
-  reportSource: 'model_priority_practice' | 'derived_from_validated_feedback' | 'fixed_zero_completion' | null;
+  reportSource: ReportSource | null;
   realtime: { model: string; voice: string | null; turnDetection: string | null; connections: number; reconnects: number; cancels: number; pausedRejections: number } | null;
   usage: { textCalls: number; promptTokens: number; completionTokens: number; audioBytesIn: number; audioBytesOut: number; inputAudioBytes: number };
 }
@@ -171,6 +163,7 @@ export class InterviewRunner {
     const m = this.machine.snapshot();
     const session = this.store.getSession(this.sid);
     const question = this.plan?.questions[m.questionIndex] ?? null;
+    const reviews = Object.fromEntries(this.reviews);
     return {
       sid: this.sid,
       state: m.state,
@@ -185,7 +178,8 @@ export class InterviewRunner {
       lastError: this.lastError,
       halted: this.halted,
       turns: this.turns,
-      reviews: Object.fromEntries(this.reviews),
+      reviews,
+      reviewBasis: buildReviewBasis(this.turns, reviews),
       reviewMeta: this.reviewMeta,
       rewriteDeltas: Object.fromEntries(this.rewriteDeltas),
       report: this.report,
@@ -607,6 +601,7 @@ export class InterviewRunner {
       quotesLocated: quotes.located,
       firstAttemptOk: attemptLog[0]?.ok === true,
     });
+    this.store.updateSession(this.sid, { reviewMeta: [...this.reviewMeta] });
     this.logger.info('runner.review_done', {
       sid: this.sid,
       questionId: question.id,
@@ -775,7 +770,7 @@ ${rewriteBasis}
     }
     this.report = report;
     this.reportSource = source;
-    this.store.updateSession(this.sid, { report, status: 'report' });
+    this.store.updateSession(this.sid, { report, reportSource: source, status: 'report' });
     const fired = this.machine.fire('REPORT_GENERATED');
     if (!fired.accepted) throw new AppError('E_STATE', fired.error ?? '状态机拒绝归档报告');
     this.store.updateSession(this.sid, { state: 'ended', status: 'ended', completedQuestions: report.completedQuestions });

@@ -17,6 +17,7 @@ import type { CandidateMaterials, Feedback, QuestionPlan, SessionReport, Turn } 
 import type { SessionState } from '../state/machine.js';
 import type { InterviewDb } from './db.js';
 import { sessionAudioDir, webPaths, type WebPaths } from './paths.js';
+import type { ReportSource, ReviewMeta } from './session-metadata.js';
 
 export type SessionStatus = 'active' | 'report' | 'ended';
 export type AudioTrack = 'user' | 'interviewer';
@@ -37,6 +38,8 @@ export interface StoredSession {
   materials: CandidateMaterials | null;
   plan: QuestionPlan | null;
   report: SessionReport | null;
+  reportSource: ReportSource | null;
+  reviewMeta: ReviewMeta[];
   completedQuestions: number;
 }
 
@@ -121,6 +124,8 @@ export class Store {
       materials: null,
       plan: null,
       report: null,
+      reportSource: null,
+      reviewMeta: [],
       completedQuestions: 0,
     };
     this.live.set(session.id, session);
@@ -135,10 +140,11 @@ export class Store {
     if (!session.saveHistory) return;
     this.db.raw
       .prepare(
-        `INSERT INTO sessions (id, created_at, updated_at, status, state, synthetic, save_audio, rule_version, realtime_model, text_model, materials_json, plan_json, report_json, completed_questions)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `INSERT INTO sessions (id, created_at, updated_at, status, state, synthetic, save_audio, rule_version, realtime_model, text_model, materials_json, plan_json, report_json, report_source, review_meta_json, completed_questions)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at, status = excluded.status, state = excluded.state,
            materials_json = excluded.materials_json, plan_json = excluded.plan_json, report_json = excluded.report_json,
+           report_source = excluded.report_source, review_meta_json = excluded.review_meta_json,
            completed_questions = excluded.completed_questions, realtime_model = excluded.realtime_model, text_model = excluded.text_model`,
       )
       .run(
@@ -155,6 +161,8 @@ export class Store {
         session.materials === null ? null : JSON.stringify(session.materials),
         session.plan === null ? null : JSON.stringify(session.plan),
         session.report === null ? null : JSON.stringify(session.report),
+        session.reportSource,
+        JSON.stringify(session.reviewMeta),
         session.completedQuestions,
       );
     session.persisted = true;
@@ -169,7 +177,7 @@ export class Store {
 
   updateSession(
     id: string,
-    patch: Partial<Pick<StoredSession, 'state' | 'status' | 'materials' | 'plan' | 'report' | 'completedQuestions' | 'realtimeModel' | 'textModel'>>,
+    patch: Partial<Pick<StoredSession, 'state' | 'status' | 'materials' | 'plan' | 'report' | 'reportSource' | 'reviewMeta' | 'completedQuestions' | 'realtimeModel' | 'textModel'>>,
   ): StoredSession {
     const session = this.getSession(id);
     if (!session) throw new Error(`会话不存在：${id}`);
@@ -520,6 +528,8 @@ interface SessionRow {
   materials_json: string | null;
   plan_json: string | null;
   report_json: string | null;
+  report_source: string | null;
+  review_meta_json: string | null;
   completed_questions: number;
 }
 
@@ -553,6 +563,8 @@ function fromRow(row: SessionRow): StoredSession {
     materials: row.materials_json === null ? null : (JSON.parse(row.materials_json) as CandidateMaterials),
     plan: row.plan_json === null ? null : (JSON.parse(row.plan_json) as QuestionPlan),
     report: row.report_json === null ? null : (JSON.parse(row.report_json) as SessionReport),
+    reportSource: row.report_source as ReportSource | null,
+    reviewMeta: row.review_meta_json === null ? [] : (JSON.parse(row.review_meta_json) as ReviewMeta[]),
     completedQuestions: Number(row.completed_questions),
   };
 }

@@ -3,8 +3,9 @@
 本包交付**服务端与数据层**：仅绑 `127.0.0.1` 的本地 Node 服务、实时语音代理、状态机落地、材料解析、
 SQLite 历史与录音、回放、显式删除、两开关与首次使用告知。
 
-**视觉／交互层不在本包内**：用户尚未选定 A／B／C 界面方案。服务里只带一个**验收用最小客户端**
-（`/harness`，页面上明确写着「不是产品界面」），用于在真实 Chrome 里驱动完整链路并采集证据。
+**视觉／交互层不在本包内**：方案 C 已选定，但正式产品前端尚未实现。服务里只带一个**验收用最小客户端**
+（`/harness`，页面上明确写着「不是产品界面」），用于在真实 Chrome 里驱动完整链路并采集证据；
+后端已提供同源静态托管入口，产品构建产物落到 `dist/web-client/` 后会接管 `/`。
 
 ---
 
@@ -23,9 +24,14 @@ cp .env.example .env
 npm install
 npm run web:serve
 
-# 4) 打开验收用最小客户端（手动体验用；产品界面未定）
+# 4) 打开验收用最小客户端（手动体验用；正式产品前端尚未构建）
 open http://127.0.0.1:8918/harness
 ```
+
+产品构建产物默认从 `dist/web-client/` 同源托管；可用 `AI_INTERVIEWER_WEB_DIST` 覆盖目录。
+开发期由 Vite 把 `/api` 与 `/realtime` 代理到 `127.0.0.1:8918`，**不要添加 CORS**。
+构建目录存在 `index.html` 时，`/` 返回产品页、静态资源按原路径返回、无扩展名路由回退到 `index.html`；
+构建目录不存在时，`/` 仍返回服务说明 JSON，`/harness` 始终保留。
 
 启动时会打印四件事：数据落在哪、什么内容发给云模型、两个开关的当前状态、怎么停与怎么删。
 **首次麦克风权限**：页面上第一次点「开始回答」时，Chrome 会弹权限框，选「允许」；
@@ -65,11 +71,11 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | --- | --- | --- |
 | GET | `/api/health` | 版本（contract/rules/rulesDigest/disclosure）、凭证存在性、活跃会话数 |
 | GET | `/api/disclosure` | 首次使用告知全文（结构化：留本机／发云模型／保存位置／删除方式／费用）＋是否已确认 |
-| GET/PATCH | `/api/settings` | 两个开关与告知确认；`{"saveHistory":bool,"saveAudio":bool,"disclosureAck":true}` |
+| GET/PATCH/POST | `/api/settings` | 两个开关与告知确认；`{"saveHistory":bool,"saveAudio":bool,"disclosureAck":true}` |
 | GET | `/api/stats` | 真实会话／虚构演示会话分开计数、轮次数、音频文件数 |
 | GET | `/api/sessions?limit&offset&includeSynthetic` | 历史列表，**带分页**（limit 1–100） |
 | POST | `/api/sessions` | 建会话：`{synthetic?, saveHistory?, saveAudio?, disclosureAck?}`；未确认告知 → 428 |
-| GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告 |
+| GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告，以及 `reportSource`、`reviewMeta`、`reviewBasis` |
 | DELETE | `/api/sessions/:sid` | 显式删除，返回**删除前后对照**（`before`/`after`/`removed`/`verified`） |
 | POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 真出题 + 朗读第一题 |
 | POST | `/api/sessions/:sid/materials/upload?filename=` | 上传 PDF／DOCX（原始字节，≤12MB）→ 提取文本；失败 422 并给退路 |
@@ -96,11 +102,18 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | `answer.commit` | — | 回答完毕 |
 | `repeat.question` / `pause` / `resume` / `interrupt` / `mic.denied` / `ping` | — | 同 HTTP |
 
-服务端 → 浏览器：`state`（状态机快照）、`interviewer.audio`（base64 PCM16@24k，边生成边下发）、
+服务端 → 浏览器：`state`（状态机快照，含 `reviewBasis`）、`interviewer.audio`（base64 PCM16@24k，边生成边下发）、
 `transcript.partial` / `transcript.final`、`audio.ack`、`paused` / `resumed` / `interrupted`、`error`。
 
 **凭证纪律**：浏览器只连本地服务；密钥只存在于服务进程环境里，服务端 → 浏览器的任何消息都不含密钥
 （测试逐条断言：`/api/*` 与 WS 消息里不得出现凭证值或 `sk-*` 模式）。
+
+### 详情里的评审来源字段
+
+- `reportSource`：`model_priority_practice | derived_from_validated_feedback | fixed_zero_completion | null`。
+- `reviewMeta[]`：每次评审的题号、正常／降级、尝试次数、引用定位数与首次是否通过；迁移 002 后随会话持久化。
+- `reviewBasis[questionId]`：`{questionId,text,turnIds,textVersion}`。`text` 严格按 Feedback 中权威
+  `turnIds` 顺序，用每轮 `revisedText ?? rawTranscript` 和换行符重建；若任一轮缺失则不返回该题，避免给前端错误偏移。
 
 ## 4. 状态机与「出错不生成伪报告」
 
@@ -137,8 +150,10 @@ materials_review → question → answer → followup? → review → rewrite? �
 
 ## 6. 数据库迁移
 
-- 迁移脚本在 `src/web/db.ts` 的 `MIGRATIONS`（当前 `001`），`schema_migrations` 记录已应用版本；
+- 迁移脚本在 `src/web/db.ts` 的 `MIGRATIONS`（当前 `002`），`schema_migrations` 记录已应用版本；
   已发布的迁移不再修改，后续变更追加新版本。
+- `002 session-review-provenance` 只给 `sessions` 追加 `report_source` 与 `review_meta_json`，不改契约或状态机；
+  从 001 升级时旧会话保留，两列初始为 `null`。
 - 启动时自动迁移；`npm run web:info` 可查看当前版本。回滚＝用 `MIGRATIONS` 重建库（数据即丢失，需自行备份）。
 
 ## 7. 材料解析能力与退路
@@ -154,7 +169,7 @@ materials_review → question → answer → followup? → review → rewrite? �
 
 ## 8. 已知限制（如实标注）
 
-1. **产品界面未实现**：`/harness` 是验收用最小客户端（无设计、无移动端适配）；A／B／C 方案选定后再开前端包。
+1. **产品界面未实现**：方案 C 已选定并收口设计稿，但 `dist/web-client/` 尚无正式构建产物；`/harness` 仍是验收用最小客户端。
 2. **真人麦克风未验证**：本机 Chrome 153 的 `--use-file-for-fake-audio-capture` 预检为**静音**（RMS 0.0，默认假设备 0.72），
    因此验收里的「作答语音」由页面按同一 WS 协议推流注入（`say` 合成语音）；真实麦克风链路由 Chrome 假设备
    （提示音）单独覆盖（空转写状态）。**真人对着麦克风说话、环境噪声、真实语速仍未验证**。

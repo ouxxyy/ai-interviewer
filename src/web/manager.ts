@@ -16,6 +16,7 @@ import type { WebPaths } from './paths.js';
 import { RealtimeBridge } from './realtime-bridge.js';
 import { InterviewRunner } from './runner.js';
 import type { DeleteReport, Store } from './store.js';
+import { buildReviewBasis, type ReportSource, type ReviewBasisDetail, type ReviewMeta } from './session-metadata.js';
 
 export interface CreateSessionRequest {
   synthetic?: boolean;
@@ -37,8 +38,11 @@ export interface HistorySessionDetail {
   plan: QuestionPlan | null;
   turns: Array<Turn & { audio: { user: boolean; interviewer: boolean } }>;
   reviews: Record<string, Feedback>;
+  reviewMeta: ReviewMeta[];
+  reviewBasis: Record<string, ReviewBasisDetail>;
   rewriteDeltas: Record<string, unknown>;
   report: SessionReport | null;
+  reportSource: ReportSource | null;
   usage: { textCalls: number; promptTokens: number; completionTokens: number; inputAudioBytes: number; audioBytesIn: number; audioBytesOut: number };
 }
 
@@ -116,8 +120,11 @@ export class SessionManager {
         plan: snap.plan,
         turns: snap.turns.map((t) => ({ ...t, audio: { user: runner.hasAudio(t.id, 'user'), interviewer: runner.hasAudio(t.id, 'interviewer') } })),
         reviews: snap.reviews,
+        reviewMeta: snap.reviewMeta,
+        reviewBasis: buildReviewBasis(snap.turns, snap.reviews),
         rewriteDeltas: snap.rewriteDeltas,
         report: snap.report,
+        reportSource: snap.reportSource,
         usage: snap.usage,
       };
     }
@@ -152,8 +159,11 @@ export class SessionManager {
         },
       })),
       reviews,
+      reviewMeta: session.reviewMeta,
+      reviewBasis: buildReviewBasis(turns, reviews),
       rewriteDeltas,
       report: session.report,
+      reportSource: session.reportSource,
       usage: { textCalls: 0, promptTokens: 0, completionTokens: 0, inputAudioBytes: 0, audioBytesIn: 0, audioBytesOut: 0 },
     };
   }
