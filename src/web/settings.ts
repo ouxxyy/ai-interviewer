@@ -67,8 +67,14 @@ export class SettingsStore {
         .prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at')
         .run(key, value, now);
     };
-    if (patch.saveHistory !== undefined) put(KEYS.saveHistory, patch.saveHistory ? '1' : '0');
-    if (patch.saveAudio !== undefined) put(KEYS.saveAudio, patch.saveAudio ? '1' : '0');
+    if (patch.saveHistory !== undefined || patch.saveAudio !== undefined) {
+      // 不变量（PM §5）：录音依附于会话记录，关掉历史就不可能有录音。
+      // 在写入口收敛，任何调用方都无法把这两项写成互相矛盾的值。
+      const saveHistory = patch.saveHistory ?? this.get().saveHistory;
+      const saveAudio = saveHistory ? (patch.saveAudio ?? this.get().saveAudio) : false;
+      put(KEYS.saveHistory, saveHistory ? '1' : '0');
+      put(KEYS.saveAudio, saveAudio ? '1' : '0');
+    }
     if (patch.disclosureAckVersion !== undefined) {
       if (patch.disclosureAckVersion === null) {
         this.db.raw.prepare('DELETE FROM settings WHERE key IN (?, ?)').run(KEYS.disclosureAckVersion, KEYS.disclosureAckAt);

@@ -213,10 +213,13 @@ export function createServer(deps: ServerDeps): RunningServer {
           });
         }
         const current = settings.get();
+        // 与 SettingsStore 同一不变量：关历史就不可能存录音。请求体也不能写出矛盾组合。
+        const wantHistory = saveHistory ?? current.saveHistory;
+        const wantAudio = wantHistory ? (saveAudio ?? current.saveAudio) : false;
         const runner = manager.create({
           synthetic,
-          saveHistory: saveHistory ?? current.saveHistory,
-          saveAudio: saveAudio ?? current.saveAudio,
+          saveHistory: wantHistory,
+          saveAudio: wantAudio,
         });
         return json(res, 201, { sid: runner.sid, snapshot: runner.snapshot() });
       }

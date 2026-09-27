@@ -365,3 +365,23 @@ test('实时连接失败（音色断言连续两次不过）：给出明确错�
     h.cleanup();
   }
 });
+
+test('P1-2 恢复：出题失败后重试成功，快照里的 lastError 必须被清掉', async () => {
+  const h = harness('retry-plan', { text: { planError: '出题失败（注入）' } });
+  try {
+    await h.runner.confirmMaterials(MATERIALS).catch(() => undefined);
+    assert.equal(h.runner.snapshot().plan, null, '出题失败时计划应当为空');
+    assert.notEqual(h.runner.snapshot().lastError, null, '失败要如实记录 lastError');
+
+    // 模拟「服务端已恢复」：清掉注入的失败，再按真实阶段重试出题。
+    (h.text as unknown as { script: { planError?: string } }).script.planError = undefined;
+    await h.runner.retryPlan();
+
+    const snapshot = h.runner.snapshot();
+    assert.equal(snapshot.plan?.questions.length, 3, '重试成功后计划应当就绪');
+    assert.equal(snapshot.lastError, null, '恢复成功后不能继续把旧错误挂在快照上');
+    assert.equal(snapshot.state, 'answer');
+  } finally {
+    h.cleanup();
+  }
+});

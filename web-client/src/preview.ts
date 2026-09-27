@@ -1,4 +1,4 @@
-import type { Disclosure, Feedback, SessionDetail, Snapshot, Turn, WebSettings } from './types';
+import type { Disclosure, Feedback, PreviewData, SessionDetail, Snapshot, Turn, WebSettings } from './types';
 
 export const previewSettings: WebSettings = {
   saveHistory: true,
@@ -60,9 +60,21 @@ const rewriteText = '我负责排期和跨组协调，把评审从两周一次�
 const rewriteTurn: Turn = { id: 't-q1-rewrite', questionId: 'q1', speaker: 'user', turnType: 'rewrite', seq: 4, startedAt: '2026-09-27T11:08:00Z', endedAt: '2026-09-27T11:10:00Z', rawTranscript: rewriteText, revisedText: null, audioFile: null };
 
 export const previewReport: SessionDetail = {
-  ...previewSession,
-  sid: 'preview-report', live: false, persisted: true, state: 'ended', status: 'ended', machine: { state: 'ended', questionIndex: 2, followupCount: 0, rewriteUsed: false, completed: 3 }, pending: 'ended', currentQuestion: null,
-  createdAt: '2026-09-27T11:00:00Z', updatedAt: '2026-09-27T11:32:00Z', turns: [...previewSession.turns, rewriteTurn],
+  sid: 'preview-report',
+  live: false,
+  persisted: true,
+  state: 'ended',
+  status: 'ended',
+  synthetic: false,
+  createdAt: '2026-09-27T11:00:00Z',
+  updatedAt: '2026-09-27T11:32:00Z',
+  toggles: { saveHistory: true, saveAudio: true },
+  materials: previewSession.materials,
+  plan: previewSession.plan,
+  turns: [...previewSession.turns, rewriteTurn],
+  reviews: previewSession.reviews,
+  reviewMeta: previewSession.reviewMeta,
+  reviewBasis: previewSession.reviewBasis,
   rewriteDeltas: { q1: { added: ['最终按时上线，次周留存提升了 4 个点'], corrected: [], stillMissing: ['缺少复盘后的方法改变'] } },
   report: {
     sessionStatus: 'completed', completedQuestions: 3, totalQuestions: 3,
@@ -75,4 +87,24 @@ export const previewReport: SessionDetail = {
     versions: { ruleVersion: 'rules@0.2.0', realtimeModel: 'qwen3.8-omni-flash-realtime', textModel: 'qwen3.8-flash' },
   },
   reportSource: 'derived_from_validated_feedback',
+  usage: { textCalls: 0, promptTokens: 0, completionTokens: 0, inputAudioBytes: 0, audioBytesIn: 0, audioBytesOut: 0 },
 };
+
+/**
+ * 预览数据包入口。**只能被 DEV 分支的动态 import 调用**：
+ * 静态引用会把这整套 fixture 打进生产 JS（P2-1）。
+ */
+export function previewBundle(name: string): PreviewData | null {
+  const base: Omit<PreviewData, 'kind'> = {
+    settings: previewSettings,
+    disclosure: null,
+    needsDisclosure: false,
+    snapshot: null,
+    detail: null,
+  };
+  if (name === 'home') return { ...base, kind: 'home', disclosure: previewDisclosure, needsDisclosure: true };
+  if (name === 'session') return { ...base, kind: 'session', snapshot: previewSession };
+  if (name === 'report') return { ...base, kind: 'report', detail: previewReport };
+  if (name === 'errors') return { ...base, kind: 'errors' };
+  return null;
+}

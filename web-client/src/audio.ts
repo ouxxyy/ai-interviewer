@@ -1,6 +1,7 @@
-import type { AppErrorBody, Snapshot } from './types';
+import { PlaybackQueue } from './lib/playback-queue.js';
+import type { AppErrorBody, Snapshot } from './types.js';
 
-type AudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed';
+type AudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed' | 'offline';
 
 interface RealtimeCallbacks {
   onSnapshot(snapshot: Snapshot): void;
@@ -52,11 +53,14 @@ export class RealtimeAudio {
   private worklet: AudioWorkletNode | null = null;
   private mutedGain: GainNode | null = null;
   private pendingPcm: number[] = [];
-  private playbackQueue: AudioBuffer[] = [];
-  private currentSource: AudioBufferSourceNode | null = null;
+  private playback: PlaybackQueue<AudioBuffer> | null = null;
   private paused = false;
   private capturing = false;
   private workletUrl: string | null = null;
+  /** 主动关闭（close()/reconnect()）不算断线，不该报 E_OFFLINE。 */
+  private intentionalClose = false;
+  /** 断线只报一次，否则 100ms 一片的音频上行会刷屏。 */
+  private offlineReported = false;
 
   constructor(private readonly callbacks: RealtimeCallbacks) {}
 
@@ -69,34 +73,41 @@ export class RealtimeAudio {
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = new WebSocket(`${protocol}//${location.host}/realtime?sid=${encodeURIComponent(sid)}`);
     this.socket = socket;
+    this.intentionalClose = false;
     socket.onmessage = (event) => this.handleMessage(event);
     await new Promise<void>((resolve, reject) => {
       socket.onopen = () => resolve();
       socket.onerror = () => reject(new Error('WebSocket 连接失败'));
     });
+    this.offlineReported = false;
     socket.onclose = () => {
-      if (this.socket === socket) this.callbacks.onStatus('closed');
+      if (this.socket !== socket) return;
+      this.callbacks.onStatus('closed');
+      if (!this.intentionalClose) this.reportOffline('实时连接已断开，这一场还在服务端等着');
     };
     this.callbacks.onStatus('idle');
   }
 
-  async startAnswer(): Promise<void> {
-    this.send({ type: 'answer.start' });
+  /** 返回值：这一步有没有真的发出去（没发出去时页面要保留失败动作，等重连后恢复）。 */
+  async startAnswer(): Promise<boolean> {
+    const sent = this.send({ type: 'answer.start' });
     await this.startCapture();
+    return sent;
   }
 
-  async commitAnswer(): Promise<void> {
+  async commitAnswer(): Promise<boolean> {
     await this.stopCapture();
-    this.send({ type: 'answer.commit' });
+    return this.send({ type: 'answer.commit' });
   }
 
-  repeatQuestion(): void {
-    this.send({ type: 'repeat.question' });
+  repeatQuestion(): boolean {
+    return this.send({ type: 'repeat.question' });
   }
 
   pause(): void {
     this.paused = true;
-    this.stopCurrentPlayback(false);
+    // 只挂起播放输出，不 stop 当前 buffer —— 否则恢复时会吞掉这一段音频的尾巴（P2-2）。
+    void this.playbackContext?.suspend().catch(() => undefined);
     this.send({ type: 'pause' });
     this.callbacks.onStatus('paused');
   }
@@ -104,37 +115,57 @@ export class RealtimeAudio {
   resume(): void {
     this.paused = false;
     this.send({ type: 'resume' });
-    if (this.playbackQueue.length > 0) this.playNext();
-    else this.callbacks.onStatus(this.capturing ? 'listening' : 'idle');
+    void this.playbackContext?.resume().catch(() => undefined);
+    this.playback?.resume();
   }
 
   interrupt(): number {
-    const cleared = this.playbackQueue.length;
-    this.playbackQueue = [];
-    this.stopCurrentPlayback(true);
+    const cleared = this.playback?.clear() ?? 0;
     this.send({ type: 'interrupt' });
     this.callbacks.onStatus(this.capturing ? 'listening' : 'idle');
     return cleared;
   }
 
   reconnect(sid: string): Promise<void> {
+    this.intentionalClose = true;
     this.socket?.close();
+    this.socket = null;
     return this.connect(sid);
   }
 
   async close(): Promise<void> {
+    this.intentionalClose = true;
     await this.stopCapture();
-    this.playbackQueue = [];
-    this.stopCurrentPlayback(true);
+    this.playback?.clear();
     this.socket?.close();
     this.socket = null;
     if (this.playbackContext !== null) await this.playbackContext.close().catch(() => undefined);
     this.playbackContext = null;
+    this.playback = null;
     this.callbacks.onStatus('closed');
   }
 
-  private send(message: Record<string, unknown>): void {
-    if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify(message));
+  /** 返回是否真的发出去了：没发出去就必须让界面知道，不能静默丢消息（P1-1）。 */
+  private send(message: Record<string, unknown>): boolean {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify(message));
+      return true;
+    }
+    this.reportOffline('实时连接没有建立，这一步没有发出去');
+    return false;
+  }
+
+  /** 断线统一出口：置 offline 状态、报一次 E_OFFLINE、停采集（不留热麦）。 */
+  private reportOffline(message: string): void {
+    if (this.offlineReported) return;
+    this.offlineReported = true;
+    this.callbacks.onStatus('offline');
+    this.callbacks.onError({
+      code: 'E_OFFLINE',
+      message,
+      hint: '点「重新连接」恢复这一场；已经提交过的回答和评审不会丢',
+    });
+    if (this.capturing) void this.stopCapture();
   }
 
   private async startCapture(): Promise<void> {
@@ -216,46 +247,42 @@ export class RealtimeAudio {
     return this.playbackContext;
   }
 
+  private ensurePlayback(): PlaybackQueue<AudioBuffer> {
+    const context = this.ensurePlaybackContext();
+    this.playback ??= new PlaybackQueue<AudioBuffer>(
+      {
+        play: (buffer, onEnded) => {
+          const source = context.createBufferSource();
+          source.buffer = buffer;
+          source.connect(context.destination);
+          source.onended = onEnded;
+          source.start();
+          return () => {
+            source.onended = null;
+            try {
+              source.stop();
+            } catch {
+              // AudioBufferSourceNode 只能 stop 一次。
+            }
+          };
+        },
+        suspend: () => { void context.suspend().catch(() => undefined); },
+        resume: () => { void context.resume().catch(() => undefined); },
+      },
+      (status) => {
+        if (status === 'playing') return this.callbacks.onStatus('playing');
+        this.callbacks.onStatus(this.capturing ? 'listening' : 'idle');
+      },
+    );
+    return this.playback;
+  }
+
   private enqueuePlayback(pcm: Int16Array): void {
     const context = this.ensurePlaybackContext();
     const floats = new Float32Array(pcm.length);
     for (let index = 0; index < pcm.length; index += 1) floats[index] = pcm[index]! / 32768;
     const buffer = context.createBuffer(1, floats.length, 24_000);
     buffer.copyToChannel(floats, 0);
-    this.playbackQueue.push(buffer);
-    if (this.currentSource === null && !this.paused) this.playNext();
-  }
-
-  private playNext(): void {
-    if (this.paused) return;
-    const context = this.ensurePlaybackContext();
-    const buffer = this.playbackQueue.shift();
-    if (buffer === undefined) {
-      this.currentSource = null;
-      this.callbacks.onStatus(this.capturing ? 'listening' : 'idle');
-      return;
-    }
-    const source = context.createBufferSource();
-    source.buffer = buffer;
-    source.connect(context.destination);
-    source.onended = () => {
-      if (this.currentSource === source) this.currentSource = null;
-      this.playNext();
-    };
-    this.currentSource = source;
-    this.callbacks.onStatus('playing');
-    source.start();
-  }
-
-  private stopCurrentPlayback(clearHandler: boolean): void {
-    if (this.currentSource === null) return;
-    const source = this.currentSource;
-    this.currentSource = null;
-    if (clearHandler) source.onended = null;
-    try {
-      source.stop();
-    } catch {
-      // AudioBufferSourceNode 只能 stop 一次。
-    }
+    this.ensurePlayback().enqueue(buffer);
   }
 }

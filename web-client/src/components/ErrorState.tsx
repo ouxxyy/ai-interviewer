@@ -41,6 +41,12 @@ const ERROR_SPECS: Partial<Record<ErrorCode, ErrorSpec>> = {
     icon: FileText,
     actions: [{ id: 'paste', label: '改为粘贴', primary: true }],
   },
+  E_CONFLICT: {
+    title: '这场练习不能继续作答',
+    fallbackHint: '历史记录只能查看或删除，新建一场就可以继续练。',
+    icon: Gear,
+    actions: [{ id: 'home', label: '返回首页', primary: true }],
+  },
   E_QUOTA: {
     title: '本场已暂停，当前额度不足',
     fallbackHint: '本场不再自动重试。你可以查看设置或返回首页。',
@@ -85,12 +91,3 @@ export function ErrorState({ error, compact = false, onAction }: ErrorStateProps
     </section>
   );
 }
-
-export const ERROR_PREVIEWS: AppErrorBody[] = [
-  { code: 'E_EMPTY_TRANSCRIPT', message: '这一轮没有识别到说话内容' },
-  { code: 'E_MIC_DENIED', message: '麦克风权限被拒绝' },
-  { code: 'E_OFFLINE', message: '网络不可达' },
-  { code: 'E_MODEL_TIMEOUT', message: '模型调用超时' },
-  { code: 'E_PARSE_FAILED', message: '文件解析失败' },
-  { code: 'E_QUOTA', message: '上游额度不足', halt: true },
-];

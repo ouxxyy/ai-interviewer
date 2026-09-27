@@ -483,3 +483,77 @@ test('产品构建产物由后端同源托管：静态资源与 SPA 回退可用
     rmSync(staticDir, { recursive: true, force: true });
   }
 });
+
+test('P0-2 服务端不变量：关掉保存历史就不可能落录音（设置与建会话两条入口都收敛）', async () => {
+  const api = await boot('privacy-invariant');
+  try {
+    await call(api.url, 'PATCH', '/api/settings', { disclosureAck: true });
+
+    // 入口 1：设置里的矛盾组合被收敛，不会先写进库再靠界面兜。
+    const off = await call(api.url, 'PATCH', '/api/settings', { saveHistory: false, saveAudio: true });
+    assert.equal(off.status, 200);
+    assert.deepEqual({ saveHistory: off.body.settings.saveHistory, saveAudio: off.body.settings.saveAudio }, { saveHistory: false, saveAudio: false });
+    const reread = await call(api.url, 'GET', '/api/settings');
+    assert.deepEqual({ saveHistory: reread.body.settings.saveHistory, saveAudio: reread.body.settings.saveAudio }, { saveHistory: false, saveAudio: false }, '回读也必须是收敛后的值');
+
+    // 服务端默认已经是关：不带开关建会话也必须不落库。
+    const createdDefault = await call(api.url, 'POST', '/api/sessions', { synthetic: false });
+    assert.deepEqual({ saveHistory: createdDefault.body.snapshot.toggles.saveHistory, saveAudio: createdDefault.body.snapshot.toggles.saveAudio }, { saveHistory: false, saveAudio: false });
+
+    // 入口 2：请求体显式写矛盾组合也收敛（前端旧版本可能还会这么发）。
+    const created = await call(api.url, 'POST', '/api/sessions', { synthetic: false, saveHistory: false, saveAudio: true });
+    assert.deepEqual({ saveHistory: created.body.snapshot.toggles.saveHistory, saveAudio: created.body.snapshot.toggles.saveAudio }, { saveHistory: false, saveAudio: false });
+
+    // 打开历史时录音可以单独开；关历史时录音强制关。
+    const on = await call(api.url, 'PATCH', '/api/settings', { saveHistory: true, saveAudio: true });
+    assert.deepEqual({ saveHistory: on.body.settings.saveHistory, saveAudio: on.body.settings.saveAudio }, { saveHistory: true, saveAudio: true });
+    const offAgain = await call(api.url, 'PATCH', '/api/settings', { saveHistory: false });
+    assert.deepEqual({ saveHistory: offAgain.body.settings.saveHistory, saveAudio: offAgain.body.settings.saveAudio }, { saveHistory: false, saveAudio: false }, '只关历史也要把录音一起关');
+  } finally {
+    await api.close();
+    rmSync(api.dataDir, { recursive: true, force: true });
+  }
+});
+
+test('P0-1 接口形状：详情响应从来不是 live 快照（前端不能把 detail 当 Snapshot 用）', async () => {
+  const first = await boot('detail-shape-live');
+  const dataDir = first.dataDir;
+  const EXPECTED = ['machine', 'currentQuestion', 'pending', 'lastError', 'halted'];
+  try {
+    await call(first.url, 'PATCH', '/api/settings', { disclosureAck: true });
+    const created = await call(first.url, 'POST', '/api/sessions', { synthetic: false, saveHistory: true, saveAudio: false });
+    const sid = created.body.sid as string;
+
+    const live = await call(first.url, 'GET', `/api/sessions/${sid}`);
+    assert.equal(live.status, 200);
+    assert.equal(live.body.live, true);
+    for (const field of EXPECTED) {
+      assert.equal(field in live.body, false, `跑着的会话详情也不该带 live 快照字段 ${field}`);
+    }
+    assert.ok('plan' in live.body && 'toggles' in live.body && 'reviewBasis' in live.body);
+
+    for (const field of EXPECTED) {
+      assert.ok(field in created.body.snapshot, `建会话响应必须带 ${field}`);
+    }
+
+    // 重启后同一 sid 变成历史详情：字段集必须保持一致（前端两种情况都得能渲染）。
+    await first.close();
+    const second = await boot('detail-shape-history', { dataDir });
+    try {
+      const history = await call(second.url, 'GET', `/api/sessions/${sid}`);
+      assert.equal(history.status, 200);
+      assert.equal(history.body.live, false);
+      assert.equal(history.body.persisted, true);
+      for (const field of EXPECTED) {
+        assert.equal(field in history.body, false, `历史详情不该带 live 快照字段 ${field}`);
+      }
+      assert.equal(history.body.toggles.saveHistory, true);
+      assert.equal(history.body.toggles.saveAudio, false);
+    } finally {
+      await second.close();
+    }
+  } finally {
+    await first.close().catch(() => undefined);
+    rmSync(dataDir, { recursive: true, force: true });
+  }
+});

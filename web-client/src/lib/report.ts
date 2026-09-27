@@ -1,20 +1,21 @@
-import type { DimensionFeedback, DimensionKey, Feedback, QuoteRef, ReviewBasisDetail, RewriteDelta, Turn } from '../types';
+/**
+ * 报告页的纯计算层：引用定位、代表档位、初答/重答对照。
+ *
+ * 引用定位**不再自己实现一份**：`start/end` 是服务端 NFC 基准文本的字符偏移，
+ * 前端必须用契约模块的 `sliceByLocation()` / `foldText()` 还原与比较，
+ * 否则在需要 NFC 归一的文本上会拒绝服务端给出的合法锚点（P1-3）。
+ */
+import { foldText, sliceByLocation } from '../../../src/contracts/quote-locator.js';
+import type { DimensionFeedback, DimensionKey, Feedback, QuoteRef, ReviewBasisDetail, RewriteDelta, Turn } from '../types.js';
 
-export function foldText(value: string): string {
-  let out = '';
-  for (const source of value.normalize('NFC')) {
-    if (/\s/u.test(source)) continue;
-    const point = source.codePointAt(0)!;
-    const half = point >= 0xff01 && point <= 0xff5e ? String.fromCodePoint(point - 0xfee0) : source;
-    out += half.toLowerCase();
-  }
-  return out;
-}
+export { foldText };
 
+/** 按契约坐标系重建引用区间文本，并复核它确实等于（或折叠后等于）引用文本。 */
 export function verifiedQuote(basis: ReviewBasisDetail | undefined, quote: QuoteRef | null): QuoteRef | null {
   if (basis === undefined || quote === null) return null;
-  if (!Number.isInteger(quote.start) || !Number.isInteger(quote.end) || quote.start < 0 || quote.end <= quote.start || quote.end > basis.text.length) return null;
-  const slice = basis.text.slice(quote.start, quote.end);
+  if (!Number.isInteger(quote.start) || !Number.isInteger(quote.end) || quote.start < 0 || quote.end <= quote.start) return null;
+  const slice = sliceByLocation(basis.text, quote.start, quote.end);
+  if (slice === '') return null;
   if (quote.matchType === 'normalized') return foldText(slice) === foldText(quote.text) ? quote : null;
   return slice === quote.text ? quote : null;
 }

@@ -5,9 +5,10 @@
   "type": "module",
   "description": "基于 JD 与经历的中文 AI 面试训练工具（三入口 MVP）——T1-S 静态验收包",
   "scripts": {
-    "build": "npm run build:server && npm run build:web",
+    "build": "npm run build:server && npm run build:web && npm run build:webtest",
     "build:server": "tsc -p tsconfig.json",
     "build:web": "tsc -p web-client/tsconfig.json --noEmit && vite build --config web-client/vite.config.ts",
+    "build:webtest": "tsc -p tsconfig.webtest.json",
     "test": "npm run build && node --test dist/test/*.test.js",
     "validate": "node dist/src/contracts/validate-cli.js",
     "prototype": "node dist/src/prototype/server.js",

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ApiError, api } from '../api';
 import { BrandHeader } from '../components/BrandHeader';
 import { ErrorState } from '../components/ErrorState';
+import { effectiveSaveAudio, sessionCreateBody, sessionToggles, togglesEqual, type Toggles } from '../lib/privacy';
 import type { AppErrorBody, MaterialsDraft, Stage, WebSettings } from '../types';
 
 interface HomePageProps {
@@ -18,9 +19,9 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
   const [experience, setExperience] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [stage, setStage] = useState<Stage | ''>('');
-  const [saveHistory, setSaveHistory] = useState(settings.saveHistory);
-  const [saveAudio, setSaveAudio] = useState(settings.saveAudio);
+  const [toggleState, setToggleState] = useState<Toggles>(() => sessionToggles(settings));
   const [draftSid, setDraftSid] = useState<string | null>(null);
+  const [draftToggles, setDraftToggles] = useState<Toggles | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState<UploadTarget | null>(null);
   const [error, setError] = useState<AppErrorBody | null>(null);
@@ -37,10 +38,30 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
     return () => removeEventListener('beforeunload', guard);
   }, [experience, jd]);
 
+  /**
+   * 草稿会话（上传先建的那一个）一旦开关对不上，就必须删掉重建。
+   * 静默复用旧快照＝让用户以为「关掉了保存」，实际仍按旧开关落库（P0-2）。
+   */
+  const changeToggle = (key: keyof Toggles, value: boolean) => {
+    const next: Toggles = key === 'saveHistory'
+      ? { saveHistory: value, saveAudio: value ? toggleState.saveAudio : false }
+      : { saveHistory: toggleState.saveHistory, saveAudio: effectiveSaveAudio(toggleState.saveHistory, value) };
+    setToggleState(next);
+    const stale = draftSid !== null && draftToggles !== null && !togglesEqual(draftToggles, next);
+    if (stale) {
+      const doomed = draftSid;
+      setDraftSid(null);
+      setDraftToggles(null);
+      void api.deleteSession(doomed).catch(() => undefined);
+    }
+  };
+
   const ensureSession = async (): Promise<string> => {
-    if (draftSid !== null) return draftSid;
-    const created = await api.createSession({ synthetic: false, saveHistory, saveAudio });
+    if (draftSid !== null && draftToggles !== null && togglesEqual(draftToggles, toggleState)) return draftSid;
+    const body = sessionCreateBody({ saveHistory: toggleState.saveHistory, saveAudio: toggleState.saveAudio });
+    const created = await api.createSession(body);
     setDraftSid(created.sid);
+    setDraftToggles({ saveHistory: body.saveHistory, saveAudio: body.saveAudio });
     return created.sid;
   };
 
@@ -139,8 +160,8 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
               if (action === 'retry') void start();
             }} /> : null}
             <div className="save-options" aria-label="本场保存设置">
-              <label><input type="checkbox" checked={saveHistory} onChange={(event) => setSaveHistory(event.target.checked)} />保存历史</label>
-              <label><input type="checkbox" checked={saveAudio} disabled={!saveHistory} onChange={(event) => setSaveAudio(event.target.checked)} />保存录音</label>
+              <label><input type="checkbox" checked={toggleState.saveHistory} onChange={(event) => changeToggle('saveHistory', event.target.checked)} />保存历史</label>
+              <label><input type="checkbox" checked={toggleState.saveAudio} disabled={!toggleState.saveHistory} onChange={(event) => changeToggle('saveAudio', event.target.checked)} />保存录音</label>
               <small>只影响新建的这一场</small>
             </div>
             <button className="button button--primary start-button" type="button" onClick={() => void start()} disabled={busy || uploading !== null}>

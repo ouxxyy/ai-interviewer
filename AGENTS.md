@@ -28,7 +28,7 @@
 ## Commands（当前真实可用）
 
 ```bash
-npm test                              # 构建并跑全部单测（当前 139 项）
+npm test                              # 构建并跑全部单测（当前 176 项）
 npm run build                         # tsc 编译到 dist/
 npm run validate -- <file> <name>     # 独立契约校验 CLI
 npm run web:serve                     # 网页入口本地服务（127.0.0.1:8918；只绑回环）

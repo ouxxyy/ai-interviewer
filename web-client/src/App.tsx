@@ -2,25 +2,28 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, api } from './api';
 import { DisclosureDialog } from './components/DisclosureDialog';
 import { ErrorState } from './components/ErrorState';
-import { previewDisclosure, previewReport, previewSession, previewSettings } from './preview';
-import { ErrorGalleryPage } from './pages/ErrorGalleryPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { HomePage } from './pages/HomePage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ReportPage } from './pages/ReportPage';
 import { SessionPage } from './pages/SessionPage';
-import type { AppErrorBody, Disclosure, MaterialsDraft, WebSettings } from './types';
+import type { AppErrorBody, Disclosure, MaterialsDraft, PreviewData, WebSettings } from './types';
 
+/** 预览只在开发构建里通过查询参数开启；生产构建里这个分支会被整体消除（P2-1）。 */
 function previewName(): string | null {
-  return import.meta.env.DEV ? new URLSearchParams(location.search).get('preview') : null;
+  if (import.meta.env.DEV) return new URLSearchParams(location.search).get('preview');
+  return null;
 }
 
 export default function App() {
   const preview = previewName();
   const [path, setPath] = useState(location.pathname);
-  const [settings, setSettings] = useState<WebSettings | null>(preview ? previewSettings : null);
-  const [disclosure, setDisclosure] = useState<Disclosure | null>(preview === 'home' ? previewDisclosure : null);
-  const [needsDisclosure, setNeedsDisclosure] = useState(preview === 'home');
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+  /** 错误画廊也只是开发预览页，同样走 DEV-only 动态载入，不进生产包。 */
+  const [errorGallery, setErrorGallery] = useState<React.ComponentType<{ onNavigate(path: string): void }> | null>(null);
+  const [settings, setSettings] = useState<WebSettings | null>(null);
+  const [disclosure, setDisclosure] = useState<Disclosure | null>(null);
+  const [needsDisclosure, setNeedsDisclosure] = useState(false);
   const [acknowledging, setAcknowledging] = useState(false);
   const [bootError, setBootError] = useState<AppErrorBody | null>(null);
   const [pendingSetup, setPendingSetup] = useState<{ sid: string; materials: MaterialsDraft } | null>(null);
@@ -55,13 +58,42 @@ export default function App() {
   }, [preview]);
 
   useEffect(() => {
+    if (preview === null) return;
+    let active = true;
+    if (import.meta.env.DEV) {
+      void import('./preview').then((module) => {
+        if (!active) return;
+        const bundle = module.previewBundle(preview);
+        setPreviewData(bundle);
+        if (bundle !== null) {
+          setSettings(bundle.settings);
+          setDisclosure(bundle.disclosure);
+          setNeedsDisclosure(bundle.needsDisclosure);
+        }
+      });
+      void import('./pages/ErrorGalleryPage').then((module) => {
+        if (active) setErrorGallery(() => module.ErrorGalleryPage);
+      });
+    }
+    return () => { active = false; };
+  }, [preview]);
+
+  useEffect(() => {
     if (shellRef.current !== null) shellRef.current.inert = needsDisclosure;
   }, [needsDisclosure]);
 
+  /** 设置只有一个真相：App。隐私页改完立刻回写，首页再读到的就不会是旧值（P0-2）。 */
+  const updateSettings = useCallback(async (patch: Partial<Pick<WebSettings, 'saveHistory' | 'saveAudio'>>) => {
+    const result = await api.updateSettings(patch);
+    setSettings(result.settings);
+    setNeedsDisclosure(result.needsDisclosure);
+    return result.settings;
+  }, []);
+
   const acknowledge = async () => {
-    if (preview === 'home') {
+    if (previewData !== null && previewData.kind === 'home' && previewData.disclosure !== null) {
       setNeedsDisclosure(false);
-      setSettings({ ...previewSettings, disclosureAckVersion: previewDisclosure.version });
+      setSettings({ ...previewData.settings, disclosureAckVersion: previewData.disclosure.version });
       return;
     }
     setAcknowledging(true);
@@ -81,19 +113,21 @@ export default function App() {
     navigate(`/session/${encodeURIComponent(sid)}`);
   }, [navigate]);
 
+  const previewKind = previewData?.kind ?? null;
   let content: React.ReactNode;
   if (settings === null) {
     content = bootError !== null ? <main className="standalone-state"><ErrorState error={bootError} onAction={() => location.reload()} /></main> : <main className="app-loading" aria-live="polite"><div className="loading-logo">8</div><p>正在打开欧八面试陪练…</p></main>;
-  } else if (preview === 'session') {
-    content = <SessionPage sid="preview-session" preview={previewSession} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
-  } else if (preview === 'report') {
-    content = <ReportPage sid="preview-report" preview={previewReport} onNavigate={navigate} />;
-  } else if (preview === 'errors') {
-    content = <ErrorGalleryPage onNavigate={navigate} />;
+  } else if (previewKind === 'session' && previewData?.snapshot != null) {
+    content = <SessionPage sid={previewData.snapshot.sid} preview={previewData.snapshot} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
+  } else if (previewKind === 'report' && previewData?.detail != null) {
+    content = <ReportPage sid={previewData.detail.sid} preview={previewData.detail} onNavigate={navigate} />;
+  } else if (previewKind === 'errors' && errorGallery !== null) {
+    const Gallery = errorGallery;
+    content = <Gallery onNavigate={navigate} />;
   } else if (path === '/history') {
     content = <HistoryPage onNavigate={navigate} />;
   } else if (path === '/privacy') {
-    content = <PrivacyPage initialSettings={settings} onNavigate={navigate} />;
+    content = <PrivacyPage settings={settings} onUpdate={updateSettings} onNavigate={navigate} />;
   } else if (path.startsWith('/session/')) {
     const sid = decodeURIComponent(path.slice('/session/'.length));
     content = <SessionPage sid={sid} setup={pendingSetup?.sid === sid ? pendingSetup.materials : undefined} onSetupConsumed={consumeSetup} onNavigate={navigate} />;

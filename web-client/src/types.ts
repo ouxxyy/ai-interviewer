@@ -147,11 +147,51 @@ export interface Snapshot {
   reportSource: 'model_priority_practice' | 'derived_from_validated_feedback' | 'fixed_zero_completion' | null;
 }
 
-export interface SessionDetail extends Snapshot {
+export interface SessionUsage {
+  textCalls: number;
+  promptTokens: number;
+  completionTokens: number;
+  inputAudioBytes: number;
+  audioBytesIn: number;
+  audioBytesOut: number;
+}
+
+/**
+ * `GET /api/sessions/:sid` 的真实响应形状（服务端 `HistorySessionDetail`）。
+ *
+ * **它不是 `Snapshot`**：没有 `machine` / `currentQuestion` / `pending` / `lastError` / `halted`。
+ * live 快照的唯一来源是 WS `state` 消息、`POST /api/sessions` 与各动作响应里的 `{snapshot}`。
+ */
+export interface SessionDetail {
+  sid: string;
   live: boolean;
   persisted: boolean;
+  status: 'active' | 'report' | 'ended';
+  state: SessionState;
+  synthetic: boolean;
   createdAt: string;
   updatedAt: string;
+  toggles: { saveHistory: boolean; saveAudio: boolean };
+  materials: MaterialsDraft | null;
+  plan: { questions: PlannedQuestion[]; askedTopics: string[] } | null;
+  turns: Turn[];
+  reviews: Record<string, Feedback>;
+  reviewMeta: ReviewMeta[];
+  reviewBasis: Record<string, ReviewBasisDetail>;
+  rewriteDeltas: Record<string, RewriteDelta>;
+  report: SessionReport | null;
+  reportSource: 'model_priority_practice' | 'derived_from_validated_feedback' | 'fixed_zero_completion' | null;
+  usage: SessionUsage;
+}
+
+/** 开发预览数据包：只在 `import.meta.env.DEV` 下动态载入。 */
+export interface PreviewData {
+  kind: 'home' | 'session' | 'report' | 'errors';
+  settings: WebSettings;
+  disclosure: Disclosure | null;
+  needsDisclosure: boolean;
+  snapshot: Snapshot | null;
+  detail: SessionDetail | null;
 }
 
 export interface SessionListItem {

@@ -3,16 +3,19 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "outDir": "dist",
     "rootDir": ".",
-    "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "web-client/src/lib/**/*.ts", "web-client/src/types.ts"],
-  "exclude": ["test/web-client-audio.test.ts"]
+  "include": [
+    "web-client/src/audio.ts",
+    "web-client/src/types.ts",
+    "web-client/src/lib/**/*.ts",
+    "test/web-client-audio.test.ts"
+  ]
 }

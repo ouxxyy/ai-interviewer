@@ -73,7 +73,7 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | GET | `/api/stats` | 真实会话／虚构演示会话分开计数、轮次数、音频文件数 |
 | GET | `/api/sessions?limit&offset&includeSynthetic` | 历史列表，**带分页**（limit 1–100） |
 | POST | `/api/sessions` | 建会话：`{synthetic?, saveHistory?, saveAudio?, disclosureAck?}`；未确认告知 → 428 |
-| GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告，以及 `reportSource`、`reviewMeta`、`reviewBasis` |
+| GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告，以及 `reportSource`、`reviewMeta`、`reviewBasis`。**这是「详情形状」，不是 live 快照**：不含 `machine`／`currentQuestion`／`pending`／`lastError`／`halted`（回归见 `test/web-api.test.ts`） |
 | DELETE | `/api/sessions/:sid` | 显式删除，返回**删除前后对照**（`before`/`after`/`removed`/`verified`） |
 | POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 真出题 + 朗读第一题 |
 | POST | `/api/sessions/:sid/materials/upload?filename=` | 上传 PDF／DOCX（原始字节，≤12MB）→ 提取文本；失败 422 并给退路 |
@@ -139,7 +139,9 @@ materials_review → question → answer → followup? → review → rewrite? �
 | 保存历史 | 会话／轮次／反馈／报告写入 SQLite | **不产生任何新持久记录**；会话只活在内存里（`persisted:false`） |
 | 保存录音 | 用户轨与面试官轨各写成 WAV | 不产生音频文件；`audio_file` 为 `null`，仍记录字节数与 sha256 作为用量证据 |
 
-- **关闭历史时不保存录音**：录音依附会话记录，没有记录就没有可归属的录音。
+- **关闭历史时不保存录音**：录音依附会话记录，没有记录就没有可归属的录音。这条不变量由**写入口**强制，
+  不是靠界面自觉：`SettingsStore.update()` 与 `POST /api/sessions` 都会把「关历史 + 开录音」收敛成两个关，
+  因此任何调用方（含旧版本前端、直接打接口的脚本）都写不出矛盾组合。
 - 关闭开关**不会删除旧记录**（旧记录不因关开关被暗中删除）；删除只发生在显式删除。
 - 关录音时本场仍可在内存里回放（`X-Audio-Source: memory`），内存上限 24MB，超出后如实返回 404。
 - 删除：`DELETE /api/sessions/<id>` → 移除数据库记录、录音文件与该会话的临时文件，并返回删除前后对照
@@ -165,6 +167,13 @@ materials_review → question → answer → followup? → review → rewrite? �
 | 其它格式／超大文件 | `unsupported_type` / `too_large`，同样给退路 |
 | 虚构演示 | `cases` 之外的独立样例（`DEMO_MATERIALS`），会话标 `synthetic:true`，统计里与真实报告分开计数 |
 
+### live 快照的唯一来源
+
+`machine`／`currentQuestion`／`pending`／`lastError`／`halted` 只出现在**完整快照**里，即：
+`POST /api/sessions` 的 `snapshot`、各动作响应的 `{snapshot}`、以及 WS 的 `state` 消息。
+前端把这三种之外的响应（尤其是 `GET /api/sessions/:sid`）当快照用，会在 `machine.questionIndex`
+上直接抛异常并让页面白屏；会话页因此用运行时守卫 `isSnapshot()` 拦住非快照值，并在收到 WS 首帧前保持 loading。
+
 ## 8. 已知限制（如实标注）
 
 1. **正式产品前端已实现，但本轮未重跑付费的真实模型全流程**：构建、同源托管、API smoke 与实现页面截图已覆盖；付费链路的既有证据仍见 `docs/web-acceptance.md`。
@@ -180,6 +189,13 @@ materials_review → question → answer → followup? → review → rewrite? �
 6. **历史会话不能续跑**：重启后可以查看、回放、删除，但继续作答返回 409（本包不做跨进程会话恢复）。
 7. **未做**：多用户／鉴权（只绑回环地址，本机单用户）、HTTPS、转写手工修订界面、报告页单轮录音回放、Skill 与 Prompt 入口的 A8 一致性独立终验。
 8. **成本**：官方单价未核定（D7），界面不写死金额；每场会话在本地记录 token 与音频字节数供核对。
+9. **开发预览入口不进生产包，但源码文本仍在 source map 里**：`?preview=` 与错误画廊都改为 DEV 分支内的
+   动态 import，生产 JS 与 source map 的 `sources` 里都没有预览模块，fixture 数据也找不到
+   （反向断言见 `test/web-client-bundle.test.ts`）；source map 的 `sourcesContent` 仍包含 `App.tsx`
+   自身那段被消除的 DEV 分支源码文本，属于死代码痕迹而非数据泄漏。
+10. **`/favicon.ico` 仍返回 404**（页面未声明图标），控制台每次加载会有一条 404 噪声；无功能影响，属既有问题。
+11. **重连不会自动重放上一动作**：WS 断开后点「重新连接」只恢复链路，操作要用户自己再来一次；
+    需要重放失败动作时用「再试一次」，且服务端阶段对不上时只提示、不发注定被拒的请求。
 
 ## 9. 验收与证据
 

@@ -1,0 +1,143 @@
+/**
+ * 会话页策略层回归测试（P0-1 / P1-2 / P2-3）。
+ *
+ * 这三项的共同点：界面行为依赖「服务端返回的是详情还是快照」「服务端现在在哪一阶段」，
+ * 而这些判断以前散在组件里、只能靠浏览器手测。现在它们是纯函数，逐条钉住。
+ */
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  isSnapshot,
+  isAnswering,
+  observedFromDetail,
+  questionProgress,
+  recoveryNotice,
+  recoveryStep,
+  defaultRetry,
+  type FailedOp,
+  type ObservedSession,
+} from '../web-client/src/lib/session-view.js';
+import type { AppErrorBody, Snapshot } from '../web-client/src/types.js';
+
+const snapshot: Snapshot = {
+  sid: 's-1',
+  state: 'answer',
+  status: 'active',
+  machine: { state: 'answer', questionIndex: 0, followupCount: 0, rewriteUsed: false, completed: 0 },
+  synthetic: false,
+  toggles: { saveHistory: true, saveAudio: true },
+  materials: null,
+  plan: null,
+  currentQuestion: { id: 'q1', index: 0, text: '第一题', intent: '看事实' },
+  pending: 'answer',
+  lastError: null,
+  halted: false,
+  turns: [],
+  reviews: {},
+  reviewBasis: {},
+  reviewMeta: [],
+  rewriteDeltas: {},
+  report: null,
+  reportSource: null,
+};
+
+test('P0-1：详情接口返回的形状不是 Snapshot，必须被运行时守卫挡下', () => {
+  // 这就是 manager.detail() 的真实字段集（HistorySessionDetail）。
+  const detail = {
+    sid: 's-1',
+    live: true,
+    persisted: false,
+    status: 'active',
+    state: 'answer',
+    synthetic: false,
+    createdAt: '',
+    updatedAt: '',
+    toggles: { saveHistory: false, saveAudio: false },
+    materials: null,
+    plan: null,
+    turns: [],
+    reviews: {},
+    reviewMeta: [],
+    reviewBasis: {},
+    rewriteDeltas: {},
+    report: null,
+    reportSource: null,
+    usage: { textCalls: 0, promptTokens: 0, completionTokens: 0, inputAudioBytes: 0, audioBytesIn: 0, audioBytesOut: 0 },
+  };
+  assert.equal(isSnapshot(detail), false, '详情不是快照：没有 machine，读 machine.questionIndex 会崩');
+  assert.equal(isSnapshot(snapshot), true);
+  assert.equal(isSnapshot(null), false);
+  assert.equal(isSnapshot({ sid: 'x' }), false);
+  assert.equal(isSnapshot({ ...snapshot, machine: undefined }), false);
+});
+
+test('P0-1：从详情对账只取状态与计划是否就绪', () => {
+  assert.deepEqual(observedFromDetail({ state: 'materials_review', plan: null }), { state: 'materials_review', planReady: false });
+  assert.deepEqual(observedFromDetail({ state: 'question', plan: { questions: [] } }), { state: 'question', planReady: true });
+});
+
+test('P2-3：进度列表只按真实计划渲染，计划未到时返回 null（不写死 3 题）', () => {
+  assert.equal(questionProgress(null, 0), null);
+  assert.equal(questionProgress({ questions: [] }, 0), null);
+
+  const three = questionProgress({ questions: [{ id: 'q1' }, { id: 'q2' }, { id: 'q3' }] } as never, 1);
+  assert.equal(three!.length, 3);
+  assert.deepEqual(three!.map((item) => [item.label, item.done, item.current]), [['第 1 题', true, false], ['第 2 题', false, true], ['第 3 题', false, false]]);
+
+  const five = questionProgress({ questions: Array.from({ length: 5 }, (_, i) => ({ id: `q${i + 1}` })) } as never, 0);
+  assert.equal(five!.length, 5, '真实 5 题就渲染 5 题');
+});
+
+test('P1-2：材料提交失败按对账结果分流到 materials 或 materials/retry-plan', () => {
+  const op: FailedOp = { kind: 'materials', draft: { jd: 'jd', experience: 'exp', stage: '社招', targetRole: '' } };
+  // 对账前不猜，先取服务端状态。
+  assert.deepEqual(recoveryStep(op, null), { type: 'refresh', reason: 'unknown_state' });
+  // 服务端还没受理：重发材料。
+  assert.deepEqual(recoveryStep(op, { state: 'materials_review', planReady: false }), { type: 'http', name: 'materials', body: op.draft });
+  // 服务端已受理但计划没出来（超时/计划失败）：只能重试出题，重发 materials 必然 E_STATE。
+  assert.deepEqual(recoveryStep(op, { state: 'question', planReady: false }), { type: 'http', name: 'materials/retry-plan' });
+  // 计划已经在了：没有可重试的动作，明确说不能重试。
+  assert.deepEqual(recoveryStep(op, { state: 'answer', planReady: true }), { type: 'none', reason: 'not_retryable' });
+});
+
+test('P1-2：断线后重发的动作必须由服务端阶段决定，不会发出注定被拒的请求', () => {
+  const commit: FailedOp = { kind: 'answer_commit' };
+  assert.deepEqual(recoveryStep(commit, { state: 'answer', planReady: true }), { type: 'resend_commit' });
+  assert.deepEqual(recoveryStep(commit, { state: 'followup', planReady: true }), { type: 'resend_commit' });
+  // 回答已经入库、评审阶段超时：answer.commit 会被状态机拒绝，必须先对账再判定不可重试。
+  assert.deepEqual(recoveryStep(commit, { state: 'review', planReady: true }), { type: 'none', reason: 'not_retryable' });
+  assert.deepEqual(recoveryStep(commit, null), { type: 'refresh', reason: 'unknown_state' });
+  assert.equal(isAnswering('review'), false);
+});
+
+test('P1-2：额度止损态一律不给重试；HTTP 动作按原名重放', () => {
+  const halted: AppErrorBody = { code: 'E_QUOTA', message: '额度不足', halt: true };
+  assert.deepEqual(recoveryStep({ kind: 'answer_start' }, { state: 'answer', planReady: true }, halted), { type: 'none', reason: 'halted' });
+  assert.deepEqual(recoveryStep({ kind: 'http', name: 'next' }, { state: 'rewrite', planReady: true }), { type: 'http', name: 'next' });
+});
+
+test('P1-2：没有失败上下文时 recoveryStep 不下结论（重连不许冒充重试）', () => {
+  assert.deepEqual(recoveryStep(null, { state: 'answer', planReady: true }), { type: 'none', reason: 'no_context' });
+  assert.deepEqual(recoveryStep(null, { state: 'review', planReady: true }), { type: 'none', reason: 'no_context' });
+  assert.deepEqual(recoveryStep(null, null), { type: 'none', reason: 'no_context' });
+});
+
+test('P1-2：只有显式「再试一次」才走 defaultRetry，且服务端必须停在可作答阶段', () => {
+  assert.deepEqual(defaultRetry({ state: 'answer', planReady: true }), { type: 'start_answer' });
+  assert.deepEqual(defaultRetry({ state: 'followup', planReady: true }), { type: 'start_answer' });
+  assert.deepEqual(defaultRetry({ state: 'review', planReady: true }), { type: 'none', reason: 'no_context' });
+  assert.deepEqual(defaultRetry(null), { type: 'none', reason: 'no_context' });
+});
+
+test('P1-2：不可重试要有明确文案，不能给死路按钮却不说明', () => {
+  assert.notEqual(recoveryNotice({ type: 'none', reason: 'not_retryable' }), '');
+  assert.notEqual(recoveryNotice({ type: 'none', reason: 'halted' }), '');
+  assert.equal(recoveryNotice({ type: 'http', name: 'next' }), '');
+});
+
+test('P0-1：live 快照的判据必须是服务端真实字段，而不是类型断言', () => {
+  const observed: ObservedSession = observedFromDetail({ state: 'answer', plan: { questions: [] } });
+  assert.equal(observed.planReady, true);
+  assert.equal(isSnapshot({ ...snapshot, reviewMeta: undefined }), false);
+  assert.equal(isSnapshot({ ...snapshot, turns: 'nope' }), false);
+});

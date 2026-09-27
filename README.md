@@ -26,7 +26,7 @@ TypeScript（NodeNext）。服务端依赖 `ajv`（Schema 校验）与 `ws`（We
 ## 可用命令（当前真实存在的）
 
 ```bash
-npm test                 # 构建并运行全部单测（node --test，当前 139 项）
+npm test                 # 构建并运行全部单测（node --test，当前 176 项）
 npm run build            # 编译 Node 端，并构建 React 前端到 dist/web-client/
 npm run validate -- <file.json> <contract-name>   # 独立契约校验 CLI
 npm run web:serve        # 启动网页入口本地服务（127.0.0.1:8918，仅本机回环）
@@ -93,7 +93,7 @@ node dist/src/t2/run.js all                # 以上全部
 ├── skills/ai-interviewer/      # Skill 包（SKILL.md ＋ references/rules.md ＋ INSTALL.md）
 ├── prompt/ai-interviewer-prompt.md   # 自包含简版 Prompt
 ├── scripts/                    # env-check / checkout-references
-└── test/                       # 139 项单测（契约/定位器/状态机/web API 与迁移/mock/提示词/案例/基线/证据纪律）
+└── test/                       # 176 项单测（契约/定位器/状态机/web API 与迁移/mock/提示词/案例/基线/证据纪律）
 ```
 
 ## 已知限制

@@ -267,6 +267,9 @@ export class InterviewRunner {
     }
     this.store.updateSession(this.sid, { plan: this.plan });
     await this.askCurrentQuestion();
+    // 成功之后必须清掉上一次失败留下的 lastError，否则界面会在恢复成功后
+    // 继续把旧的错误卡片重新弹出来（快照每次都会带上它）。
+    this.lastError = null;
     return this.snapshot();
   }
 
@@ -294,6 +297,8 @@ export class InterviewRunner {
     this.plan = await this.generatePlan();
     this.store.updateSession(this.sid, { plan: this.plan });
     await this.askCurrentQuestion();
+    // 出题重试成功＝这一步已经恢复，旧的 lastError 不能继续挂在快照上。
+    this.lastError = null;
     return this.snapshot();
   }
 
