@@ -5,12 +5,15 @@
   "type": "module",
   "description": "基于 JD 与经历的中文 AI 面试训练工具（三入口 MVP）——T1-S 静态验收包",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "npm run build:server && npm run build:web",
+    "build:server": "tsc -p tsconfig.json",
+    "build:web": "tsc -p web-client/tsconfig.json --noEmit && vite build --config web-client/vite.config.ts",
     "test": "npm run build && node --test dist/test/*.test.js",
     "validate": "node dist/src/contracts/validate-cli.js",
     "prototype": "node dist/src/prototype/server.js",
     "prototype:run": "npm run build && node dist/src/prototype/run-evidence.js",
     "web:serve": "npm run build && node dist/src/web/cli.js serve",
+    "web:dev": "vite --config web-client/vite.config.ts",
     "web:info": "npm run build && node dist/src/web/cli.js info",
     "web:evidence": "npm run build && node dist/src/web/run-evidence.js",
     "check:env": "bash scripts/env-check.sh",
@@ -31,12 +34,19 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "ajv": "^8.17.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@types/ws": "^8.5.13",
-    "typescript": "^5.7.0"
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^5.7.0",
+    "vite": "^8.3.1"
   }
 }

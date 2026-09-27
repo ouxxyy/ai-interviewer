@@ -1,0 +1,50 @@
+import type { DimensionFeedback, DimensionKey, Feedback, QuoteRef, ReviewBasisDetail, RewriteDelta, Turn } from '../types';
+
+export function foldText(value: string): string {
+  let out = '';
+  for (const source of value.normalize('NFC')) {
+    if (/\s/u.test(source)) continue;
+    const point = source.codePointAt(0)!;
+    const half = point >= 0xff01 && point <= 0xff5e ? String.fromCodePoint(point - 0xfee0) : source;
+    out += half.toLowerCase();
+  }
+  return out;
+}
+
+export function verifiedQuote(basis: ReviewBasisDetail | undefined, quote: QuoteRef | null): QuoteRef | null {
+  if (basis === undefined || quote === null) return null;
+  if (!Number.isInteger(quote.start) || !Number.isInteger(quote.end) || quote.start < 0 || quote.end <= quote.start || quote.end > basis.text.length) return null;
+  const slice = basis.text.slice(quote.start, quote.end);
+  if (quote.matchType === 'normalized') return foldText(slice) === foldText(quote.text) ? quote : null;
+  return slice === quote.text ? quote : null;
+}
+
+const levelRank = { '证据不足': 0, '部分清楚': 1, '充分清楚': 2, '无法判断': 3 } as const;
+
+export function representativeDimension(feedbacks: Feedback[], key: DimensionKey): DimensionFeedback {
+  const values = feedbacks.map((feedback) => feedback.dimensions[key]).filter((value): value is DimensionFeedback => value !== undefined);
+  if (values.length === 0) return { level: '无法判断', quote: null, reason: '本场没有足够原话' };
+  const assessable = values.filter((value) => value.level !== '无法判断');
+  if (assessable.length === 0) return values[0]!;
+  return [...assessable].sort((a, b) => levelRank[a.level] - levelRank[b.level])[0]!;
+}
+
+export function questionAnswer(turns: Turn[], questionId: string, type: 'initial' | 'rewrite'): string {
+  const allowed = type === 'rewrite' ? ['rewrite'] : ['answer', 'followup'];
+  return turns
+    .filter((turn) => turn.questionId === questionId && turn.speaker === 'user' && allowed.includes(turn.turnType))
+    .map((turn) => turn.revisedText ?? turn.rawTranscript)
+    .join('\n');
+}
+
+export function highlightAdded(text: string, delta: RewriteDelta | undefined): Array<{ text: string; marked: boolean }> {
+  const additions = (delta?.added ?? []).filter((part) => part.length >= 2 && text.includes(part)).sort((a, b) => b.length - a.length);
+  if (additions.length === 0) return [{ text, marked: false }];
+  const first = additions[0]!;
+  const index = text.indexOf(first);
+  return [
+    ...(index > 0 ? [{ text: text.slice(0, index), marked: false }] : []),
+    { text: first, marked: true },
+    ...(index + first.length < text.length ? [{ text: text.slice(index + first.length), marked: false }] : []),
+  ];
+}

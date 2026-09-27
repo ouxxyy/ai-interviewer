@@ -439,9 +439,10 @@ test('/harness 提供验收用最小客户端，并显式声明不是产品界�
     const html = await res.text();
     assert.match(html, /不是产品界面/);
     assert.match(html, /__webDriver/);
-    const root = await call(api.url, 'GET', '/');
+    const root = await fetch(`${api.url}/`);
     assert.equal(root.status, 200);
-    assert.match(root.body.note, /服务端与数据层/);
+    assert.match(root.headers.get('content-type') ?? '', /^text\/html/);
+    assert.match(await root.text(), /欧八面试陪练/);
   } finally {
     await api.close();
     rmSync(api.dataDir, { recursive: true, force: true });

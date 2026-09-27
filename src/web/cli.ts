@@ -125,7 +125,8 @@ function printStartupBanner(url: string, paths: ReturnType<typeof webPaths>, set
     ``,
     `【怎么停】Ctrl+C（或 kill 本进程）`,
     `【怎么删】按会话：DELETE /api/sessions/<id>（返回删除前后对照）；整库：停服后删掉上面那个数据目录`,
-    `【验收用最小客户端】${url}/harness（不是产品界面：方案 C 已选定，正式前端尚未构建）`,
+    `【正式产品界面】${url}/`,
+    `【链路验收客户端】${url}/harness（只用于驱动真实模型证据，不是产品界面）`,
   ];
   process.stdout.write(`${lines.join('\n')}\n`);
 }

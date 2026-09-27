@@ -4,11 +4,11 @@
 
 中文经历面试训练工具（三入口 MVP：本地网页／Skill／简版 Prompt），基于 Multica 任务 MYW-84。需求与验收红线以 `MULTICA_EXECUTION_PLAN.md` 与 PM 方案（issue 附件 `MYW-84-PM方案-v1.md`）为准。
 
-- 当前阶段：**T1-S 静态通过** ＋ **T1-R 两链实时通过** ＋ **T2 契约与内容定稿完成** ＋ **T3 纯文字两入口已交付** ＋ **网页入口服务端与数据层已交付（MYW-85）**（Skill 包 `skills/ai-interviewer/`、自包含 Prompt `prompt/ai-interviewer-prompt.md`、本地服务 `src/web/`）（证据 `docs/t1r-acceptance.md`、`docs/t2-acceptance.md`、`docs/web-acceptance.md`、`evidence/t1r/`、`evidence/t2/`、`evidence/web/`）。评审延迟 P95 未达标（30.4s vs 15s），已知限制保留，未因 T2 标定删除。**产品界面仍未实现**：方案 C 已选定并完成设计稿，`/harness` 仍只是验收用最小客户端。
+- 当前阶段：**T1-S 静态通过** ＋ **T1-R 两链实时通过** ＋ **T2 契约与内容定稿完成** ＋ **T3 纯文字两入口已交付** ＋ **网页入口正式前后端已落地**（正式前端 `web-client/`，本地服务 `src/web/`）。评审延迟 P95 未达标（30.4s vs 15s），已知限制保留；`/harness` 继续用于真实模型验收，不是产品界面。
 - **入口级操作提示**（`src/rules/entry-hints.ts` 的 `ENTRY_HINTS`）**不是规则正文**，不在 `rulesDigest()` 覆盖内；两个 T3 入口逐字渲染同一常量，**网页入口必须引用同一常量**（否则 A8 被第三把尺子静默击穿）。要不要升格为规则正文，走预登记的控制实验，别顺手改。
 - T3 入口：规则正文**同源生成**（`src/t3/content.ts` 渲染），改动 `src/rules/rules.ts` 后必须跑 `node dist/src/t3/cli.js skill:build`，否则测试红。`skill:run`／`prompt:run` 会真调模型。宿主实测结论由 `hosts:record` 从原始输出算出，不许手写。
 - 契约版本：`contract@0.2.0`（与 0.1.0 结构相同、双版本并存，历史证据仍可校验）；规则 `rules@0.2.0`（单源 `src/rules/rules.ts`，正文 `docs/rules.md` 由 `node dist/src/t2/run.js rules:write` 生成，**勿手改**）；提示词 `prompts@0.2.0`（**未标定**）。
-- 技术栈：TypeScript（NodeNext），依赖仅 `ajv` 与 `ws`；持久化用 Node 内置 `node:sqlite`，PDF／DOCX 解析零依赖（不足时试 macOS `textutil`／`pdftotext`）。React＋Vite 正式前端将按已选方案 C 另开实现。
+- 技术栈：服务端 TypeScript（NodeNext）+ `ajv` + `ws` + Node 内置 `node:sqlite`；正式产品前端为 React + Vite + Phosphor Icons，按方案 C 产出 `dist/web-client/`。
 - 网页入口（`src/web/`）纪律：服务**只绑 `127.0.0.1`**、密钥不进浏览器与日志；两开关按会话快照（关历史＝不落库不落录音，关录音＝落库不落 WAV，**关开关不删旧记录**）；报告 `perQuestion.feedback` 只回填已过契约的 Feedback，`priorityPractice` 必须过「与逐题反馈共享 ≥4 字连续片段」的来源校验，否则回退派生来源并标注 `reportSource`；实时音色前置断言 `Serena`、撞 400 换新连接；冻结实时模型可用 `AI_INTERVIEWER_REALTIME_MODEL` 覆盖，**覆盖必须写进验收记录**，不许悄悄改默认值。
 - 真实调用：`src/t1r/` 为 T1-R 验收运行器；凭证**显式从项目根 `.env` 读取**（不依赖 shell 加载 `~/.zshrc`），落盘统一过 `assertNoSecret()` 防线。核定参数：文本 `qwen3.8-flash`，实时 `qwen3.8-omni-flash-realtime`，音色固定 `Serena`（服务端默认 `Chelsie` 实测被拒），输入 pcm16／输出 pcm24。
 - 关键目录：`src/contracts/`（五对象契约 `contract@0.2.0`＋引用定位器＋双版本校验器）、`src/state/`（应用层状态机）、`src/review/`（评审流水线与 mock）、`src/prompts/`（提示词 `prompts@0.2.0`，**未标定**）、`src/clients/`（模型客户端抽象）、`src/prototype/`（音频 prototype）、`cases/`（24 合成案例）、`docs/`（审计/基线/契约/证据）、`reference/`（第三方参考仓库，gitignore，绝不入库）。
@@ -32,6 +32,7 @@ npm test                              # 构建并跑全部单测（当前 139 �
 npm run build                         # tsc 编译到 dist/
 npm run validate -- <file> <name>     # 独立契约校验 CLI
 npm run web:serve                     # 网页入口本地服务（127.0.0.1:8918；只绑回环）
+npm run web:dev                       # Vite 开发服务，同源代理 API 与 WS 到 8918
 npm run web:info                      # 数据目录/迁移版本/凭证存在性/当前设置
 npm run web:evidence                  # 真实 Chrome + 真实模型跑完整验收（花钱，写 docs/web-acceptance.md）
 npm run prototype                     # 音频 prototype mock 服务（127.0.0.1:8917）
