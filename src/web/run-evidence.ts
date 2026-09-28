@@ -453,7 +453,7 @@ export function renderAcceptanceDoc(summary: Record<string, any>): string {
   lines.push(`- 运行时间：${String(summary.ranAt)}；总耗时 ${(Number(summary.totals?.ms ?? 0) / 1000).toFixed(1)}s`);
   lines.push(`- 运行方式：\`npm run web:evidence\`（真实 Chrome ＋ 真实百炼调用；端口 ${PORT}，数据目录 \`${String(summary.dataDir)}\`）`);
   lines.push(`- Chrome：\`${String(summary.chrome)}\`（${String(summary.platform)}，headless=new）；Node ${String(summary.node)}`);
-  lines.push(`- 实时模型：\`${String(summary.realtimeModel)}\`；音色固定 \`Serena\`（音色前置断言，生效值取自 \`session.updated\`）`);
+  lines.push(`- 实时模型：\`${String(summary.realtimeModel)}\`；音色固定 \`${REALTIME_DEFAULTS.defaultVoice}\`（音色前置断言，生效值取自 \`session.updated\`）`);
   lines.push(`- 音频来源：${String(summary.audioSource)}`);
   lines.push(`- 断言总数 **${Number(summary.totals?.assertions ?? 0)}**，失败 **${Number(summary.totals?.failed ?? 0)}**`);
   lines.push('');

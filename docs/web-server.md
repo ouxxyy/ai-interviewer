@@ -1,6 +1,6 @@
 # 网页入口：正式产品前端、本地服务与数据层
 
-当前交付包含 `web-client/` 的 React + Vite 正式产品端，以及仅绑 `127.0.0.1` 的本地 Node 服务、实时语音代理、状态机、材料解析、SQLite 历史与录音、显式删除、两个保存开关和首次告知。`/harness` 仍保留为真实 Chrome + 真实模型证据驱动器，不是产品界面。
+当前交付包含 `web-client/` 的 React + Vite 正式产品端，以及仅绑 `127.0.0.1` 的本地 Node 服务、实时语音代理、状态机、材料解析、SQLite 历史与录音、显式删除、两个保存开关、可切换的开麦方式和常驻隐私说明。首页不再弹首次告知；用户点击“开始这一场”时随建会话请求确认当前告知版本，完整内容始终可从“隐私说明”查看。`/harness` 仍保留为真实 Chrome + 真实模型证据驱动器，不是产品界面。
 
 ---
 
@@ -12,7 +12,7 @@ node --version
 
 # 2) 配置：只放本机，绝不进仓库
 cp .env.example .env
-# 填入 DASHSCOPE_API_KEY=...（阿里百炼；文本模型与实时语音共用）
+# 方式 A：填入 DASHSCOPE_API_KEY=...（阿里百炼；文本模型与实时语音共用）
 # 国内端点不要走全局代理：NO_PROXY=dashscope.aliyuncs.com,localhost,127.0.0.1
 
 # 3) 构建并启动（默认 127.0.0.1:8918）
@@ -21,6 +21,7 @@ npm run web:serve
 
 # 4) 打开正式产品界面
 open http://127.0.0.1:8918/
+# 方式 B：打开顶部“模型配置”，在页面内填写 Key；只经 127.0.0.1 同源请求写入项目根 .env，浏览器不持久保存也不回显
 
 # 可选：只做真实链路验收时打开最小客户端
 open http://127.0.0.1:8918/harness
@@ -32,8 +33,7 @@ open http://127.0.0.1:8918/harness
 构建目录不存在时，`/` 仍返回服务说明 JSON，`/harness` 始终保留。
 
 启动时会打印四件事：数据落在哪、什么内容发给云模型、两个开关的当前状态、怎么停与怎么删。
-**首次麦克风权限**：页面上第一次点「开始回答」时，Chrome 会弹权限框，选「允许」；
-若误点拒绝，在地址栏左侧的站点设置里改回「允许」，或点页面上的「重试」。
+**首次麦克风权限**：页面上第一题第一次点「开始作答」时，Chrome 会弹权限框，选「允许」；默认“连续面试”模式下，之后的主问题、追问和主动重答会在小八说完后自动开麦，回答结束仍由用户点「说完了」。暂停、断线、报错或刷新页面后不会自动热麦，需要再次手动开始。若误点拒绝，在地址栏左侧的站点设置里改回「允许」，或点页面上的「重试」。设置页可切回“每轮手动开始”。
 
 其他命令：
 
@@ -69,15 +69,16 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | --- | --- | --- |
 | GET | `/api/health` | 版本（contract/rules/rulesDigest/disclosure）、凭证存在性、活跃会话数 |
 | GET | `/api/disclosure` | 首次使用告知全文（结构化：留本机／发云模型／保存位置／删除方式／费用）＋是否已确认 |
-| GET/PATCH/POST | `/api/settings` | 两个开关与告知确认；`{"saveHistory":bool,"saveAudio":bool,"disclosureAck":true}` |
+| GET/PATCH | `/api/model-config` | 读取凭证存在性与当前文本／实时模型；带同源配置令牌写入百炼 Key。响应不回显 Key，写入限速 5 次／分钟 |
+| GET/PATCH/POST | `/api/settings` | 保存开关、开麦方式与告知确认；`{"saveHistory":bool,"saveAudio":bool,"answerStartMode":"continuous|manual","disclosureAck":true}` |
 | GET | `/api/stats` | 真实会话／虚构演示会话分开计数、轮次数、音频文件数 |
 | GET | `/api/sessions?limit&offset&includeSynthetic` | 历史列表，**带分页**（limit 1–100） |
 | POST | `/api/sessions` | 建会话：`{synthetic?, saveHistory?, saveAudio?, disclosureAck?}`；未确认告知 → 428 |
 | GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告，以及 `reportSource`、`reviewMeta`、`reviewBasis`。**这是「详情形状」，不是 live 快照**：不含 `machine`／`currentQuestion`／`pending`／`lastError`／`halted`（回归见 `test/web-api.test.ts`） |
 | GET | `/api/sessions/:sid/snapshot` | 只读 live 权威快照；用于非幂等 HTTP 动作响应丢失后的状态对账，历史会话返回冲突，不把详情形状冒充快照 |
 | DELETE | `/api/sessions/:sid` | 显式删除，返回**删除前后对照**（`before`/`after`/`removed`/`verified`） |
-| POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 真出题 + 朗读第一题 |
-| POST | `/api/sessions/:sid/materials/upload?filename=` | 上传 PDF／DOCX（原始字节，≤12MB）→ 提取文本；失败 422 并给退路 |
+| POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 真出题 + 朗读第一题；QuestionPlan 首轮 JSON/Schema 不合规时携带具体错误自动整改重试 1 次，契约不放松 |
+| POST | `/api/sessions/:sid/materials/upload?filename=` | 上传 PDF／DOCX（原始字节，≤12MB）→ 提取文本；首页只显示文件名与字数，不把解析正文灌入输入框；失败 422 并给退路 |
 | POST | `/api/sessions/:sid/materials/retry-plan` | 出题失败后重试（仍失败就不进流程，不造假计划） |
 | POST | `/api/sessions/:sid/answer/start` | 开始回答（追问轮会自动先 `FOLLOWUP_DONE` 回到答题） |
 | POST | `/api/sessions/:sid/answer/done` | 回答完毕：提交音频 → 真实 ASR → 追问判定／进入评审 |
@@ -123,6 +124,7 @@ materials_review → question → answer → followup? → review → rewrite? �
 ```
 
 - 每题追问 ≤2 次、重答 ≤1 次、重答轮 0 追问（D5）；第 3 题点评后只能进报告；任意非终态可提前结束（D6）。
+- 默认 `answerStartMode=continuous`：第一题由用户点击一次完成授权；同一页面与连接内，后续主问题、追问和主动重答仅在“状态机可回答 + 面试官音频播放完 + 非暂停/断线/错误”时自动发送 `answer.start`。`manual` 模式每轮都要点击。自动开麦不等于自动判定答完，提交仍由用户控制。
 - 评审走 `runReview`：引用定位用 `src/contracts/quote-locator.ts`，**定不到就重试，重试耗尽降级「暂无法评价」**；
   区间由应用层权威回写，不采信模型自报（`docs/contracts.md`）。
 - 各错误状态：断网／额度／超时／麦克风拒绝／空转写／解析失败都有独立 `code`（见 `src/web/errors.ts`）。
@@ -181,8 +183,7 @@ materials_review → question → answer → followup? → review → rewrite? �
 2. **真人麦克风未验证**：本机 Chrome 153 的 `--use-file-for-fake-audio-capture` 预检为**静音**（RMS 0.0，默认假设备 0.72），
    因此验收里的「作答语音」由页面按同一 WS 协议推流注入（`say` 合成语音）；真实麦克风链路由 Chrome 假设备
    （提示音）单独覆盖（空转写状态）。**真人对着麦克风说话、环境噪声、真实语速仍未验证**。
-3. **自动 VAD 未启用**：沿用 T1-R 的 `turn_detection: null` 手动模式；自动抢话（A10）仍未验证，
-   不写「自动模式已通过」。
+3. **自动 VAD 未启用**：沿用 T1-R 的 `turn_detection: null` 手动结束模式；本轮新增的只是“小八说完后自动开始录音”，不是模型自动判断用户何时答完。自动抢话（A10）仍未验证，不写「自动模式已通过」。
 4. **评审延迟 P95 未达标**（30.4s vs 15s，T1-R 结论）依旧成立；本包未做流式渲染或五维拆分。
 5. **冻结的实时模型当前在上游侧故障**：`qwen3.8-omni-flash-realtime` 实测 `COMMON_ERROR`（服务端内部
    `Connect call failed 127.0.0.1:8090`），因此服务支持 `AI_INTERVIEWER_REALTIME_MODEL` 覆盖；
@@ -195,7 +196,7 @@ materials_review → question → answer → followup? → review → rewrite? �
    （反向断言见 `test/web-client-bundle.test.ts`）；source map 的 `sourcesContent` 仍包含 `App.tsx`
    自身那段被消除的 DEV 分支源码文本，属于死代码痕迹而非数据泄漏。
 10. **`/favicon.ico` 仍返回 404**（页面未声明图标），控制台每次加载会有一条 404 噪声；无功能影响，属既有问题。
-11. **重连不会自动重放上一动作**：WS 断开后点「重新连接」只恢复链路，操作要用户自己再来一次；
+11. **重连不会自动重放上一动作或自动热麦**：WS 断开后点「重新连接」只恢复链路，操作要用户自己再来一次；
     需要重放失败动作时用「再试一次」，且服务端阶段对不上时只提示、不发注定被拒的请求。
 
 ## 9. 验收与证据

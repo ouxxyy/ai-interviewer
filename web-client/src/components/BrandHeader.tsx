@@ -1,4 +1,4 @@
-import { ClockCounterClockwise, LockKey } from '@phosphor-icons/react';
+import { ClockCounterClockwise, LockKey, SlidersHorizontal } from '@phosphor-icons/react';
 
 interface BrandHeaderProps {
   onNavigate(path: string): void;
@@ -18,6 +18,10 @@ export function BrandHeader({ onNavigate, compact = false }: BrandHeaderProps) {
         <strong>欧八面试陪练</strong>
       </a>
       <nav className="brand-nav" aria-label="主导航">
+        <a className="nav-text nav-config" href="/settings" onClick={(event) => follow(event, '/settings')}>
+          <SlidersHorizontal size={17} weight="bold" aria-hidden="true" />
+          设置
+        </a>
         <a className="nav-ticket" href="/history" onClick={(event) => follow(event, '/history')}>
           <ClockCounterClockwise size={17} weight="bold" aria-hidden="true" />
           历史练习

@@ -97,6 +97,7 @@ export class RealtimeAudio {
 
   async commitAnswer(): Promise<boolean> {
     await this.stopCapture();
+    if (!this.paused) this.callbacks.onStatus('idle');
     return this.send({ type: 'answer.commit' });
   }
 
@@ -117,6 +118,7 @@ export class RealtimeAudio {
     this.send({ type: 'resume' });
     void this.playbackContext?.resume().catch(() => undefined);
     this.playback?.resume();
+    this.callbacks.onStatus(this.playback?.isPlaying === true ? 'playing' : this.capturing ? 'listening' : 'idle');
   }
 
   interrupt(): number {

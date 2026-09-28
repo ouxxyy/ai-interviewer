@@ -10,6 +10,7 @@
 export type ErrorCode =
   | 'E_BAD_REQUEST'
   | 'E_VALIDATION'
+  | 'E_FORBIDDEN'
   | 'E_NOT_FOUND'
   | 'E_CONFLICT'
   | 'E_STATE'
@@ -32,6 +33,7 @@ export type ErrorCode =
 const HTTP: Record<ErrorCode, number> = {
   E_BAD_REQUEST: 400,
   E_VALIDATION: 400,
+  E_FORBIDDEN: 403,
   E_NOT_FOUND: 404,
   E_CONFLICT: 409,
   E_STATE: 409,

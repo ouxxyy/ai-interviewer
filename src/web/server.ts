@@ -12,12 +12,14 @@
  */
 import http from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { validateContract } from '../contracts/validate.js';
 import { CONTRACT_VERSION } from '../contracts/version.js';
 import { RULES_VERSION, rulesDigest } from '../rules/rules.js';
-import { credentialStatus } from '../t1r/env.js';
+import { DASHSCOPE_DEFAULTS } from '../clients/dashscope.js';
+import { REALTIME_DEFAULTS } from '../clients/realtime-dashscope.js';
 import { DISCLOSURE, DISCLOSURE_VERSION } from './disclosure.js';
 import { AppError, asAppError, type ErrorBody } from './errors.js';
 import type { Logger } from './log.js';
@@ -26,6 +28,7 @@ import { parseMaterialFile } from './materials.js';
 import { REPO_ROOT, type WebPaths } from './paths.js';
 import type { SettingsStore } from './settings.js';
 import type { Store } from './store.js';
+import type { CredentialConfigStore } from './credentials.js';
 
 const MAX_BODY_BYTES = 16 * 1024 * 1024;
 const HARNESS_FILE = path.join(REPO_ROOT, 'src', 'web', 'public', 'harness.html');
@@ -34,6 +37,7 @@ export interface ServerDeps {
   manager: SessionManager;
   store: Store;
   settings: SettingsStore;
+  credentials: CredentialConfigStore;
   logger: Logger;
   paths: WebPaths;
   staticDir: string;
@@ -120,8 +124,8 @@ async function readBody(req: http.IncomingMessage, limit = MAX_BODY_BYTES): Prom
   });
 }
 
-async function readJsonObject(req: http.IncomingMessage): Promise<Record<string, unknown>> {
-  const buf = await readBody(req);
+async function readJsonObject(req: http.IncomingMessage, limit = MAX_BODY_BYTES): Promise<Record<string, unknown>> {
+  const buf = await readBody(req, limit);
   if (buf.length === 0) return {};
   try {
     const parsed = JSON.parse(buf.toString('utf8')) as unknown;
@@ -148,8 +152,17 @@ function optionalBool(body: Record<string, unknown>, key: string): boolean | und
   return v;
 }
 
+function optionalAnswerStartMode(body: Record<string, unknown>): 'continuous' | 'manual' | undefined {
+  const value = body.answerStartMode;
+  if (value === undefined) return undefined;
+  if (value !== 'continuous' && value !== 'manual') throw new AppError('E_VALIDATION', '字段 answerStartMode 只能是 continuous 或 manual');
+  return value;
+}
+
 export function createServer(deps: ServerDeps): RunningServer {
-  const { manager, store, settings, logger } = deps;
+  const { manager, store, settings, credentials, logger } = deps;
+  let configToken = randomUUID();
+  let configWrites: number[] = [];
 
   const server = http.createServer((req, res) => {
     void handle(req, res);
@@ -164,7 +177,7 @@ export function createServer(deps: ServerDeps): RunningServer {
           ok: true,
           host: deps.host,
           port: deps.port,
-          credential: credentialStatus(),
+          credential: { key: credentials.status().keyName, present: credentials.status().configured },
           versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, rulesDigest: rulesDigest(), disclosure: DISCLOSURE_VERSION },
           liveSessions: manager.listLive().length,
           dbVersion: store.dataPaths.dbFile === '' ? 0 : undefined,
@@ -173,6 +186,35 @@ export function createServer(deps: ServerDeps): RunningServer {
       if (req.method === 'GET' && url.pathname === '/api/disclosure') {
         return json(res, 200, { disclosure: DISCLOSURE, acknowledged: !settings.needsDisclosure(), current: settings.get() });
       }
+      if (req.method === 'GET' && url.pathname === '/api/model-config') {
+        return json(res, 200, {
+          ...credentials.status(),
+          textModel: process.env.AI_INTERVIEWER_TEXT_MODEL?.trim() || DASHSCOPE_DEFAULTS.model,
+          realtimeModel: process.env.AI_INTERVIEWER_REALTIME_MODEL?.trim() || REALTIME_DEFAULTS.model,
+          voice: REALTIME_DEFAULTS.defaultVoice,
+          configToken,
+        });
+      }
+      if (req.method === 'PATCH' && url.pathname === '/api/model-config') {
+        if (req.headers['x-config-token'] !== configToken) {
+          throw new AppError('E_FORBIDDEN', '模型配置令牌无效或已过期', { hint: '刷新模型配置页后重试' });
+        }
+        const now = Date.now();
+        configWrites = configWrites.filter((at) => now - at < 60_000);
+        if (configWrites.length >= 5) throw new AppError('E_CONFLICT', '一分钟内配置次数过多', { hint: '稍后再试' });
+        const body = await readJsonObject(req, 4096);
+        const status = credentials.update(requireString(body, 'apiKey', { min: 20, max: 512 }));
+        configWrites.push(now);
+        configToken = randomUUID();
+        logger.info('model_config.updated', { configured: status.configured, keyName: status.keyName });
+        return json(res, 200, {
+          ...status,
+          textModel: process.env.AI_INTERVIEWER_TEXT_MODEL?.trim() || DASHSCOPE_DEFAULTS.model,
+          realtimeModel: process.env.AI_INTERVIEWER_REALTIME_MODEL?.trim() || REALTIME_DEFAULTS.model,
+          voice: REALTIME_DEFAULTS.defaultVoice,
+          configToken,
+        });
+      }
       if (req.method === 'GET' && url.pathname === '/api/settings') {
         return json(res, 200, { settings: settings.get(), disclosureVersion: DISCLOSURE_VERSION, needsDisclosure: settings.needsDisclosure() });
       }
@@ -180,13 +222,15 @@ export function createServer(deps: ServerDeps): RunningServer {
         const body = await readJsonObject(req);
         const saveHistory = optionalBool(body, 'saveHistory');
         const saveAudio = optionalBool(body, 'saveAudio');
+        const answerStartMode = optionalAnswerStartMode(body);
         const disclosureAck = optionalBool(body, 'disclosureAck');
         const updated = settings.update({
           ...(saveHistory === undefined ? {} : { saveHistory }),
           ...(saveAudio === undefined ? {} : { saveAudio }),
+          ...(answerStartMode === undefined ? {} : { answerStartMode }),
           ...(disclosureAck === true ? { disclosureAckVersion: DISCLOSURE_VERSION } : {}),
         });
-        logger.info('settings.updated', { saveHistory: updated.saveHistory, saveAudio: updated.saveAudio, disclosureAck: updated.disclosureAckVersion });
+        logger.info('settings.updated', { saveHistory: updated.saveHistory, saveAudio: updated.saveAudio, answerStartMode: updated.answerStartMode, disclosureAck: updated.disclosureAckVersion });
         return json(res, 200, { settings: updated, needsDisclosure: settings.needsDisclosure() });
       }
       if (req.method === 'GET' && url.pathname === '/api/stats') {

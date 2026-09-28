@@ -23,6 +23,7 @@ import { Store } from './store.js';
 import { DashscopeTextClient } from '../clients/dashscope.js';
 import type { TextLlmClient } from '../clients/types.js';
 import type { RealtimeBridge } from './realtime-bridge.js';
+import { CredentialConfigStore } from './credentials.js';
 
 function parseArgs(argv: string[]): Map<string, string> {
   const out = new Map<string, string>();
@@ -47,6 +48,9 @@ export interface ServeOptions {
   /** 测试用：注入自定义文本客户端与实时桥工厂。 */
   textClient?: TextLlmClient;
   createBridge?: (sid: string) => RealtimeBridge;
+  /** 测试/嵌入用：生产默认写项目根 `.env`。 */
+  credentialFile?: string;
+  credentialEnv?: NodeJS.ProcessEnv;
 }
 
 export async function startServer(opts: ServeOptions = {}): Promise<{
@@ -65,7 +69,8 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
   logger.info('db.ready', { file: paths.dbFile, version: migration.version, applied: migration.applied });
   const store = new Store(db, paths);
   const settings = new SettingsStore(db);
-  const credential = process.env.DASHSCOPE_API_KEY ?? '';
+  const credentialEnv = opts.credentialEnv ?? process.env;
+  const credentials = new CredentialConfigStore(opts.credentialFile, credentialEnv);
   // 默认走百炼（D10：只有默认配置承诺评审质量）；自定义 OpenAI 兼容端点属高级设置。
   const textClient =
     opts.textClient ??
@@ -77,14 +82,14 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
   const manager = new SessionManager({
     store,
     logger,
-    credential,
+    credential: () => credentialEnv.DASHSCOPE_API_KEY ?? '',
     textClient,
     paths,
     ...(realtimeModel === undefined ? {} : { realtimeModel }),
     ...(opts.createBridge === undefined ? {} : { createBridge: opts.createBridge }),
   });
   const port = opts.port ?? Number(process.env.AI_INTERVIEWER_PORT ?? SERVER_DEFAULTS.port);
-  const running = createServer({ manager, store, settings, logger, paths, staticDir: opts.staticDir ?? webStaticRoot(), port, host: SERVER_DEFAULTS.host });
+  const running = createServer({ manager, store, settings, credentials, logger, paths, staticDir: opts.staticDir ?? webStaticRoot(), port, host: SERVER_DEFAULTS.host });
   await new Promise<void>((resolve, reject) => {
     running.server.once('error', reject);
     running.server.listen(port, SERVER_DEFAULTS.host, () => resolve());
@@ -120,6 +125,7 @@ function printStartupBanner(url: string, paths: ReturnType<typeof webPaths>, set
     ...DISCLOSURE.sentToCloud.map((s) => `  · ${s}`),
     ``,
     `【开关】保存历史＝${current.saveHistory ? '开' : '关'}；保存录音＝${current.saveAudio ? '开' : '关'}（两个独立开关，改设置接口：PATCH /api/settings）`,
+    `【开麦方式】${current.answerStartMode === 'continuous' ? '连续面试（第一题手动，后续自动）' : '每轮手动开始'}（可在设置页切换）`,
     `【告知版本】${DISCLOSURE_VERSION}（已确认：${current.disclosureAckVersion ?? '否'}）`,
     `【凭证】${credential.key} 存在＝${credential.present ? '是' : '否'}（值不打印，也不进浏览器与日志）`,
     ``,

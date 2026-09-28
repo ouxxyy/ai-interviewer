@@ -24,11 +24,14 @@ export const REALTIME_DEFAULTS = {
   outputAudioFormat: 'pcm24',
   inputSampleRate: 16_000,
   outputSampleRate: 24_000,
-  /** 实测可用音色（qwen3.8-omni-flash-realtime，逐名验证）。 */
-  defaultVoice: 'Serena',
+  /** 当前产品默认音色；建连后仍必须以 session.updated 回显做前置断言。 */
+  defaultVoice: 'Maia',
 } as const;
 
-/** 逐个实测过的音色：true＝该模型接受并产出音频，false＝服务端明确拒绝。 */
+/**
+ * 2026-09-26 逐个实测过的历史结果：true＝当时接受并产出音频，false＝当时明确拒绝。
+ * 新默认值 Maia 尚未付费实调，完成当前账号／地域验证前不写入这份历史表。
+ */
 export const SUPPORTED_VOICES: Record<string, boolean> = {
   Serena: true, Dylan: true, Sunny: true, Jennifer: true, Ryan: true, Katerina: true,
   Marcus: true, Peter: true, Rocky: true, Kiki: true, Mia: true, Chloe: true, Eric: true,
@@ -100,6 +103,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
   private audioSeq = 0;
   private transcriptBuf = '';
   private transcriptFinal = '';
+  private userTranscriptBuf = '';
   private responseStartedAt = 0;
   private responseFirstAudioAt: number | null = null;
   private firstAudioMs: number | null = null;
@@ -268,6 +272,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
   /** 用户「回答完毕」：提交缓冲，触发真实 ASR。 */
   commitAudio(): void {
     this.commitSentAt = Date.now();
+    this.userTranscriptBuf = '';
     this.send({ type: 'input_audio_buffer.commit' });
   }
 
@@ -276,6 +281,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
     this.send({ type: 'response.cancel' });
   }
 
+  /** 只发布用户输入音频的 ASR；面试官朗读的输出转写由 waitForResponse() 单独返回。 */
   onTranscript(cb: (partial: string, final: boolean) => void): void {
     this.transcriptCbs.push(cb);
   }
@@ -350,7 +356,13 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
       const d = String(obj.delta ?? '');
       this.transcriptBuf += d;
       this.record('recv', type, d.length);
-      for (const cb of this.transcriptCbs) cb(this.transcriptBuf, false);
+      return;
+    }
+    if (type === 'conversation.item.input_audio_transcription.delta') {
+      const d = String(obj.delta ?? obj.transcript ?? '');
+      this.userTranscriptBuf += d;
+      this.record('recv', type, d.length);
+      for (const cb of this.transcriptCbs) cb(this.userTranscriptBuf, false);
       return;
     }
     if (/delta$/.test(type)) {
@@ -389,7 +401,6 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
       case 'response.audio_transcript.done':
         if (typeof obj.transcript === 'string' && obj.transcript !== '') {
           this.transcriptFinal = obj.transcript;
-          for (const cb of this.transcriptCbs) cb(this.transcriptFinal, true);
         }
         break;
       case 'response.done': {
@@ -409,10 +420,13 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
         break;
       }
       case 'conversation.item.input_audio_transcription.completed': {
+        const transcript = String(obj.transcript ?? this.userTranscriptBuf);
         const result: UserTranscriptResult = {
-          transcript: String(obj.transcript ?? ''),
+          transcript,
           latencyMs: this.commitSentAt === 0 ? 0 : Date.now() - this.commitSentAt,
         };
+        this.userTranscriptBuf = transcript;
+        for (const cb of this.transcriptCbs) cb(transcript, true);
         for (const w of this.transcriptWaiters.splice(0)) w.resolve(result);
         break;
       }

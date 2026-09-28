@@ -27,9 +27,20 @@ export interface AppErrorBody {
 export interface WebSettings {
   saveHistory: boolean;
   saveAudio: boolean;
+  answerStartMode: 'continuous' | 'manual';
   disclosureAckVersion: string | null;
   disclosureAckAt: string | null;
   updatedAt: string | null;
+}
+
+export interface ModelConfigStatus {
+  configured: boolean;
+  keyName: 'DASHSCOPE_API_KEY';
+  storage: '.env';
+  textModel: string;
+  realtimeModel: string;
+  voice: string;
+  configToken: string;
 }
 
 export interface Disclosure {

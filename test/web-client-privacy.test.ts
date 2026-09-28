@@ -27,8 +27,8 @@ test('P0-2：开录音只在历史开着时生效，否则补丁自身就把录�
 });
 
 test('P0-2：建会话请求体只能由当前设置算出，不会带上矛盾的开关组合', () => {
-  assert.deepEqual(sessionCreateBody({ saveHistory: false, saveAudio: true }), { synthetic: false, saveHistory: false, saveAudio: false });
-  assert.deepEqual(sessionCreateBody({ saveHistory: true, saveAudio: false }), { synthetic: false, saveHistory: true, saveAudio: false });
+  assert.deepEqual(sessionCreateBody({ saveHistory: false, saveAudio: true }), { synthetic: false, saveHistory: false, saveAudio: false, disclosureAck: true });
+  assert.deepEqual(sessionCreateBody({ saveHistory: true, saveAudio: false }), { synthetic: false, saveHistory: true, saveAudio: false, disclosureAck: true });
   assert.deepEqual(sessionToggles({ saveHistory: true, saveAudio: true }), { saveHistory: true, saveAudio: true });
 });
 

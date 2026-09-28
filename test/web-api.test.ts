@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createServer as createHttpServer } from 'node:http';
 import WebSocket from 'ws';
@@ -46,6 +46,8 @@ async function boot(label: string, opts: { text?: TextScript; realtime?: MockRea
     ...(opts.staticDir === undefined ? {} : { staticDir: opts.staticDir }),
     logger: new Logger(() => {}, 'error'),
     textClient: text,
+    credentialFile: path.join(dataDir, '.env'),
+    credentialEnv: {},
     createBridge: (): RealtimeBridge =>
       new RealtimeBridge({
         credential: 'sk-test-not-a-real-key-000000',
@@ -114,11 +116,56 @@ test('健康检查与首次使用告知：版本、凭证只报存在性、告�
     const disclosure = await call(api.url, 'GET', '/api/disclosure');
     assert.equal(disclosure.status, 200);
     const d = disclosure.body.disclosure;
-    assert.equal(d.version, 'disclosure@0.1.0');
+    assert.equal(d.version, 'disclosure@0.2.0');
     assert.ok(d.staysLocal.length >= 3 && d.sentToCloud.length >= 3 && d.deletion.length >= 2);
     assert.match(d.storage.database, /interview\.sqlite/);
     assert.match(d.billing.payer, /百炼/);
     assert.equal(disclosure.body.acknowledged, false);
+  } finally {
+    await api.close();
+    rmSync(api.dataDir, { recursive: true, force: true });
+  }
+});
+
+test('模型配置状态：只返回是否已配置、模型名与一次性提交令牌，不回显密钥', async () => {
+  const api = await boot('model-config-status');
+  try {
+    const config = await call(api.url, 'GET', '/api/model-config');
+    assert.equal(config.status, 200);
+    assert.equal(typeof config.body.configured, 'boolean');
+    assert.equal(config.body.keyName, 'DASHSCOPE_API_KEY');
+    assert.equal(config.body.textModel, 'qwen3.8-flash');
+    assert.equal(config.body.realtimeModel, 'qwen3.8-omni-flash-realtime');
+    assert.match(config.body.configToken, /^[a-f0-9-]{36}$/);
+    assert.equal(JSON.stringify(config.body).includes('sk-'), false);
+  } finally {
+    await api.close();
+    rmSync(api.dataDir, { recursive: true, force: true });
+  }
+});
+
+test('模型配置写入：要求同源令牌、写入本次测试的 .env，响应与日志形状不回显密钥', async () => {
+  const api = await boot('model-config-write');
+  const fakeKey = 'sk-test-local-only-1234567890';
+  try {
+    const status = await call(api.url, 'GET', '/api/model-config');
+    const rejected = await fetch(`${api.url}/api/model-config`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Config-Token': 'wrong' },
+      body: JSON.stringify({ apiKey: fakeKey }),
+    });
+    assert.equal(rejected.status, 403);
+
+    const saved = await fetch(`${api.url}/api/model-config`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Config-Token': status.body.configToken },
+      body: JSON.stringify({ apiKey: fakeKey }),
+    });
+    assert.equal(saved.status, 200);
+    const payload = await saved.json() as Record<string, unknown>;
+    assert.equal(payload.configured, true);
+    assert.equal(JSON.stringify(payload).includes(fakeKey), false);
+    assert.equal(readFileSync(path.join(api.dataDir, '.env'), 'utf8'), `DASHSCOPE_API_KEY=${fakeKey}\n`);
   } finally {
     await api.close();
     rmSync(api.dataDir, { recursive: true, force: true });
@@ -133,7 +180,7 @@ test('未经告知确认不得创建会话（428），确认后可创建', async
     assert.equal(blocked.body.error.code, 'E_DISCLOSURE_REQUIRED');
     assert.match(blocked.body.error.hint, /disclosure/);
     const ack = await call(api.url, 'PATCH', '/api/settings', { disclosureAck: true });
-    assert.equal(ack.body.settings.disclosureAckVersion, 'disclosure@0.1.0');
+    assert.equal(ack.body.settings.disclosureAckVersion, 'disclosure@0.2.0');
     const created = await call(api.url, 'POST', '/api/sessions', {});
     assert.equal(created.status, 201);
     assert.match(created.body.sid, /^s-/);
@@ -528,6 +575,28 @@ test('P0-2 服务端不变量：关掉保存历史就不可能落录音（设置
     assert.deepEqual({ saveHistory: on.body.settings.saveHistory, saveAudio: on.body.settings.saveAudio }, { saveHistory: true, saveAudio: true });
     const offAgain = await call(api.url, 'PATCH', '/api/settings', { saveHistory: false });
     assert.deepEqual({ saveHistory: offAgain.body.settings.saveHistory, saveAudio: offAgain.body.settings.saveAudio }, { saveHistory: false, saveAudio: false }, '只关历史也要把录音一起关');
+  } finally {
+    await api.close();
+    rmSync(api.dataDir, { recursive: true, force: true });
+  }
+});
+
+test('面试节奏设置：默认连续模式，可切换并持久化为每轮手动开始', async () => {
+  const api = await boot('answer-start-mode');
+  try {
+    const initial = await call(api.url, 'GET', '/api/settings');
+    assert.equal(initial.body.settings.answerStartMode, 'continuous');
+
+    const changed = await call(api.url, 'PATCH', '/api/settings', { answerStartMode: 'manual' });
+    assert.equal(changed.status, 200);
+    assert.equal(changed.body.settings.answerStartMode, 'manual');
+
+    const reread = await call(api.url, 'GET', '/api/settings');
+    assert.equal(reread.body.settings.answerStartMode, 'manual');
+
+    const invalid = await call(api.url, 'PATCH', '/api/settings', { answerStartMode: 'always_hot' });
+    assert.equal(invalid.status, 400);
+    assert.equal(invalid.body.error.code, 'E_VALIDATION');
   } finally {
     await api.close();
     rmSync(api.dataDir, { recursive: true, force: true });

@@ -9,8 +9,8 @@
 - T3 入口：规则正文**同源生成**（`src/t3/content.ts` 渲染），改动 `src/rules/rules.ts` 后必须跑 `node dist/src/t3/cli.js skill:build`，否则测试红。`skill:run`／`prompt:run` 会真调模型。宿主实测结论由 `hosts:record` 从原始输出算出，不许手写。
 - 契约版本：`contract@0.2.0`（与 0.1.0 结构相同、双版本并存，历史证据仍可校验）；规则 `rules@0.2.0`（单源 `src/rules/rules.ts`，正文 `docs/rules.md` 由 `node dist/src/t2/run.js rules:write` 生成，**勿手改**）；提示词 `prompts@0.2.0`（**未标定**）。
 - 技术栈：服务端 TypeScript（NodeNext）+ `ajv` + `ws` + Node 内置 `node:sqlite`；正式产品前端为 React + Vite + Phosphor Icons，按方案 C 产出 `dist/web-client/`。
-- 网页入口（`src/web/`）纪律：服务**只绑 `127.0.0.1`**、密钥不进浏览器与日志；两开关按会话快照（关历史＝不落库不落录音，关录音＝落库不落 WAV，**关开关不删旧记录**）；报告 `perQuestion.feedback` 只回填已过契约的 Feedback，`priorityPractice` 必须过「与逐题反馈共享 ≥4 字连续片段」的来源校验，否则回退派生来源并标注 `reportSource`；实时音色前置断言 `Serena`、撞 400 换新连接；冻结实时模型可用 `AI_INTERVIEWER_REALTIME_MODEL` 覆盖，**覆盖必须写进验收记录**，不许悄悄改默认值。
-- 真实调用：`src/t1r/` 为 T1-R 验收运行器；凭证**显式从项目根 `.env` 读取**（不依赖 shell 加载 `~/.zshrc`），落盘统一过 `assertNoSecret()` 防线。核定参数：文本 `qwen3.8-flash`，实时 `qwen3.8-omni-flash-realtime`，音色固定 `Serena`（服务端默认 `Chelsie` 实测被拒），输入 pcm16／输出 pcm24。
+- 网页入口（`src/web/`）纪律：服务**只绑 `127.0.0.1`**、密钥不进浏览器与日志；两开关按会话快照（关历史＝不落库不落录音，关录音＝落库不落 WAV，**关开关不删旧记录**）；报告 `perQuestion.feedback` 只回填已过契约的 Feedback，`priorityPractice` 必须过「与逐题反馈共享 ≥4 字连续片段」的来源校验，否则回退派生来源并标注 `reportSource`；实时音色对当前默认 `Maia` 做前置断言、撞 400 换新连接；`Maia` 尚未当前账号实调；冻结实时模型可用 `AI_INTERVIEWER_REALTIME_MODEL` 覆盖，**覆盖必须写进验收记录**，不许悄悄改默认值。
+- 真实调用：`src/t1r/` 为 T1-R 验收运行器；凭证**显式从项目根 `.env` 读取**（不依赖 shell 加载 `~/.zshrc`），落盘统一过 `assertNoSecret()` 防线。核定参数：文本 `qwen3.8-flash`，实时 `qwen3.8-omni-flash-realtime`，当前默认音色 `Maia`（静态切换，待实调）；历史 T1-R 证据音色为 `Serena`，服务端默认 `Chelsie` 当时实测被拒；输入 pcm16／输出 pcm24。
 - 关键目录：`src/contracts/`（五对象契约 `contract@0.2.0`＋引用定位器＋双版本校验器）、`src/state/`（应用层状态机）、`src/review/`（评审流水线与 mock）、`src/prompts/`（提示词 `prompts@0.2.0`，**未标定**）、`src/clients/`（模型客户端抽象）、`src/prototype/`（音频 prototype）、`cases/`（24 合成案例）、`docs/`（审计/基线/契约/证据）、`reference/`（第三方参考仓库，gitignore，绝不入库）。
 
 ## Working rules

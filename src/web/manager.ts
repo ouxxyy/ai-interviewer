@@ -53,7 +53,7 @@ export class SessionManager {
     private readonly opts: {
       store: Store;
       logger: Logger;
-      credential: string;
+      credential: string | (() => string);
       textClient: TextLlmClient;
       paths: WebPaths;
       realtimeModel?: string;
@@ -68,7 +68,7 @@ export class SessionManager {
       store: this.opts.store,
       textClient: this.opts.textClient,
       logger: this.opts.logger,
-      credential: this.opts.credential,
+      credential: typeof this.opts.credential === 'function' ? this.opts.credential() : this.opts.credential,
       sessionId: sid,
       synthetic: req.synthetic ?? true,
       saveHistory: req.saveHistory ?? true,

@@ -4,7 +4,8 @@
  * 职责：
  * - 浏览器只连本地服务；DashScope WebSocket 由服务端持有，密钥不出本机（浏览器拿不到，日志也不记）。
  * - 两个 T1-R 实测坑**前置处理**：
- *   ① 音色必须在首个 `response.create` 之前断言 `Serena`——服务端自报默认 `Chelsie` 会被 400 拒；
+ *   ① 音色必须在首个 `response.create` 之前断言为当前 `REALTIME_DEFAULTS.defaultVoice`；
+ *      服务端自报默认 `Chelsie` 曾实测被 400 拒绝；
  *   ② 同一连接撞 400 之后再 `session.update` 不会恢复 → **必须新开连接**（本模块在任何 400 之后
  *      直接丢弃旧连接、新建一个，并对同一句话只重放一次）。
  * - 打断：`response.cancel` 之后**不再向浏览器转发旧回应的音频分片**（待播音频在浏览器侧同时清空）。

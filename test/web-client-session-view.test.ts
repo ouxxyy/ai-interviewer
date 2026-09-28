@@ -15,6 +15,10 @@ import {
   recoveryNotice,
   recoveryStep,
   defaultRetry,
+  latestReviewedFeedback,
+  agentActivity,
+  answerOpportunityKey,
+  shouldAutoStartAnswer,
   type FailedOp,
   type ObservedSession,
 } from '../web-client/src/lib/session-view.js';
@@ -172,4 +176,111 @@ test('P0-1：live 快照的判据必须是服务端真实字段，而不是类�
   assert.equal(observed.planReady, true);
   assert.equal(isSnapshot({ ...snapshot, reviewMeta: undefined }), false);
   assert.equal(isSnapshot({ ...snapshot, turns: 'nope' }), false);
+});
+
+test('流程反馈：进入下一题后仍展示最近一题已校验的原话与点评', () => {
+  const feedback = {
+    questionId: 'q2',
+    reviewBasis: { turnIds: ['t2'], textVersion: 'raw' as const },
+    topImprovement: '先说清你的个人动作',
+    nextFacts: ['补充结果'],
+    factGaps: [],
+    dimensions: {} as never,
+    reviewVersion: 'test',
+  };
+  const basis = { questionId: 'q2', text: '我负责协调两个团队并按时上线。', turnIds: ['t2'], textVersion: 'raw' as const };
+  const current = {
+    ...snapshot,
+    machine: { ...snapshot.machine, questionIndex: 2, completed: 2 },
+    currentQuestion: { id: 'q3', index: 2, text: '第三题', intent: '看反思' },
+    plan: {
+      questions: [
+        { id: 'q1', text: '第一题' },
+        { id: 'q2', text: '第二题' },
+        { id: 'q3', text: '第三题' },
+      ],
+      askedTopics: [],
+    } as never,
+    reviews: { q2: feedback },
+    reviewBasis: { q2: basis },
+  } satisfies Snapshot;
+
+  assert.deepEqual(latestReviewedFeedback(current), {
+    questionId: 'q2',
+    questionNumber: 2,
+    current: false,
+    feedback,
+    basis,
+  });
+
+  const q3Feedback = { ...feedback, questionId: 'q3' };
+  const q3Basis = { ...basis, questionId: 'q3', turnIds: ['t3'] };
+  const reviewedCurrent = { ...current, reviews: { q2: feedback, q3: q3Feedback }, reviewBasis: { q2: basis, q3: q3Basis } };
+  assert.equal(latestReviewedFeedback(reviewedCurrent)?.questionId, 'q3', '当前题一旦评审完成，应立即切到当前题点评');
+});
+
+test('Agent 状态：评审等待显示真实阶段、等待秒数与未卡死说明', () => {
+  assert.deepEqual(agentActivity({ state: 'review', audioStatus: 'idle', recording: false, busy: true, elapsedSeconds: 12 }), {
+    kind: 'reviewing',
+    active: true,
+    title: '正在核对你的原话',
+    detail: '已等待 12 秒；正在生成结构化点评，已提交的回答不会丢失。',
+  });
+  assert.equal(agentActivity({ state: 'answer', audioStatus: 'listening', recording: true, busy: false, elapsedSeconds: 0 }).title, '小八正在听你的回答');
+  assert.equal(agentActivity({ state: 'answer', audioStatus: 'idle', recording: false, busy: false, elapsedSeconds: 0 }).active, false);
+  assert.equal(agentActivity({ state: 'answer', audioStatus: 'offline', recording: false, busy: false, elapsedSeconds: 0 }).title, '实时连接已断开');
+});
+
+test('连续面试：第一轮必须手动，完成首次授权后才自动开始后续主问题／追问／重答', () => {
+  const q1 = { ...snapshot, plan: { questions: [{ id: 'q1' }] } as never } satisfies Snapshot;
+  const base = {
+    mode: 'continuous' as const,
+    state: 'answer' as const,
+    audioStatus: 'idle' as const,
+    recording: false,
+    busy: false,
+    paused: false,
+    offline: false,
+    hasError: false,
+    opportunityKey: answerOpportunityKey(q1),
+    lastAttemptedKey: null,
+  };
+  assert.equal(shouldAutoStartAnswer({ ...base, hasStartedOnce: false }), false, '第一题第一次必须由用户点击并触发权限');
+  assert.equal(shouldAutoStartAnswer({ ...base, hasStartedOnce: true }), true, '首次开始后，同一场后续机会可自动开麦');
+
+  const followup = {
+    ...q1,
+    state: 'followup' as const,
+    machine: { ...q1.machine, state: 'followup' as const, followupCount: 1 },
+    turns: [{ id: 'iq1', questionId: 'q1', speaker: 'interviewer' as const, turnType: 'followup' as const, seq: 2, startedAt: '', endedAt: '', rawTranscript: '你个人做了什么？', revisedText: null, audioFile: null }],
+  } satisfies Snapshot;
+  assert.notEqual(answerOpportunityKey(followup), answerOpportunityKey(q1), '追问是新的开麦机会');
+  assert.equal(shouldAutoStartAnswer({ ...base, state: 'followup', hasStartedOnce: true, opportunityKey: answerOpportunityKey(followup) }), true);
+
+  const rewrite = { ...q1, machine: { ...q1.machine, rewriteUsed: true } } satisfies Snapshot;
+  assert.notEqual(answerOpportunityKey(rewrite), answerOpportunityKey(q1), '主动点重答后是新的开麦机会');
+});
+
+test('连续面试止损：说话中、播放中、暂停、断线、报错、处理中或同一机会已尝试时绝不自动开麦', () => {
+  const base = {
+    mode: 'continuous' as const,
+    state: 'answer' as const,
+    audioStatus: 'idle' as const,
+    recording: false,
+    busy: false,
+    paused: false,
+    offline: false,
+    hasError: false,
+    hasStartedOnce: true,
+    opportunityKey: 'q2:question:t2',
+    lastAttemptedKey: null,
+  };
+  assert.equal(shouldAutoStartAnswer({ ...base, mode: 'manual' }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, audioStatus: 'playing' }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, recording: true }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, paused: true }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, offline: true }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, hasError: true }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, busy: true }), false);
+  assert.equal(shouldAutoStartAnswer({ ...base, lastAttemptedKey: base.opportunityKey }), false, '同一轮失败后不得循环弹权限或反复热麦');
 });

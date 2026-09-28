@@ -275,17 +275,38 @@ export class InterviewRunner {
 
   private async generatePlan(): Promise<QuestionPlan> {
     const materials = this.requireMaterials();
-    const prompt = questionPlanPrompt({ jd: materials.jd, experience: materials.experience, stage: materials.stage, targetRole: materials.targetRole });
-    const raw = await this.callText({ prompt, maxTokens: 2048 }, '生成问题计划');
-    const parsed = extractJson(raw);
-    if (!parsed.ok) throw new AppError('E_PLAN_FAILED', `问题计划不是合法 JSON：${parsed.error}`, { hint: '可以重试；重试仍失败请换材料或稍后再试' });
-    const check = validateContract('question-plan', parsed.value);
-    if (!check.ok) throw new AppError('E_PLAN_FAILED', '问题计划未通过契约校验', { detail: check.errors.join('; ').slice(0, 200) });
-    const plan = parsed.value as QuestionPlan;
-    if (plan.questions.length !== TOTAL_QUESTIONS) {
-      throw new AppError('E_PLAN_FAILED', `问题计划必须有 ${TOTAL_QUESTIONS} 道题，实际 ${plan.questions.length} 道`);
+    const basePrompt = questionPlanPrompt({ jd: materials.jd, experience: materials.experience, stage: materials.stage, targetRole: materials.targetRole });
+    let lastDetail = '';
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const prompt = attempt === 1
+        ? basePrompt
+        : `${basePrompt}\n\n【上一次输出未通过契约校验】\n${lastDetail}\n请逐字段修正；尤其注意 topics 和 askedTopics 的每一项都必须是字符串。只重新输出完整 JSON。`;
+      const raw = await this.callText({ prompt, maxTokens: 2048 }, `生成问题计划（第 ${attempt} 次）`);
+      const parsed = extractJson(raw);
+      if (!parsed.ok) {
+        lastDetail = `JSON 解析失败：${parsed.error}`.slice(0, 220);
+        this.logger.warn('runner.plan_attempt_failed', { sid: this.sid, attempt, cause: 'json_error', detail: lastDetail });
+        continue;
+      }
+      const check = validateContract('question-plan', parsed.value);
+      if (!check.ok) {
+        lastDetail = check.errors.join('; ').slice(0, 220);
+        this.logger.warn('runner.plan_attempt_failed', { sid: this.sid, attempt, cause: 'schema_error', detail: lastDetail });
+        continue;
+      }
+      const plan = parsed.value as QuestionPlan;
+      if (plan.questions.length !== TOTAL_QUESTIONS) {
+        lastDetail = `问题计划必须有 ${TOTAL_QUESTIONS} 道题，实际 ${plan.questions.length} 道`;
+        this.logger.warn('runner.plan_attempt_failed', { sid: this.sid, attempt, cause: 'question_count', detail: lastDetail });
+        continue;
+      }
+      if (attempt > 1) this.logger.info('runner.plan_recovered', { sid: this.sid, attempts: attempt });
+      return plan;
     }
-    return plan;
+    throw new AppError('E_PLAN_FAILED', '问题计划连续两次未通过契约校验', {
+      hint: '可以点击重试；仍失败时请检查材料或稍后再试',
+      detail: lastDetail,
+    });
   }
 
   /** 重试出题（计划生成失败后使用）。 */

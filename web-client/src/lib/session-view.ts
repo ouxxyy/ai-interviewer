@@ -4,7 +4,7 @@
  * 为什么单独一层：这三件事都是「按服务端真实形状和真实状态决定界面行为」的规则，
  * 放在组件里只能靠浏览器手测；放在这里可以在 Node 里逐条回归。
  */
-import type { AppErrorBody, MaterialsDraft, PlannedQuestion, SessionState } from '../types.js';
+import type { AppErrorBody, Feedback, MaterialsDraft, PlannedQuestion, ReviewBasisDetail, SessionState, Snapshot, WebSettings } from '../types.js';
 
 /**
  * `GET /api/sessions/:sid` 返回的是**历史/详情形状**，没有 `machine` / `currentQuestion` /
@@ -65,6 +65,143 @@ export function questionProgress(plan: { questions: PlannedQuestion[] } | null, 
     current: index === questionIndex,
     done: index < questionIndex,
   }));
+}
+
+// ---------- 过程点评与 Agent 状态 ----------
+
+export interface ReviewedFeedbackView {
+  questionId: string;
+  questionNumber: number;
+  current: boolean;
+  feedback: Feedback;
+  basis: ReviewBasisDetail;
+}
+
+/**
+ * 当前题还没有点评时，不把已完成的上一题点评从界面抹掉。
+ * 只返回同时具备 Feedback + 评审基准的题，页面后续仍须逐条校验引用再展示。
+ */
+export function latestReviewedFeedback(snapshot: Snapshot | null): ReviewedFeedbackView | null {
+  if (snapshot?.plan === null || snapshot?.plan === undefined) return null;
+  const currentId = snapshot.currentQuestion?.id;
+  const plannedCurrentIndex = currentId === undefined ? -1 : snapshot.plan.questions.findIndex((question) => question.id === currentId);
+  const lastEligibleIndex = plannedCurrentIndex >= 0
+    ? plannedCurrentIndex
+    : Math.min(snapshot.machine.questionIndex, snapshot.plan.questions.length - 1);
+  for (let index = lastEligibleIndex; index >= 0; index -= 1) {
+    const question = snapshot.plan.questions[index];
+    if (question === undefined) continue;
+    const feedback = snapshot.reviews[question.id];
+    const basis = snapshot.reviewBasis[question.id];
+    if (feedback !== undefined && basis !== undefined) {
+      return {
+        questionId: question.id,
+        questionNumber: index + 1,
+        current: question.id === currentId,
+        feedback,
+        basis,
+      };
+    }
+  }
+  return null;
+}
+
+export type AgentActivityKind = 'connecting' | 'speaking' | 'listening' | 'reviewing' | 'preparing' | 'ready' | 'paused' | 'offline';
+export type AgentAudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed' | 'offline';
+
+export interface AgentActivity {
+  kind: AgentActivityKind;
+  active: boolean;
+  title: string;
+  detail: string;
+}
+
+/** 映射真实会话/音频状态；不把计时器伪装成后端百分比进度。 */
+export function agentActivity(input: {
+  state: SessionState | undefined;
+  audioStatus: AgentAudioStatus;
+  recording: boolean;
+  busy: boolean;
+  elapsedSeconds: number;
+}): AgentActivity {
+  if (input.audioStatus === 'offline' || input.audioStatus === 'closed') {
+    return { kind: 'offline', active: false, title: '实时连接已断开', detail: '已完成的回答仍在服务端；重新连接后可继续。' };
+  }
+  if (input.audioStatus === 'paused') {
+    return { kind: 'paused', active: false, title: '已暂停', detail: '暂停期间不会继续上传音频，点“恢复”后再继续说。' };
+  }
+  if (input.audioStatus === 'connecting' || input.state === undefined) {
+    return { kind: 'connecting', active: true, title: '正在连接面试官', detail: `已等待 ${input.elapsedSeconds} 秒；正在读取这场练习的状态。` };
+  }
+  if (input.audioStatus === 'playing') {
+    return { kind: 'speaking', active: true, title: '小八正在说', detail: '可以随时点“打断”，旧回应的待播音频会被清空。' };
+  }
+  if (input.recording || input.audioStatus === 'listening') {
+    return { kind: 'listening', active: true, title: '小八正在听你的回答', detail: '你的语音只会进入回答转写；说完后再进行引用核对。' };
+  }
+  if (input.state === 'review' || (input.busy && (input.state === 'answer' || input.state === 'followup'))) {
+    const detail = input.elapsedSeconds >= 8
+      ? `已等待 ${input.elapsedSeconds} 秒；正在生成结构化点评，已提交的回答不会丢失。`
+      : `已等待 ${input.elapsedSeconds} 秒；正在校验引用位置并整理五维点评。`;
+    return { kind: 'reviewing', active: true, title: '正在核对你的原话', detail };
+  }
+  if (input.busy) {
+    return { kind: 'preparing', active: true, title: '正在进入下一步', detail: `已等待 ${input.elapsedSeconds} 秒；正在同步会话状态。` };
+  }
+  if (input.state === 'rewrite') {
+    return { kind: 'ready', active: false, title: '点评已就绪', detail: '你可以按建议重答一次，或直接进入下一题。' };
+  }
+  return { kind: 'ready', active: false, title: '轮到你作答', detail: '点击“开始作答”；完成后会立即显示原话引用、点评和建议。' };
+}
+
+// ---------- 连续面试自动开麦 ----------
+
+/**
+ * 每个可回答节点的稳定键。主问题、每次追问和重答各不相同，用于保证自动开麦至多尝试一次。
+ */
+export function answerOpportunityKey(snapshot: Snapshot | null): string | null {
+  if (snapshot?.currentQuestion === null || snapshot?.currentQuestion === undefined || !isAnswering(snapshot.state)) return null;
+  const latestInterviewerTurn = [...snapshot.turns]
+    .reverse()
+    .find((turn) => turn.questionId === snapshot.currentQuestion?.id && turn.speaker === 'interviewer');
+  const phase = snapshot.machine.rewriteUsed
+    ? 'rewrite'
+    : snapshot.machine.followupCount > 0
+      ? `followup-${snapshot.machine.followupCount}`
+      : 'question';
+  return `${snapshot.currentQuestion.id}:${phase}:${latestInterviewerTurn?.id ?? 'no-interviewer-turn'}`;
+}
+
+/**
+ * 自动开麦只减少重复点击，不放松安全边界：第一轮需用户手动授权；播放、暂停、断线、
+ * 错误、处理中和同一轮已尝试时都不触发。回答结束仍由用户点「说完了」。
+ */
+export function shouldAutoStartAnswer(input: {
+  mode: WebSettings['answerStartMode'];
+  state: SessionState | undefined;
+  audioStatus: AgentAudioStatus;
+  recording: boolean;
+  busy: boolean;
+  paused: boolean;
+  offline: boolean;
+  hasError: boolean;
+  hasStartedOnce: boolean;
+  opportunityKey: string | null;
+  lastAttemptedKey: string | null;
+}): boolean {
+  return (
+    input.mode === 'continuous' &&
+    input.hasStartedOnce &&
+    isAnswering(input.state) &&
+    input.audioStatus === 'idle' &&
+    !input.recording &&
+    !input.busy &&
+    !input.paused &&
+    !input.offline &&
+    !input.hasError &&
+    input.opportunityKey !== null &&
+    input.opportunityKey !== input.lastAttemptedKey
+  );
 }
 
 // ---------- 失败动作恢复（P1-2） ----------

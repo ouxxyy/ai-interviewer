@@ -1,4 +1,4 @@
-import type { AppErrorBody, Disclosure, SessionDetail, SessionListItem, Snapshot, WebSettings } from './types';
+import type { AppErrorBody, Disclosure, ModelConfigStatus, SessionDetail, SessionListItem, Snapshot, WebSettings } from './types';
 
 export class ApiError extends Error {
   readonly body: AppErrorBody;
@@ -42,8 +42,24 @@ export const api = {
   settings: () => request<{ settings: WebSettings; disclosureVersion: string; needsDisclosure: boolean }>('GET', '/api/settings'),
   disclosure: () => request<{ disclosure: Disclosure; acknowledged: boolean; current: WebSettings }>('GET', '/api/disclosure'),
   acknowledgeDisclosure: () => request<{ settings: WebSettings; needsDisclosure: boolean }>('PATCH', '/api/settings', { disclosureAck: true }),
-  updateSettings: (patch: Partial<Pick<WebSettings, 'saveHistory' | 'saveAudio'>>) => request<{ settings: WebSettings; needsDisclosure: boolean }>('PATCH', '/api/settings', patch),
-  createSession: (body: { synthetic: false; saveHistory: boolean; saveAudio: boolean }) => request<{ sid: string; snapshot: Snapshot }>('POST', '/api/sessions', body),
+  updateSettings: (patch: Partial<Pick<WebSettings, 'saveHistory' | 'saveAudio' | 'answerStartMode'>>) => request<{ settings: WebSettings; needsDisclosure: boolean }>('PATCH', '/api/settings', patch),
+  createSession: (body: { synthetic: false; saveHistory: boolean; saveAudio: boolean; disclosureAck: true }) => request<{ sid: string; snapshot: Snapshot }>('POST', '/api/sessions', body),
+  modelConfig: () => request<ModelConfigStatus>('GET', '/api/model-config'),
+  async updateModelConfig(apiKey: string, configToken: string): Promise<ModelConfigStatus> {
+    let response: Response;
+    try {
+      response = await fetch('/api/model-config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-Config-Token': configToken },
+        body: JSON.stringify({ apiKey }),
+      });
+    } catch {
+      throw new ApiError({ code: 'E_OFFLINE', message: '本地服务未连接', hint: '请先启动 npm run web:serve' });
+    }
+    const payload = await response.json() as ModelConfigStatus | { error: AppErrorBody };
+    if (!response.ok || 'error' in payload) throw new ApiError('error' in payload ? payload.error : { code: `E_HTTP_${response.status}`, message: '模型配置保存失败' });
+    return payload;
+  },
   detail: (sid: string) => request<SessionDetail>('GET', `/api/sessions/${encodeURIComponent(sid)}`),
   snapshot: (sid: string) => request<{ snapshot: Snapshot }>('GET', `/api/sessions/${encodeURIComponent(sid)}/snapshot`),
   action: (sid: string, action: string, body?: unknown) => request<{ snapshot: Snapshot }>('POST', `/api/sessions/${encodeURIComponent(sid)}/${action}`, body),

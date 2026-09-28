@@ -1,4 +1,4 @@
-import { FileArrowUp, HardDrives, LockKey, ShieldCheck } from '@phosphor-icons/react';
+import { FileArrowUp, HardDrives, LockKey, Paperclip, ShieldCheck, X } from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, api } from '../api';
 import { BrandHeader } from '../components/BrandHeader';
@@ -13,6 +13,7 @@ interface HomePageProps {
 }
 
 type UploadTarget = 'jd' | 'experience';
+type Attachment = { name: string; text: string; chars: number; kind: string; note?: string };
 
 export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps) {
   const [jd, setJd] = useState('');
@@ -24,6 +25,7 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
   const [draftToggles, setDraftToggles] = useState<Toggles | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState<UploadTarget | null>(null);
+  const [attachments, setAttachments] = useState<Record<UploadTarget, Attachment | null>>({ jd: null, experience: null });
   const [error, setError] = useState<AppErrorBody | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const jdRef = useRef<HTMLTextAreaElement>(null);
@@ -32,11 +34,11 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
 
   useEffect(() => {
     const guard = (event: BeforeUnloadEvent) => {
-      if (jd !== '' || experience !== '') event.preventDefault();
+      if (jd !== '' || experience !== '' || attachments.jd !== null || attachments.experience !== null) event.preventDefault();
     };
     addEventListener('beforeunload', guard);
     return () => removeEventListener('beforeunload', guard);
-  }, [experience, jd]);
+  }, [attachments.experience, attachments.jd, experience, jd]);
 
   /**
    * 草稿会话（上传先建的那一个）一旦开关对不上，就必须删掉重建。
@@ -73,10 +75,10 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
     try {
       const sid = await ensureSession();
       const parsed = await api.uploadMaterial(sid, file);
-      if (target === 'jd') setJd(parsed.text);
-      else setExperience(parsed.text);
+      setAttachments((current) => ({ ...current, [target]: { name: file.name, text: parsed.text, chars: parsed.parsed.chars, kind: parsed.parsed.kind, ...(parsed.parsed.note === undefined ? {} : { note: parsed.parsed.note }) } }));
+      if (target === 'jd') setJd('');
+      else setExperience('');
       setFieldErrors((current) => ({ ...current, [target]: '' }));
-      requestAnimationFrame(() => (target === 'jd' ? jdRef.current : experienceRef.current)?.focus());
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.body : { code: 'E_PARSE_FAILED', message: '文件没有读出来', hint: '改为粘贴文本' });
     } finally {
@@ -85,10 +87,12 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
   };
 
   const start = async () => {
+    const effectiveJd = attachments.jd?.text ?? jd;
+    const effectiveExperience = attachments.experience?.text ?? experience;
     const nextErrors: Record<string, string> = {};
     if (stage === '') nextErrors.stage = '请选择应届或社招';
-    if (jd.trim().length < 10) nextErrors.jd = '请填写至少 10 个字的岗位 JD';
-    if (experience.trim().length < 30) nextErrors.experience = '请填写至少 30 个字的个人经历';
+    if (effectiveJd.trim().length < 10) nextErrors.jd = '请填写至少 10 个字的岗位 JD，或上传附件';
+    if (effectiveExperience.trim().length < 30) nextErrors.experience = '请填写至少 30 个字的个人经历，或上传附件';
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0 || stage === '') {
       requestAnimationFrame(() => {
@@ -102,7 +106,7 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
     setError(null);
     try {
       const sid = await ensureSession();
-      onSessionReady(sid, { jd: jd.trim(), experience: experience.trim(), stage, targetRole: targetRole.trim() });
+      onSessionReady(sid, { jd: effectiveJd.trim(), experience: effectiveExperience.trim(), stage, targetRole: targetRole.trim() });
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: '暂时无法创建会话', hint: '检查本地服务后再试' });
       setBusy(false);
@@ -146,14 +150,16 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
               </fieldset>
             </div>
             <Field label="岗位 JD" htmlFor="job-description" error={fieldErrors.jd} action={
-              <UploadButton target="jd" busy={uploading === 'jd'} setTarget={(target) => { uploadTarget.current = target; }} onFile={handleUpload} />
+              <UploadButton target="jd" busy={uploading === 'jd'} attached={attachments.jd !== null} setTarget={(target) => { uploadTarget.current = target; }} onFile={handleUpload} />
             }>
-              <textarea ref={jdRef} id="job-description" name="job-description" autoComplete="off" value={jd} onChange={(event) => setJd(event.target.value)} placeholder="粘贴职位描述，至少 10 个字…" rows={3} />
+              {attachments.jd ? <AttachmentChip attachment={attachments.jd} onRemove={() => setAttachments((current) => ({ ...current, jd: null }))} /> : null}
+              <textarea ref={jdRef} id="job-description" name="job-description" autoComplete="off" value={jd} onChange={(event) => { setJd(event.target.value); if (attachments.jd !== null) setAttachments((current) => ({ ...current, jd: null })); }} placeholder={attachments.jd ? '已使用上方附件；直接输入会改为使用这里的文字' : '粘贴职位描述，至少 10 个字…'} rows={3} />
             </Field>
             <Field label="你的经历" htmlFor="experience" error={fieldErrors.experience} action={
-              <UploadButton target="experience" busy={uploading === 'experience'} setTarget={(target) => { uploadTarget.current = target; }} onFile={handleUpload} />
+              <UploadButton target="experience" busy={uploading === 'experience'} attached={attachments.experience !== null} setTarget={(target) => { uploadTarget.current = target; }} onFile={handleUpload} />
             }>
-              <textarea ref={experienceRef} id="experience" name="experience" autoComplete="off" value={experience} onChange={(event) => setExperience(event.target.value)} placeholder="粘贴简历或一段想重点练习的经历，至少 30 个字…" rows={4} />
+              {attachments.experience ? <AttachmentChip attachment={attachments.experience} onRemove={() => setAttachments((current) => ({ ...current, experience: null }))} /> : null}
+              <textarea ref={experienceRef} id="experience" name="experience" autoComplete="off" value={experience} onChange={(event) => { setExperience(event.target.value); if (attachments.experience !== null) setAttachments((current) => ({ ...current, experience: null })); }} placeholder={attachments.experience ? '已使用上方附件；直接输入会改为使用这里的文字' : '粘贴简历或一段想重点练习的经历，至少 30 个字…'} rows={4} />
             </Field>
             {error !== null ? <ErrorState error={error} compact onAction={(action) => {
               if (action === 'paste') (uploadTarget.current === 'jd' ? jdRef.current : experienceRef.current)?.focus();
@@ -167,12 +173,13 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
             <button className="button button--primary start-button" type="button" onClick={() => void start()} disabled={busy || uploading !== null}>
               {busy ? '正在准备问题…' : '开始这一场'}
             </button>
+            <p className="start-consent">开始即表示你已阅读<a href="/privacy" onClick={(event) => { event.preventDefault(); onNavigate('/privacy'); }}>隐私说明</a>；材料会发送给你配置的百炼模型。</p>
           </div>
         </section>
       </main>
       <footer className="privacy-pills" aria-label="隐私承诺">
         <PrivacyPill icon={HardDrives} text="材料与报告保留在本机" />
-        <PrivacyPill icon={ShieldCheck} text="密钥不会进入浏览器" />
+        <PrivacyPill icon={ShieldCheck} text="密钥不进浏览器存储" />
         <PrivacyPill icon={LockKey} text="你可随时删除本场记录" />
       </footer>
     </div>
@@ -189,13 +196,23 @@ function Field({ label, htmlFor, optional = false, error, action, children }: { 
   );
 }
 
-function UploadButton({ target, busy, setTarget, onFile }: { target: UploadTarget; busy: boolean; setTarget(target: UploadTarget): void; onFile(file: File | undefined): void }) {
+function UploadButton({ target, busy, attached, setTarget, onFile }: { target: UploadTarget; busy: boolean; attached: boolean; setTarget(target: UploadTarget): void; onFile(file: File | undefined): void }) {
   return (
     <label className="upload-button">
       <FileArrowUp size={16} weight="bold" aria-hidden="true" />
-      {busy ? '正在读取' : '上传 TXT / PDF / DOCX'}
+      {busy ? '正在读取' : attached ? '替换附件' : '上传 TXT / PDF / DOCX'}
       <input type="file" accept=".txt,.md,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onClick={() => setTarget(target)} onChange={(event) => { onFile(event.target.files?.[0]); event.currentTarget.value = ''; }} />
     </label>
+  );
+}
+
+function AttachmentChip({ attachment, onRemove }: { attachment: Attachment; onRemove(): void }) {
+  return (
+    <div className="attachment-chip" role="status">
+      <Paperclip size={17} weight="bold" aria-hidden="true" />
+      <span><strong>{attachment.name}</strong><small>已读取 {attachment.chars.toLocaleString('zh-CN')} 字，不在输入框展开</small></span>
+      <button type="button" onClick={onRemove} aria-label={`移除附件 ${attachment.name}`}><X size={16} weight="bold" aria-hidden="true" /></button>
+    </div>
   );
 }
 

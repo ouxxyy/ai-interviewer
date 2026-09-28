@@ -185,3 +185,21 @@ test('P1-1：未连接的 WebSocket 上发送同样要报失败而不是静默�
   assert.equal(runtime.repeatQuestion(), false);
   assert.equal(recorded.errors.filter((error) => error.code === 'E_OFFLINE').length, 1);
 });
+
+test('连续面试：提交回答与无播放队列的暂停恢复都会回到 idle，允许下一轮自动开麦', async () => {
+  const { runtime, recorded } = makeRuntime();
+  const connecting = runtime.connect('s-1');
+  const socket = FakeWebSocket.last;
+  socket.establish();
+  await connecting;
+
+  runtime.pause();
+  assert.equal(recorded.statuses.at(-1), 'paused');
+  runtime.resume();
+  assert.equal(recorded.statuses.at(-1), 'idle', '没有待播音频时恢复后不能永远卡在 paused');
+
+  const idleBeforeCommit = recorded.statuses.filter((status) => status === 'idle').length;
+  assert.equal(await runtime.commitAnswer(), true);
+  assert.equal(recorded.statuses.filter((status) => status === 'idle').length, idleBeforeCommit + 1, '回答提交后要明确退出 listening');
+  assert.match(socket.sent.at(-1) ?? '', /answer\.commit/);
+});

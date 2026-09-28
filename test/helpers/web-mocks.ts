@@ -58,10 +58,10 @@ export class MockRealtimeClient implements RealtimeLike {
     this.openCount += 1;
     if ((this.script.openFailures ?? 0) > 0) {
       this.script.openFailures = (this.script.openFailures ?? 0) - 1;
-      throw new Error(`音色前置断言失败：生效音色 Chelsie ≠ 期望 Serena（session=${sessionId}）`);
+      throw new Error(`音色前置断言失败：生效音色 Chelsie ≠ 期望 Maia（session=${sessionId}）`);
     }
     this.isVoiceAsserted = true;
-    const voice = this.script.effectiveVoice ?? 'Serena';
+    const voice = this.script.effectiveVoice ?? 'Maia';
     return {
       sessionId,
       model: 'mock-realtime',
@@ -173,6 +173,8 @@ export interface TextScript {
   badReviewAttempts?: number;
   /** 计划生成失败（抛错）。 */
   planError?: string;
+  /** 计划前 N 次返回可解析但不符合契约的结构（验证自动整改重试）。 */
+  badPlanAttempts?: number;
   /** 计划只有 2 题（验证契约门）。 */
   planQuestionCount?: number;
   /** 已完成的评审调用次数（按提示词统计）。 */
@@ -201,10 +203,12 @@ export class ScriptedTextClient implements TextLlmClient {
   readonly counts: Record<string, number> = {};
   private followups: NonNullable<TextScript['followups']>;
   private badReviewAttempts: number;
+  private badPlanAttempts: number;
 
   constructor(private readonly script: TextScript = {}) {
     this.followups = [...(script.followups ?? [])];
     this.badReviewAttempts = script.badReviewAttempts ?? 0;
+    this.badPlanAttempts = script.badPlanAttempts ?? 0;
   }
 
   async complete(req: CompletionRequest): Promise<CompletionResponse> {
@@ -225,6 +229,10 @@ export class ScriptedTextClient implements TextLlmClient {
         })),
         askedTopics: ['主题1'],
       };
+      if (this.badPlanAttempts > 0) {
+        this.badPlanAttempts -= 1;
+        (plan.questions[0] as unknown as { topics: unknown[] }).topics = [{ label: '错误结构' }];
+      }
       return { text: JSON.stringify(plan), usage: { promptTokens: 100, completionTokens: 50 } };
     }
     if (kind === 'followup') {

@@ -18,12 +18,13 @@ test('音色前置断言未通过时，injectText 直接拒绝（不发任何 re
   client.close();
 });
 
-test('默认音色写死为 Serena，且白名单里 Chelsie 明确标为不可用', () => {
-  assert.equal(REALTIME_DEFAULTS.defaultVoice, 'Serena');
+test('默认音色切换为 Maia，且不伪造实时验证结论', () => {
+  assert.equal(REALTIME_DEFAULTS.defaultVoice, 'Maia');
+  assert.equal('Maia' in SUPPORTED_VOICES, false, 'Maia 尚未实调，不得混入历史实测白名单');
   assert.equal(SUPPORTED_VOICES.Serena, true);
   assert.equal(SUPPORTED_VOICES.Chelsie, false, '服务端自报默认音色实测被 400 拒，白名单必须标 false');
   const client = new DashscopeRealtimeClient('dummy-credential-value');
-  assert.equal(client.expectedVoice, 'Serena');
+  assert.equal(client.expectedVoice, 'Maia');
   assert.equal(new DashscopeRealtimeClient('d', { voice: 'Katerina' }).expectedVoice, 'Katerina');
   client.close();
 });
@@ -31,12 +32,12 @@ test('默认音色写死为 Serena，且白名单里 Chelsie 明确标为不可�
 test('脱敏载荷不泄露凭证值（session-config 证据的防线）', () => {
   const client = new DashscopeRealtimeClient('sk-abcdefghijklmnop');
   client.sessionCreatedPayload = { voice: 'Chelsie', note: 'sk-abcdefghijklmnop' };
-  client.sessionUpdatedPayload = { voice: 'Serena' };
+  client.sessionUpdatedPayload = { voice: 'Maia' };
   const redacted = client.redactedSessionPayloads();
   const text = JSON.stringify(redacted);
   assert.equal(text.includes('sk-abcdefghijklmnop'), false, '凭证值必须被抹掉');
   assert.match(text, /<redacted/);
-  assert.equal(redacted.expectedVoice, 'Serena');
+  assert.equal(redacted.expectedVoice, 'Maia');
   client.close();
 });
 

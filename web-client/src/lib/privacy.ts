@@ -26,8 +26,8 @@ export function sessionToggles(settings: Pick<WebSettings, 'saveHistory' | 'save
 }
 
 /** `POST /api/sessions` 的请求体：显式带上开关，避免落到服务端旧默认值。 */
-export function sessionCreateBody(settings: Pick<WebSettings, 'saveHistory' | 'saveAudio'>): { synthetic: false } & Toggles {
-  return { synthetic: false, ...sessionToggles(settings) };
+export function sessionCreateBody(settings: Pick<WebSettings, 'saveHistory' | 'saveAudio'>): { synthetic: false; disclosureAck: true } & Toggles {
+  return { synthetic: false, ...sessionToggles(settings), disclosureAck: true };
 }
 
 /** 单开关变更对应的服务端补丁：关历史必须连带关录音。 */

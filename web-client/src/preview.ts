@@ -3,13 +3,14 @@ import type { Disclosure, Feedback, PreviewData, SessionDetail, Snapshot, Turn, 
 export const previewSettings: WebSettings = {
   saveHistory: true,
   saveAudio: true,
+  answerStartMode: 'continuous',
   disclosureAckVersion: null,
   disclosureAckAt: null,
   updatedAt: null,
 };
 
 export const previewDisclosure: Disclosure = {
-  version: 'disclosure@0.1.0',
+  version: 'disclosure@0.2.0',
   staysLocal: ['JD 与经历原文', '每轮回答转写与修订文本', '五维反馈、重答对比与全场报告'],
   sentToCloud: ['JD 与经历文本，用于生成主问题', '回答文本，用于追问与五维评审', '回答音频，用于实时转写'],
   storage: { root: 'data/web/', database: 'data/web/interview.sqlite', audio: 'data/web/audio/<会话 id>/', uploads: 'data/web/tmp/uploads/', note: '关闭开关只影响新会话，不会删除旧记录。' },

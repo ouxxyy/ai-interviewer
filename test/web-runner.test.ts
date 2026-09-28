@@ -324,6 +324,21 @@ test('计划只有 2 题：拒绝进入流程（契约要求 3 题）', async ()
   }
 });
 
+test('问题计划首次结构不合规：携带契约错误自动整改重试一次后进入作答', async () => {
+  const h = harness('plan-schema-retry', { text: { badPlanAttempts: 1 } });
+  try {
+    const snap = await h.runner.confirmMaterials(MATERIALS);
+    assert.equal(h.text.counts.plan, 2, '第一次契约失败后应自动重试一次');
+    assert.equal(snap.plan?.questions.length, 3);
+    assert.equal(snap.state, 'answer');
+    assert.equal(snap.lastError, null);
+    assert.match(h.text.prompts[1] ?? '', /上一次输出未通过契约校验/);
+    assert.match(h.text.prompts[1] ?? '', /topics/);
+  } finally {
+    h.cleanup();
+  }
+});
+
 test('关「保存历史」：整场跑完库里零条记录、无音频文件；关「保存录音」：记录在、无音频文件', async () => {
   const off = harness('toggle-off', { saveHistory: false, saveAudio: true, transcripts: ['我负责策划与落地，收到 143 篇投稿。'] });
   try {

@@ -34,7 +34,7 @@ test('音色前置断言失败 → 丢弃旧连接、新开一条；成功那次
   const { session, reconnects } = await b.ensureOpen('s1');
   assert.equal(clients.length, 2, '必须新开连接，而不是在旧连接上重试');
   assert.equal(clients[0]!.closed, true, '失败的连接必须关掉');
-  assert.equal(session.updated?.voice, 'Serena');
+  assert.equal(session.updated?.voice, 'Maia');
   assert.equal(b.stats.connections, 1);
   assert.equal(reconnects, 1);
 });

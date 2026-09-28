@@ -1,12 +1,12 @@
 /**
- * 首次使用告知（冻结文案，版本 `disclosure@0.1.0`）。
+ * 使用告知（冻结文案，版本 `disclosure@0.2.0`）。
  *
  * 必须说清四件事（PM §5 / MYW-85）：哪些内容留本机、哪些发给云模型、保存位置与删除方式、费用怎么结算。
  * 这里写成**结构化字段**而不是一段散文：接口返回它，前端直接渲染；
  * 改文案要升 `DISCLOSURE_VERSION`，用户需重新确认（`SettingsStore.needsDisclosure()`）。
  */
 
-export const DISCLOSURE_VERSION = 'disclosure@0.1.0';
+export const DISCLOSURE_VERSION = 'disclosure@0.2.0';
 
 export const DISCLOSURE = {
   version: DISCLOSURE_VERSION,
@@ -24,7 +24,7 @@ export const DISCLOSURE = {
     '每轮回答的确认文本 → 用于追问判定与五维评审（文本模型）',
     '面试官要朗读的问题文本 → 实时语音模型据此合成语音（实时模型）',
     '你的回答音频 → 实时语音模型做转写（实时模型）',
-    '注意：密钥只保存在本机服务配置里，浏览器拿不到，也不会写进报告或录屏',
+    '配置时密钥只经浏览器到 127.0.0.1 本地服务的一次同源请求，随后仅保存在项目根 .env；不会写入浏览器存储、日志、报告或录屏',
   ],
   /** 保存位置（相对仓库根，便于你自己去看／删）。 */
   storage: {
