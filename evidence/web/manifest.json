@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-09-26T19:30:53.351Z",
+  "generatedAt": "2026-09-28T15:48:02.190Z",
   "artifacts": [
     {
       "path": "evidence/web/acceptance.md",
       "kind": "md",
-      "bytes": 21589,
-      "sha256": "ac66a068ef9228f541efb2a1d615b5c2460e85c3fb8daa61e85a646dc867e625",
+      "bytes": 21761,
+      "sha256": "bb3567023a1c4dbb3fe2671fb40b5d2008ea1520d0bc335927babb23c69a96e9",
       "committed": true
     },
     {
       "path": "evidence/web/summary.json",
       "kind": "json",
-      "bytes": 58324,
-      "sha256": "0071b872f3a0a6b720464c1e78e68a9b59175a07df22fb3e7a0d377de7798512",
+      "bytes": 59375,
+      "sha256": "283f57b1b6749835cd46038e9b550fcacf192ebd9e99064be0406376c2834b0e",
       "committed": true
     }
   ],
   "verifiedAgainstDisk": {
     "total": 2,
     "mismatches": [],
-    "checkedAt": "2026-09-26T19:30:53.352Z"
+    "checkedAt": "2026-09-28T15:48:02.194Z"
   },
   "note": "doc-only 重建：数据来自 summary.json，未重新调用模型"
 }

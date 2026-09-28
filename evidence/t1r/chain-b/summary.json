@@ -1,7 +1,7 @@
 {
   "ok": true,
   "session": {
-    "sessionId": "sess_NJUgw9KC53975W9g6koAr",
+    "sessionId": "sess_UdY58yJ3LD68meYQZICBN",
     "model": "qwen3.8-omni-flash-realtime",
     "voice": "Chelsie",
     "inputAudioFormat": "pcm16",
@@ -15,9 +15,9 @@
       "create_response": true,
       "interrupt_response": true
     },
-    "handshakeMs": 227,
+    "handshakeMs": 185,
     "effective": {
-      "id": "sess_NJUgw9KC53975W9g6koAr",
+      "id": "sess_UdY58yJ3LD68meYQZICBN",
       "object": "realtime.session",
       "model": "qwen3.8-omni-flash-realtime",
       "modalities": [
@@ -25,7 +25,7 @@
         "audio"
       ],
       "instructions": "你是中文面试官。当用户消息要求你朗读文本时，必须逐字朗读该文本，不得改写、增删、重复或追加任何内容；不要自行提问，不要评价回答。",
-      "voice": "Serena",
+      "voice": "Maia",
       "input_audio_format": "pcm16",
       "output_audio_format": "pcm24",
       "input_audio_transcription": {
@@ -42,13 +42,13 @@
       "verbatim": true,
       "interviewerAudio": {
         "path": "data/t1r/chain-b-audio/turn1-interviewer-question.wav",
-        "bytes": 291840,
-        "durationSeconds": 6.08,
-        "sha256": "89b344974408b15a1a667be70e9ff5d9020c6d8e688b9b381f44107fb34e44ab",
-        "peak": 0.4824
+        "bytes": 326400,
+        "durationSeconds": 6.8,
+        "sha256": "ff17d9d702ddd1fb4d0a031cf15b84e461e4f956eeaacc8b5f6ab66130f661d0",
+        "peak": 0.5468
       },
-      "firstAudioMs": 577,
-      "totalMs": 1454,
+      "firstAudioMs": 573,
+      "totalMs": 1531,
       "status": "completed"
     },
     {
@@ -63,8 +63,8 @@
         "peak": 0.6682
       },
       "userTranscript": "我在毕业季征稿活动里负责整体策划和落地。前期我先用问卷收集了两百份同学偏好，然后把主题定成毕业故事。之后我联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
-      "asrLatencyMs": 250,
-      "note": "推流 5631ms，pcm 802978 字节 / 25.093s"
+      "asrLatencyMs": 323,
+      "note": "推流 5354ms，pcm 802978 字节 / 25.093s"
     },
     {
       "index": 3,
@@ -74,13 +74,13 @@
       "verbatim": true,
       "interviewerAudio": {
         "path": "data/t1r/chain-b-audio/turn3-interviewer-followup.wav",
-        "bytes": 226560,
-        "durationSeconds": 4.72,
-        "sha256": "72a26a61f1791e790f567f02ac57ea9eb5fd4b8d6279a5cc6a7f5ea1fc724e28",
-        "peak": 0.4179
+        "bytes": 272640,
+        "durationSeconds": 5.68,
+        "sha256": "c51043589598eca7b4568de246659cef56d0ec17ea18cc5bb5b0616d286e0700",
+        "peak": 0.3769
       },
-      "firstAudioMs": 592,
-      "totalMs": 1198,
+      "firstAudioMs": 600,
+      "totalMs": 1308,
       "status": "completed"
     },
     {
@@ -92,18 +92,18 @@
         "path": "data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav",
         "bytes": 92160,
         "durationSeconds": 1.92,
-        "sha256": "77031a46ec59aaca9d282a3bbe3b498c6e71da8e796c69fcb16982417ca47336",
-        "peak": 0.3965
+        "sha256": "d8e65dd91e3634f10b0af1ceb39aed2f4ad79c8b922f627429323a56522b9987",
+        "peak": 0.4355
       },
-      "totalMs": 1002,
+      "totalMs": 1069,
       "status": "cancelled",
       "interrupt": {
-        "cancelSentAtMs": 1790439883645,
+        "cancelSentAtMs": 1790610010856,
         "audioDeltasBeforeCancel": 5,
         "audioDeltasAfterCancel": 1,
         "bytesAfterCancel": 15360,
         "finalStatus": "cancelled",
-        "stoppedWithinMs": 69
+        "stoppedWithinMs": 73
       }
     }
   ],
@@ -119,295 +119,408 @@
   "premisePersistInterviewerAudio": {
     "supported": true,
     "turnsWithAudio": 3,
-    "totalBytes": 610560,
+    "totalBytes": 691200,
     "evidence": [
-      "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜6.08s｜291840B｜sha256=89b344974408b15a…",
-      "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜4.72s｜226560B｜sha256=72a26a61f1791e79…",
-      "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=77031a46ec59aaca…"
+      "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜6.8s｜326400B｜sha256=ff17d9d702ddd1fb…",
+      "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜5.68s｜272640B｜sha256=c51043589598eca7…",
+      "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=d8e65dd91e3634f1…"
     ]
   },
   "eventLog": [
     {
-      "t": 226,
+      "t": 185,
       "dir": "recv",
       "type": "session.created"
     },
     {
-      "t": 228,
+      "t": 185,
       "dir": "send",
       "type": "session.update"
     },
     {
-      "t": 364,
+      "t": 315,
       "dir": "recv",
       "type": "session.updated"
     },
     {
-      "t": 365,
+      "t": 316,
       "dir": "send",
       "type": "conversation.item.create"
     },
     {
-      "t": 365,
+      "t": 316,
       "dir": "send",
       "type": "response.create"
     },
     {
-      "t": 456,
+      "t": 396,
       "dir": "recv",
       "type": "conversation.item.created"
     },
     {
-      "t": 904,
+      "t": 627,
       "dir": "recv",
       "type": "response.created"
     },
     {
-      "t": 904,
+      "t": 627,
       "dir": "recv",
       "type": "response.output_item.added"
     },
     {
-      "t": 904,
+      "t": 627,
       "dir": "recv",
       "type": "conversation.item.created"
     },
     {
-      "t": 904,
+      "t": 627,
       "dir": "recv",
       "type": "response.content_part.added"
     },
     {
-      "t": 904,
+      "t": 628,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 1
     },
     {
-      "t": 905,
+      "t": 733,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 905,
+      "t": 736,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 10
     },
     {
-      "t": 905,
+      "t": 736,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 8
     },
     {
-      "t": 905,
+      "t": 736,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 5
     },
     {
-      "t": 942,
+      "t": 889,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1022,
+      "t": 967,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1109,
+      "t": 1062,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1154,
+      "t": 1095,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1205,
+      "t": 1151,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1235,
+      "t": 1183,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1278,
+      "t": 1226,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1324,
+      "t": 1279,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1368,
+      "t": 1325,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1411,
+      "t": 1378,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1455,
+      "t": 1396,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1507,
+      "t": 1441,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1543,
+      "t": 1485,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1590,
+      "t": 1525,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1636,
+      "t": 1574,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1683,
+      "t": 1615,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1726,
+      "t": 1658,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1769,
+      "t": 1703,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1818,
+      "t": 1745,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 1818,
+      "t": 1792,
+      "dir": "recv",
+      "type": "response.audio.delta",
+      "bytes": 15360
+    },
+    {
+      "t": 1830,
+      "dir": "recv",
+      "type": "response.audio.delta",
+      "bytes": 15360
+    },
+    {
+      "t": 1839,
+      "dir": "recv",
+      "type": "response.audio.delta",
+      "bytes": 3840
+    },
+    {
+      "t": 1846,
       "dir": "recv",
       "type": "response.audio_transcript.done"
     },
     {
-      "t": 1819,
+      "t": 1846,
       "dir": "recv",
       "type": "response.audio.done"
     },
     {
-      "t": 1819,
+      "t": 1846,
       "dir": "recv",
       "type": "response.content_part.done"
     },
     {
-      "t": 1819,
+      "t": 1846,
       "dir": "recv",
       "type": "response.output_item.done"
     },
     {
-      "t": 1819,
+      "t": 1846,
       "dir": "recv",
       "type": "response.done"
     },
     {
-      "t": 3806,
+      "t": 3522,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3829,
+      "t": 3543,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3851,
+      "t": 3565,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3874,
+      "t": 3585,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3895,
+      "t": 3607,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3917,
+      "t": 3629,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3939,
+      "t": 3651,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3962,
+      "t": 3671,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 3986,
+      "t": 3693,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4008,
+      "t": 3715,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4031,
+      "t": 3737,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3757,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3779,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3800,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3822,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3843,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3863,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3884,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3907,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3927,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3948,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3969,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 3983,
+      "dir": "recv",
+      "type": "conversation.item.created"
+    },
+    {
+      "t": 3983,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 2
+    },
+    {
+      "t": 3990,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4011,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4032,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
@@ -425,224 +538,259 @@
       "bytes": 3200
     },
     {
-      "t": 4102,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4125,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4146,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4168,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4189,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4211,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4223,
+      "t": 4077,
       "dir": "recv",
-      "type": "conversation.item.created"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 4
     },
     {
-      "t": 4223,
+      "t": 4083,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 5
     },
     {
-      "t": 4225,
+      "t": 4089,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 6
     },
     {
-      "t": 4232,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4255,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4277,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4302,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4324,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4325,
+      "t": 4094,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 7
     },
     {
-      "t": 4338,
+      "t": 4096,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4118,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4138,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4159,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4181,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4202,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4224,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4234,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 7
     },
     {
-      "t": 4339,
+      "t": 4243,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 9
     },
     {
-      "t": 4343,
+      "t": 4245,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4245,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 10
     },
     {
-      "t": 4345,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4368,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4388,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4410,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4431,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4453,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4475,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4487,
+      "t": 4250,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 11
     },
     {
-      "t": 4492,
+      "t": 4266,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4287,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4309,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4331,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4351,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4373,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4394,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4416,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4438,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4460,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4481,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4501,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4522,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4552,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4573,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4595,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4616,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 4617,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 12
     },
     {
-      "t": 4496,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4498,
+      "t": 4622,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 14
     },
     {
-      "t": 4506,
+      "t": 4627,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 16
     },
     {
-      "t": 4518,
+      "t": 4634,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 17
+    },
+    {
+      "t": 4636,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4540,
+      "t": 4639,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 19
+    },
+    {
+      "t": 4645,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 20
+    },
+    {
+      "t": 4657,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4562,
+      "t": 4678,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4586,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4608,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4630,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4653,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4675,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 4695,
+      "t": 4699,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
@@ -666,94 +814,64 @@
       "bytes": 3200
     },
     {
-      "t": 4785,
+      "t": 4784,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4808,
+      "t": 4805,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4829,
+      "t": 4827,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4854,
+      "t": 4848,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4875,
+      "t": 4869,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4897,
+      "t": 4891,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4920,
+      "t": 4912,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4941,
+      "t": 4933,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4957,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 4957,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 4961,
+      "t": 4954,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 4961,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 4969,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 4981,
+      "t": 4976,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
-    },
-    {
-      "t": 4999,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 5000,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
     },
     {
       "t": 5002,
@@ -762,508 +880,589 @@
       "bytes": 3200
     },
     {
-      "t": 5025,
+      "t": 5023,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5051,
+      "t": 5044,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5073,
+      "t": 5065,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5095,
+      "t": 5086,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5120,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5143,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5165,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5186,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5208,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5229,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5251,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5274,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5297,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5319,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5342,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5364,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5386,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5409,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5432,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5437,
+      "t": 5087,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 22
     },
     {
-      "t": 5441,
+      "t": 5094,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 23
     },
     {
-      "t": 5452,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5452,
+      "t": 5100,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 24
     },
     {
-      "t": 5474,
+      "t": 5107,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5487,
+      "t": 5129,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5144,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 25
     },
     {
-      "t": 5495,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5504,
+      "t": 5144,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 27
     },
     {
-      "t": 5504,
+      "t": 5144,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 28
     },
     {
-      "t": 5518,
+      "t": 5149,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5539,
+      "t": 5169,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5562,
+      "t": 5190,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5584,
+      "t": 5211,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5607,
+      "t": 5233,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5627,
+      "t": 5253,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5654,
+      "t": 5275,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5676,
+      "t": 5296,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5703,
+      "t": 5316,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5725,
+      "t": 5337,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5746,
+      "t": 5359,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5770,
+      "t": 5380,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5792,
+      "t": 5401,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5807,
+      "t": 5423,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5445,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5468,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5468,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 29
     },
     {
-      "t": 5813,
+      "t": 5469,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 30
+    },
+    {
+      "t": 5469,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 31
+    },
+    {
+      "t": 5469,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 32
+    },
+    {
+      "t": 5469,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 33
+    },
+    {
+      "t": 5469,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 35
+    },
+    {
+      "t": 5470,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 36
+    },
+    {
+      "t": 5470,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 37
+    },
+    {
+      "t": 5490,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5813,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 5818,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 5824,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 5829,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 5838,
+      "t": 5510,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 5838,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "t": 5532,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
     },
     {
-      "t": 5840,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "t": 5553,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5575,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5596,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5617,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5638,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5659,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5680,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5701,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5722,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5743,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5763,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5784,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5805,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5826,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
     },
     {
       "t": 5847,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5853,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 37
     },
     {
-      "t": 5860,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5885,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5907,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5929,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5953,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5975,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 5996,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6019,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6041,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6063,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6087,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6110,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6134,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6156,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6178,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6202,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6223,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6224,
+      "t": 5861,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 38
     },
     {
-      "t": 6230,
+      "t": 5866,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 40
     },
     {
-      "t": 6237,
+      "t": 5868,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5868,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 41
     },
     {
-      "t": 6242,
+      "t": 5879,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 43
     },
     {
-      "t": 6243,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6249,
+      "t": 5884,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 44
     },
     {
-      "t": 6255,
+      "t": 5888,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5889,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 45
     },
     {
-      "t": 6263,
+      "t": 5908,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6271,
+      "t": 5930,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5952,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5973,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 5994,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6015,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6037,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6059,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6079,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6101,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6127,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6149,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6170,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6192,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6214,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6235,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6256,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6278,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6298,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6299,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 45
     },
     {
-      "t": 6286,
+      "t": 6320,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6308,
+      "t": 6332,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 47
+    },
+    {
+      "t": 6333,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 49
+    },
+    {
+      "t": 6338,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 50
+    },
+    {
+      "t": 6343,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6330,
+      "t": 6346,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 52
+    },
+    {
+      "t": 6351,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 53
+    },
+    {
+      "t": 6351,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 54
+    },
+    {
+      "t": 6364,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6353,
+      "t": 6395,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6376,
+      "t": 6417,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6398,
+      "t": 6439,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6419,
+      "t": 6460,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6441,
+      "t": 6482,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6463,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6486,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6508,
+      "t": 6504,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
@@ -1275,283 +1474,301 @@
       "bytes": 3200
     },
     {
-      "t": 6553,
+      "t": 6551,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6576,
+      "t": 6584,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6599,
+      "t": 6609,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6621,
+      "t": 6631,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6643,
+      "t": 6652,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6665,
+      "t": 6675,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6687,
+      "t": 6697,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 6704,
+      "t": 6719,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6740,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6761,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6782,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6804,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6811,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6707,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6709,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6712,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6728,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6728,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6730,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6730,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6738,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 6752,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6774,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6795,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 50
     },
     {
       "t": 6817,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6844,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6868,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6890,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6912,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6935,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6956,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 6979,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7004,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7026,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7053,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7075,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7097,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7119,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 7119,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 52
     },
     {
-      "t": 7119,
+      "t": 6821,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 53
     },
     {
-      "t": 7122,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 7140,
+      "t": 6824,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7142,
+      "t": 6826,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 55
     },
     {
-      "t": 7142,
+      "t": 6832,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 56
     },
     {
-      "t": 7142,
+      "t": 6839,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 58
     },
     {
-      "t": 7150,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "t": 6845,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
     },
     {
-      "t": 7151,
+      "t": 6845,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 59
+    },
+    {
+      "t": 6849,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 60
+    },
+    {
+      "t": 6855,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 61
+    },
+    {
+      "t": 6862,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 62
+    },
+    {
+      "t": 6865,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6866,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 63
+    },
+    {
+      "t": 6885,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6906,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6926,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6947,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6967,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 6989,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7009,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7031,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7052,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7074,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7095,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7116,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7138,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
     },
     {
       "t": 7158,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 7161,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7162,
+      "t": 7165,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 63
     },
     {
       "t": 7170,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 65
     },
     {
-      "t": 7187,
+      "t": 7176,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 67
+    },
+    {
+      "t": 7178,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7210,
+      "t": 7181,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 69
+    },
+    {
+      "t": 7195,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 70
+    },
+    {
+      "t": 7197,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7237,
+      "t": 7218,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7259,
+      "t": 7239,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7261,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
@@ -1569,76 +1786,100 @@
       "bytes": 3200
     },
     {
-      "t": 7326,
+      "t": 7323,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7348,
+      "t": 7345,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7372,
+      "t": 7365,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7394,
+      "t": 7387,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7420,
+      "t": 7409,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7442,
+      "t": 7429,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7464,
+      "t": 7451,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7485,
+      "t": 7471,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7507,
+      "t": 7492,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7529,
+      "t": 7513,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7554,
+      "t": 7534,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7575,
+      "t": 7556,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
+    },
+    {
+      "t": 7578,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 7586,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 70
+    },
+    {
+      "t": 7590,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 72
+    },
+    {
+      "t": 7596,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 74
     },
     {
       "t": 7597,
@@ -1647,377 +1888,427 @@
       "bytes": 3200
     },
     {
-      "t": 7602,
+      "t": 7601,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 75
     },
     {
-      "t": 7602,
+      "t": 7608,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 76
     },
     {
-      "t": 7610,
+      "t": 7613,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 78
     },
     {
-      "t": 7620,
+      "t": 7618,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7620,
+      "t": 7618,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 79
     },
     {
-      "t": 7620,
+      "t": 7624,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 80
     },
     {
-      "t": 7641,
+      "t": 7639,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7662,
+      "t": 7661,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7686,
+      "t": 7682,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7709,
+      "t": 7703,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7731,
+      "t": 7724,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7752,
+      "t": 7745,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7773,
+      "t": 7766,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7795,
+      "t": 7787,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7820,
+      "t": 7808,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7842,
+      "t": 7830,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7865,
+      "t": 7851,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7888,
+      "t": 7871,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7911,
+      "t": 7892,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7936,
+      "t": 7913,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7958,
+      "t": 7935,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 7980,
+      "t": 7956,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8003,
+      "t": 7977,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8025,
+      "t": 7998,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
+    },
+    {
+      "t": 8010,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 79
+    },
+    {
+      "t": 8014,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 80
+    },
+    {
+      "t": 8019,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8020,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 82
+    },
+    {
+      "t": 8027,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 83
+    },
+    {
+      "t": 8030,
+      "dir": "recv",
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 85
     },
     {
       "t": 8037,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 87
     },
     {
-      "t": 8042,
+      "t": 8039,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8043,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 88
     },
     {
-      "t": 8046,
+      "t": 8060,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8059,
+      "t": 8082,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8103,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8124,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8146,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8166,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8187,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8210,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8232,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8251,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8272,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8292,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8312,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8334,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8353,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8375,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8396,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8417,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8418,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 83
     },
     {
-      "t": 8059,
+      "t": 8428,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 85
     },
     {
-      "t": 8059,
+      "t": 8431,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 87
     },
     {
-      "t": 8069,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8070,
+      "t": 8434,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 89
     },
     {
-      "t": 8070,
+      "t": 8438,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8444,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 91
     },
     {
-      "t": 8078,
+      "t": 8446,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 92
     },
     {
-      "t": 8090,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8112,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8137,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8159,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8184,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8206,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8228,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8253,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8275,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8297,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8319,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8340,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8362,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8386,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8408,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8430,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8452,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8473,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8495,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8503,
+      "t": 8451,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 94
     },
     {
-      "t": 8506,
+      "t": 8457,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 95
     },
     {
-      "t": 8512,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8517,
+      "t": 8459,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8518,
+      "t": 8461,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 96
     },
     {
-      "t": 8524,
+      "t": 8470,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 97
     },
     {
-      "t": 8530,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8537,
+      "t": 8479,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8537,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8558,
+      "t": 8501,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8579,
+      "t": 8523,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8603,
+      "t": 8543,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8625,
+      "t": 8565,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8585,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8607,
+      "dir": "send",
+      "type": "input_audio_buffer.append",
+      "bytes": 3200
+    },
+    {
+      "t": 8628,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
@@ -2029,703 +2320,538 @@
       "bytes": 3200
     },
     {
-      "t": 8670,
+      "t": 8668,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8692,
+      "t": 8689,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8718,
+      "t": 8710,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8739,
+      "t": 8730,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8761,
+      "t": 8752,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8784,
+      "t": 8773,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8807,
+      "t": 8793,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8827,
+      "t": 8815,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8854,
+      "t": 8835,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 3200
     },
     {
-      "t": 8877,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8904,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8924,
+      "t": 8847,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 97
     },
     {
-      "t": 8924,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8928,
+      "t": 8852,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 98
     },
     {
-      "t": 8936,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8940,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8945,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8946,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8952,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8957,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8971,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 8971,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8986,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8986,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 8993,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9015,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9036,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9057,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9080,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9103,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9125,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9147,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9169,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9192,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9212,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9236,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9258,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9280,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9304,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9327,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9350,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9371,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9393,
-      "dir": "send",
-      "type": "input_audio_buffer.append",
-      "bytes": 3200
-    },
-    {
-      "t": 9407,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 9417,
+      "t": 8855,
       "dir": "send",
       "type": "input_audio_buffer.append",
       "bytes": 2978
     },
     {
-      "t": 9418,
+      "t": 8859,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 99
     },
     {
-      "t": 9418,
+      "t": 8864,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 100
     },
     {
-      "t": 9424,
+      "t": 8869,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 102
     },
     {
-      "t": 9430,
-      "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
-    },
-    {
-      "t": 9437,
+      "t": 8876,
       "dir": "send",
       "type": "input_audio_buffer.commit"
     },
     {
-      "t": 9437,
+      "t": 8877,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 104
     },
     {
-      "t": 9440,
+      "t": 8880,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 105
     },
     {
-      "t": 9511,
+      "t": 8960,
       "dir": "recv",
       "type": "input_audio_buffer.committed"
     },
     {
-      "t": 9660,
+      "t": 9198,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 106
     },
     {
-      "t": 9665,
+      "t": 9199,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 107
     },
     {
-      "t": 9671,
+      "t": 9199,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 108
     },
     {
-      "t": 9676,
+      "t": 9199,
       "dir": "recv",
-      "type": "conversation.item.input_audio_transcription.delta"
+      "type": "conversation.item.input_audio_transcription.delta",
+      "bytes": 109
     },
     {
-      "t": 9687,
+      "t": 9199,
       "dir": "recv",
       "type": "conversation.item.input_audio_transcription.completed"
     },
     {
-      "t": 9695,
+      "t": 9210,
       "dir": "send",
       "type": "conversation.item.create"
     },
     {
-      "t": 9695,
+      "t": 9210,
       "dir": "send",
       "type": "response.create"
     },
     {
-      "t": 9770,
+      "t": 9288,
       "dir": "recv",
       "type": "conversation.item.created"
     },
     {
-      "t": 10112,
+      "t": 9563,
       "dir": "recv",
       "type": "response.created"
     },
     {
-      "t": 10113,
+      "t": 9568,
       "dir": "recv",
       "type": "response.output_item.added"
     },
     {
-      "t": 10113,
+      "t": 9568,
       "dir": "recv",
       "type": "conversation.item.created"
     },
     {
-      "t": 10113,
+      "t": 9568,
       "dir": "recv",
       "type": "response.content_part.added"
     },
     {
-      "t": 10113,
+      "t": 9568,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 1
     },
     {
-      "t": 10142,
+      "t": 9670,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 9
     },
     {
-      "t": 10142,
+      "t": 9670,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 10142,
+      "t": 9673,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 10287,
+      "t": 9810,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10369,
+      "t": 9888,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10428,
+      "t": 9946,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10469,
+      "t": 9989,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10518,
+      "t": 10021,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10546,
+      "t": 10067,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10586,
+      "t": 10102,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10629,
+      "t": 10144,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10669,
+      "t": 10183,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10710,
+      "t": 10220,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10752,
+      "t": 10324,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10789,
+      "t": 10324,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10829,
+      "t": 10346,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10862,
+      "t": 10412,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 10890,
+      "t": 10438,
+      "dir": "recv",
+      "type": "response.audio.delta",
+      "bytes": 15360
+    },
+    {
+      "t": 10483,
+      "dir": "recv",
+      "type": "response.audio.delta",
+      "bytes": 15360
+    },
+    {
+      "t": 10504,
+      "dir": "recv",
+      "type": "response.audio.delta",
+      "bytes": 15360
+    },
+    {
+      "t": 10514,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 11520
     },
     {
-      "t": 10892,
+      "t": 10514,
       "dir": "recv",
       "type": "response.audio_transcript.done"
     },
     {
-      "t": 10892,
+      "t": 10518,
       "dir": "recv",
       "type": "response.audio.done"
     },
     {
-      "t": 10892,
+      "t": 10518,
       "dir": "recv",
       "type": "response.content_part.done"
     },
     {
-      "t": 10892,
+      "t": 10518,
       "dir": "recv",
       "type": "response.output_item.done"
     },
     {
-      "t": 10892,
+      "t": 10518,
       "dir": "recv",
       "type": "response.done"
     },
     {
-      "t": 10903,
+      "t": 10521,
       "dir": "send",
       "type": "conversation.item.create"
     },
     {
-      "t": 10903,
+      "t": 10521,
       "dir": "send",
       "type": "response.create"
     },
     {
-      "t": 10979,
+      "t": 10648,
       "dir": "recv",
       "type": "conversation.item.created"
     },
     {
-      "t": 11243,
+      "t": 10927,
       "dir": "recv",
       "type": "response.created"
     },
     {
-      "t": 11243,
+      "t": 10928,
       "dir": "recv",
       "type": "response.output_item.added"
     },
     {
-      "t": 11243,
+      "t": 10928,
       "dir": "recv",
       "type": "conversation.item.created"
     },
     {
-      "t": 11243,
+      "t": 10928,
       "dir": "recv",
       "type": "response.content_part.added"
     },
     {
-      "t": 11243,
+      "t": 10928,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 2
     },
     {
-      "t": 11356,
+      "t": 11036,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 9
     },
     {
-      "t": 11356,
+      "t": 11040,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 6
     },
     {
-      "t": 11356,
+      "t": 11040,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 9
     },
     {
-      "t": 11356,
+      "t": 11041,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 10
     },
     {
-      "t": 11356,
+      "t": 11041,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 11379,
+      "t": 11063,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 11403,
+      "t": 11095,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 5
     },
     {
-      "t": 11426,
+      "t": 11110,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 11453,
+      "t": 11132,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 6
     },
     {
-      "t": 11472,
+      "t": 11159,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 11568,
+      "t": 11184,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 11569,
+      "t": 11184,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 6
     },
     {
-      "t": 11569,
+      "t": 11203,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 7
     },
     {
-      "t": 11569,
+      "t": 11228,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 6
     },
     {
-      "t": 11648,
+      "t": 11260,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 11648,
+      "t": 11260,
+      "dir": "recv",
+      "type": "response.audio_transcript.delta",
+      "bytes": 7
+    },
+    {
+      "t": 11276,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
       "bytes": 10
     },
     {
-      "t": 11648,
+      "t": 11298,
       "dir": "recv",
       "type": "response.audio_transcript.delta",
-      "bytes": 9
+      "bytes": 3
     },
     {
-      "t": 11648,
-      "dir": "recv",
-      "type": "response.audio_transcript.delta",
-      "bytes": 1
-    },
-    {
-      "t": 11653,
+      "t": 11339,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 11737,
+      "t": 11423,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 11812,
+      "t": 11502,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 11823,
+      "t": 11510,
       "dir": "send",
       "type": "response.cancel"
     },
     {
-      "t": 11892,
+      "t": 11583,
       "dir": "recv",
       "type": "response.audio.delta",
       "bytes": 15360
     },
     {
-      "t": 11905,
+      "t": 11590,
       "dir": "recv",
       "type": "response.audio_transcript.done"
     },
     {
-      "t": 11905,
+      "t": 11590,
       "dir": "recv",
       "type": "response.audio.done"
     },
     {
-      "t": 11905,
+      "t": 11590,
       "dir": "recv",
       "type": "response.content_part.done"
     },
     {
-      "t": 11905,
+      "t": 11590,
       "dir": "recv",
       "type": "response.output_item.done"
     },
     {
-      "t": 11905,
+      "t": 11590,
       "dir": "recv",
       "type": "response.done"
     }

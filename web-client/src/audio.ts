@@ -91,8 +91,9 @@ export class RealtimeAudio {
   /** 返回值：这一步有没有真的发出去（没发出去时页面要保留失败动作，等重连后恢复）。 */
   async startAnswer(): Promise<boolean> {
     const sent = this.send({ type: 'answer.start' });
+    if (!sent) return false;
     await this.startCapture();
-    return sent;
+    return this.capturing;
   }
 
   async commitAnswer(): Promise<boolean> {
@@ -176,32 +177,37 @@ export class RealtimeAudio {
       this.microphone = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false },
       });
+      this.captureContext = new AudioContext({ sampleRate: 16_000 });
+      this.workletUrl = URL.createObjectURL(new Blob([WORKLET_SOURCE], { type: 'application/javascript' }));
+      await this.captureContext.audioWorklet.addModule(this.workletUrl);
+      const source = this.captureContext.createMediaStreamSource(this.microphone);
+      this.worklet = new AudioWorkletNode(this.captureContext, 'pcm16-processor');
+      this.mutedGain = this.captureContext.createGain();
+      this.mutedGain.gain.value = 0;
+      source.connect(this.worklet);
+      this.worklet.connect(this.mutedGain);
+      this.mutedGain.connect(this.captureContext.destination);
+      this.worklet.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
+        const chunk = new Uint8Array(event.data);
+        for (const byte of chunk) this.pendingPcm.push(byte);
+        while (this.pendingPcm.length >= 3200) {
+          const slice = Uint8Array.from(this.pendingPcm.splice(0, 3200));
+          if (!this.paused) this.send({ type: 'audio.append', audio: bytesToBase64(slice) });
+        }
+      };
+      // getUserMedia 是异步的，权限对话框会让创建 AudioContext 时的用户激活丢失。
+      // Chrome 可能因此返回 suspended context；不显式 resume 就会显示「正在录音」却一个分片都收不到。
+      await this.captureContext.resume();
+      if (this.captureContext.state !== 'running') throw new Error(`AudioContext 未启动（${this.captureContext.state}）`);
+      this.capturing = true;
+      this.callbacks.onStatus('listening');
     } catch (error) {
       const detail = error instanceof DOMException ? `${error.name}: ${error.message}` : String(error);
+      await this.stopCapture();
       this.send({ type: 'mic.denied', detail: detail.slice(0, 160) });
-      this.callbacks.onError({ code: 'E_MIC_DENIED', message: '还没有麦克风权限', hint: '在浏览器网站设置中允许麦克风，然后再答一次', detail });
+      this.callbacks.onError({ code: 'E_MIC_DENIED', message: '麦克风没有开始采集', hint: '在浏览器网站设置中允许麦克风，确认当前输入设备后再答一次', detail });
       return;
     }
-    this.captureContext = new AudioContext({ sampleRate: 16_000 });
-    this.workletUrl = URL.createObjectURL(new Blob([WORKLET_SOURCE], { type: 'application/javascript' }));
-    await this.captureContext.audioWorklet.addModule(this.workletUrl);
-    const source = this.captureContext.createMediaStreamSource(this.microphone);
-    this.worklet = new AudioWorkletNode(this.captureContext, 'pcm16-processor');
-    this.mutedGain = this.captureContext.createGain();
-    this.mutedGain.gain.value = 0;
-    source.connect(this.worklet);
-    this.worklet.connect(this.mutedGain);
-    this.mutedGain.connect(this.captureContext.destination);
-    this.worklet.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
-      const chunk = new Uint8Array(event.data);
-      for (const byte of chunk) this.pendingPcm.push(byte);
-      while (this.pendingPcm.length >= 3200) {
-        const slice = Uint8Array.from(this.pendingPcm.splice(0, 3200));
-        if (!this.paused) this.send({ type: 'audio.append', audio: bytesToBase64(slice) });
-      }
-    };
-    this.capturing = true;
-    this.callbacks.onStatus('listening');
   }
 
   private async stopCapture(): Promise<void> {

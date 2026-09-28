@@ -1,8 +1,8 @@
 {
-  "ranAt": "2026-09-26T19:24:09.462Z",
+  "ranAt": "2026-09-28T15:44:20.548Z",
   "chrome": "Chrome/153.0.8010.54",
   "platform": "darwin arm64",
-  "node": "v26.7.0",
+  "node": "v22.22.3",
   "appUrl": "http://127.0.0.1:8919",
   "realtimeModel": "qwen3.8-omni-flash-realtime",
   "realtimeModelProbe": {
@@ -12,22 +12,22 @@
         "model": "qwen3.8-omni-flash-realtime",
         "ok": true,
         "verbatim": true,
-        "audioBytes": 284160,
-        "firstAudioMs": 591
+        "audioBytes": 330240,
+        "firstAudioMs": 673
       },
       {
         "model": "qwen3.5-omni-flash-realtime",
         "ok": true,
         "verbatim": true,
-        "audioBytes": 276480,
-        "firstAudioMs": 465
+        "audioBytes": 264960,
+        "firstAudioMs": 451
       },
       {
         "model": "qwen3-omni-flash-realtime",
         "ok": true,
         "verbatim": false,
         "audioBytes": 34560,
-        "firstAudioMs": 407
+        "firstAudioMs": 443
       }
     ]
   },
@@ -36,7 +36,7 @@
   "steps": [
     {
       "name": "生成作答音频（macOS say 合成，16k 单声道 WAV）",
-      "ms": 10132,
+      "ms": 9887,
       "detail": {
         "files": [
           "answer-1.pcm",
@@ -57,7 +57,7 @@
     },
     {
       "name": "实时模型核定（冻结模型优先，逐个真连并验证逐字朗读）",
-      "ms": 4330,
+      "ms": 4590,
       "detail": {
         "chosen": "qwen3.8-omni-flash-realtime",
         "results": [
@@ -65,22 +65,22 @@
             "model": "qwen3.8-omni-flash-realtime",
             "ok": true,
             "verbatim": true,
-            "audioBytes": 284160,
-            "firstAudioMs": 591
+            "audioBytes": 330240,
+            "firstAudioMs": 673
           },
           {
             "model": "qwen3.5-omni-flash-realtime",
             "ok": true,
             "verbatim": true,
-            "audioBytes": 276480,
-            "firstAudioMs": 465
+            "audioBytes": 264960,
+            "firstAudioMs": 451
           },
           {
             "model": "qwen3-omni-flash-realtime",
             "ok": true,
             "verbatim": false,
             "audioBytes": 34560,
-            "firstAudioMs": 407
+            "firstAudioMs": 443
           }
         ]
       },
@@ -88,45 +88,45 @@
         {
           "label": "冻结模型 qwen3.8-omni-flash-realtime 可用",
           "pass": true,
-          "evidence": "{\"model\":\"qwen3.8-omni-flash-realtime\",\"ok\":true,\"verbatim\":true,\"audioBytes\":284160,\"firstAudioMs\":591}"
+          "evidence": "{\"model\":\"qwen3.8-omni-flash-realtime\",\"ok\":true,\"verbatim\":true,\"audioBytes\":330240,\"firstAudioMs\":673}"
         },
         {
           "label": "选定一个「可用且逐字朗读」的实时模型",
           "pass": true,
-          "evidence": "[{\"model\":\"qwen3.8-omni-flash-realtime\",\"ok\":true,\"verbatim\":true,\"audioBytes\":284160,\"firstAudioMs\":591},{\"model\":\"qwen3.5-omni-flash-realtime\",\"ok\":true,\"verbatim\":true,\"audioBytes\":276480,\"firstAudioMs\":465},{\"model\":\"qwen3-omni-flash-realtime\",\"ok\":true,\"verbatim\":false,\"audioBytes\":34560,\"firstAudioMs\":407}]"
+          "evidence": "[{\"model\":\"qwen3.8-omni-flash-realtime\",\"ok\":true,\"verbatim\":true,\"audioBytes\":330240,\"firstAudioMs\":673},{\"model\":\"qwen3.5-omni-flash-realtime\",\"ok\":true,\"verbatim\":true,\"audioBytes\":264960,\"firstAudioMs\":451},{\"model\":\"qwen3-omni-flash-realtime\",\"ok\":true,\"verbatim\":false,\"audioBytes\":34560,\"firstAudioMs\":443}]"
         }
       ]
     },
     {
       "name": "首次使用告知与建会话",
-      "ms": 11,
+      "ms": 12,
       "detail": {
-        "sid": "s-muirt851-b0bafd6d",
-        "disclosureVersion": "disclosure@0.1.0"
+        "sid": "s-muley1vd-f320d6a4",
+        "disclosureVersion": "disclosure@0.2.0"
       },
       "assertions": [
         {
           "label": "告知版本与四类信息齐备",
           "pass": true,
-          "evidence": "version=disclosure@0.1.0"
+          "evidence": "version=disclosure@0.2.0"
         },
         {
           "label": "创建会话成功且默认开启两个保存开关",
           "pass": true,
-          "evidence": "sid=s-muirt851-b0bafd6d"
+          "evidence": "sid=s-muley1vd-f320d6a4"
         }
       ]
     },
     {
       "name": "材料确认（虚构演示）→ 真实问题计划 → 第 1 题真实语音",
-      "ms": 16300,
+      "ms": 15143,
       "detail": {
-        "question": "请结合你策划的「毕业故事」征稿活动，谈谈你是如何确定选题并启动冷启动阶段的？",
+        "question": "请结合你策划的「毕业故事」征稿活动，谈谈你是如何确定选题并启动冷启动的？",
         "questions": 3,
         "audio": {
-          "events": 24,
-          "bytes": 360960,
-          "playedMs": 7543
+          "events": 25,
+          "bytes": 372480,
+          "playedMs": 7858
         }
       },
       "assertions": [
@@ -138,31 +138,31 @@
         {
           "label": "浏览器收到面试官真实语音分片并实际播放",
           "pass": true,
-          "evidence": "events=24 bytes=360960"
+          "evidence": "events=25 bytes=372480"
         }
       ]
     },
     {
       "name": "第 1 题作答：浏览器采集 → 服务端代理 → 真实 ASR",
-      "ms": 116687,
+      "ms": 47039,
       "detail": {
         "roundsDetail": [
           {
             "injected": "我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
             "transcript": "我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
-            "uiTranscript": "那两篇范文具体写了什么内容？如何体现选题方向？",
+            "uiTranscript": "我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
             "gramHits": 95
           },
           {
             "injected": "这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制；内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。",
             "transcript": "这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制。内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。",
-            "uiTranscript": "问卷中哪类偏好数据直接决定了“毕业故事”这一选题？",
+            "uiTranscript": "这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制。内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。",
             "gramHits": 85
           },
           {
             "injected": "我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。",
             "transcript": "我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。",
-            "uiTranscript": "",
+            "uiTranscript": "我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。",
             "gramHits": 90
           }
         ],
@@ -206,23 +206,23 @@
     },
     {
       "name": "第 1 题评审：真实模型五维反馈 + 引用区间独立复算",
-      "ms": 25,
+      "ms": 20,
       "detail": {
         "levels": {
           "relevance": "充分清楚",
-          "specificity": "部分清楚",
+          "specificity": "充分清楚",
           "contribution": "充分清楚",
           "resultsReflection": "充分清楚",
           "structure": "充分清楚"
         },
         "quotesLocated": "5/5",
-        "topImprovement": "补充冷启动阶段关键决策背后的思考逻辑，如为何选择特定院系或范文类型。"
+        "topImprovement": "补充说明如何确保问卷样本覆盖不同群体以增强选题说服力"
       },
       "assertions": [
         {
           "label": "第 1 题反馈通过 feedback 契约",
           "pass": true,
-          "evidence": "levels={\"relevance\":\"充分清楚\",\"specificity\":\"部分清楚\",\"contribution\":\"充分清楚\",\"resultsReflection\":\"充分清楚\",\"structure\":\"充分清楚\"}"
+          "evidence": "levels={\"relevance\":\"充分清楚\",\"specificity\":\"充分清楚\",\"contribution\":\"充分清楚\",\"resultsReflection\":\"充分清楚\",\"structure\":\"充分清楚\"}"
         },
         {
           "label": "三档维度的引用区间与独立复算逐位一致",
@@ -238,18 +238,18 @@
     },
     {
       "name": "重答一次 → 对比评审（只比较两版已确认回答）",
-      "ms": 34115,
+      "ms": 30417,
       "detail": {
         "delta": {
           "added": [
             "定义有效投稿标准",
             "统计口径曾修改两次",
-            "将规则写入活动文档"
+            "将规则写入活动手册"
           ],
           "corrected": [],
           "stillMissing": [
-            "未说明具体量化结果",
-            "缺乏对策划落地成效的补充"
+            "未说明具体投稿数量或增长数据",
+            "未提及渠道拓展与冷启动内容细节"
           ]
         },
         "state": "rewrite"
@@ -263,7 +263,7 @@
         {
           "label": "重答对比产出 added/corrected/stillMissing",
           "pass": true,
-          "evidence": "{\"added\":[\"定义有效投稿标准\",\"统计口径曾修改两次\",\"将规则写入活动文档\"],\"corrected\":[],\"stillMissing\":[\"未说明具体量化结果\",\"缺乏对策划落地成效的补充\"]}"
+          "evidence": "{\"added\":[\"定义有效投稿标准\",\"统计口径曾修改两次\",\"将规则写入活动手册\"],\"corrected\":[],\"stillMissing\":[\"未说明具体投稿数量或增长数据\",\"未提及渠道拓展与冷启动内容细节\"]}"
         },
         {
           "label": "重答轮单独成轮（初审与重答可分别回放）",
@@ -274,32 +274,32 @@
     },
     {
       "name": "第 2 题：提问中途打断（取消旧回应 + 清空待播音频）",
-      "ms": 3869,
+      "ms": 3991,
       "detail": {
         "next": {
           "state": "answer",
           "question": {
             "id": "q2",
             "index": 1,
-            "text": "在活动执行过程中，你采取了哪些具体动作来确保投稿量的增长？最终的数据表现如何？",
-            "intent": "考察候选人在活动策划与落地中的个人贡献度，以及其对关键结果指标（KPI）的关注和达成情况，评估其独立负责项目并交付结果的能力。"
+            "text": "在活动执行过程中，你个人主要承担了哪些关键工作？这些工作对最终结果产生了什么影响？",
+            "intent": "区分团队成果与个人贡献，验证候选人在活动策划、资源协调及数据达成中的具体角色和实际产出。"
           },
           "playing": true,
-          "queueLength": 18
+          "queueLength": 22
         },
         "played": {
-          "events": 26,
-          "bytes": 387840,
-          "playedMs": 2287
+          "events": 29,
+          "bytes": 441600,
+          "playedMs": 2198
         },
         "interrupted": {
-          "clearedQueue": 18,
+          "clearedQueue": 22,
           "lastInterrupt": {
-            "clearedQueue": 18,
-            "at": 1790450354824,
+            "clearedQueue": 22,
+            "at": 1790610072184,
             "type": "interrupted",
             "clearedPending": true,
-            "deltasBeforeCancel": 26,
+            "deltasBeforeCancel": 29,
             "deltasAfterCancel": 0
           },
           "playing": false,
@@ -310,23 +310,23 @@
         {
           "label": "打断后浏览器停止播放且待播队列清空",
           "pass": true,
-          "evidence": "{\"playing\":false,\"queueLength\":0,\"clearedQueue\":18}"
+          "evidence": "{\"playing\":false,\"queueLength\":0,\"clearedQueue\":22}"
         },
         {
           "label": "服务端确认取消旧回应（clearedPending）",
           "pass": true,
-          "evidence": "{\"clearedQueue\":18,\"at\":1790450354824,\"type\":\"interrupted\",\"clearedPending\":true,\"deltasBeforeCancel\":26,\"deltasAfterCancel\":0}"
+          "evidence": "{\"clearedQueue\":22,\"at\":1790610072184,\"type\":\"interrupted\",\"clearedPending\":true,\"deltasBeforeCancel\":29,\"deltasAfterCancel\":0}"
         },
         {
           "label": "打断前确实已经在播音频（不是空打断）",
           "pass": true,
-          "evidence": "playing=true playedMs=2287"
+          "evidence": "playing=true playedMs=2198"
         }
       ]
     },
     {
       "name": "第 2 题作答（浏览器麦克风链路 → 真实 ASR → 真实评审）",
-      "ms": 93298,
+      "ms": 42563,
       "detail": {
         "state": "rewrite",
         "transcriptChars": 64,
@@ -341,13 +341,13 @@
         {
           "label": "第 2 题反馈过契约",
           "pass": true,
-          "evidence": "{\"relevance\":\"充分清楚\",\"specificity\":\"部分清楚\",\"contribution\":\"充分清楚\",\"resultsReflection\":\"充分清楚\",\"structure\":\"充分清楚\"}"
+          "evidence": "{\"relevance\":\"充分清楚\",\"specificity\":\"充分清楚\",\"contribution\":\"充分清楚\",\"resultsReflection\":\"部分清楚\",\"structure\":\"充分清楚\"}"
         }
       ]
     },
     {
       "name": "第 3 题：真实麦克风链路（Chrome 假设备提示音）→ 空转写落到明确状态",
-      "ms": 30296,
+      "ms": 22973,
       "detail": {
         "done": {
           "state": "answer",
@@ -355,7 +355,7 @@
             "code": "E_EMPTY_TRANSCRIPT",
             "message": "这一轮没有识别到说话内容",
             "hint": "按「重读本题」再说一次；不消耗追问次数",
-            "at": "2026-09-26T19:21:08.007Z"
+            "at": "2026-09-28T15:42:11.658Z"
           },
           "review": {
             "contractVersion": "0.2.0",
@@ -363,8 +363,7 @@
             "reviewBasis": {
               "turnIds": [
                 "t9",
-                "t11",
-                "t13"
+                "t11"
               ],
               "textVersion": "raw"
             },
@@ -372,28 +371,52 @@
               "relevance": {
                 "level": "充分清楚",
                 "quote": {
-                  "text": "再讲我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
-                  "start": 33,
+                  "text": "我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
+                  "start": 35,
                   "end": 68,
                   "turnId": "t9",
                   "textVersion": "raw",
                   "matchType": "exact"
                 },
-                "reason": "明确列举了确保投稿量增长的具体执行动作。"
+                "reason": "明确列举了个人承担的关键工作，直接回应问题前半部分。"
               },
               "specificity": {
-                "level": "部分清楚",
+                "level": "充分清楚",
                 "quote": {
-                  "text": "问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
-                  "start": 44,
+                  "text": "投稿一百四十三篇，增长约八成，参与院系从三个增加到七个",
+                  "start": 73,
+                  "end": 100,
+                  "turnId": "t9",
+                  "textVersion": "raw",
+                  "matchType": "exact"
+                },
+                "reason": "提供了具体的数字指标和对比数据，事例细节丰富且具体。"
+              },
+              "contribution": {
+                "level": "充分清楚",
+                "quote": {
+                  "text": "我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
+                  "start": 35,
                   "end": 68,
                   "turnId": "t9",
                   "textVersion": "raw",
                   "matchType": "exact"
                 },
-                "reason": "有具体手段和数量，但缺乏执行细节描述。"
+                "reason": "清晰界定了“我”的具体行动（调研、谈判、写作），贡献归属明确。"
               },
-              "contribution": {
+              "resultsReflection": {
+                "level": "部分清楚",
+                "quote": {
+                  "text": "这部分沉淀目前还没有量化到结果里",
+                  "start": 152,
+                  "end": 168,
+                  "turnId": "t11",
+                  "textVersion": "raw",
+                  "matchType": "exact"
+                },
+                "reason": "有结果数据和反思意识，但反思内容较简略，未深入分析影响机制。"
+              },
+              "structure": {
                 "level": "充分清楚",
                 "quote": {
                   "text": "再讲我个人的三个动作",
@@ -403,41 +426,17 @@
                   "textVersion": "raw",
                   "matchType": "exact"
                 },
-                "reason": "使用“我个人的”明确界定个人职责范围。"
-              },
-              "resultsReflection": {
-                "level": "充分清楚",
-                "quote": {
-                  "text": "最后给出投稿一百四十三篇，增长约八成，参与院系从三个增加到七个的结果",
-                  "start": 69,
-                  "end": 103,
-                  "turnId": "t9",
-                  "textVersion": "raw",
-                  "matchType": "exact"
-                },
-                "reason": "提供了详细的数据结果及后续沉淀反思。"
-              },
-              "structure": {
-                "level": "充分清楚",
-                "quote": {
-                  "text": "如果重答一次，我会先说明活动目标",
-                  "start": 0,
-                  "end": 16,
-                  "turnId": "t9",
-                  "textVersion": "raw",
-                  "matchType": "exact"
-                },
-                "reason": "采用总分结构，逻辑顺序清晰连贯。"
+                "reason": "使用“先说明...再讲...最后给出...”等连接词，逻辑层次分明。"
               }
             },
             "factGaps": [
-              "缺少各具体动作对最终数据贡献的归因分析",
-              "未说明在遇到阻碍时如何调整策略"
+              "缺少对‘关键工作’与‘最终结果’之间因果关系的详细推导过程",
+              "缺少执行过程中遇到的具体困难及解决策略"
             ],
-            "topImprovement": "补充具体动作与数据增长之间的因果关联或过程细节",
+            "topImprovement": "补充说明这三个动作是如何具体导致投稿量增长的逻辑链条",
             "nextFacts": [
-              "哪个动作对投稿量提升贡献最大及其依据",
-              "执行过程中遇到的主要困难及解决方式"
+              "描述在谈下院系渠道或写范文时遇到的最大挑战及应对方法",
+              "解释为什么选择这三个动作作为关键工作而非其他任务"
             ],
             "reviewVersion": "prompts@0.2.0"
           },
@@ -457,17 +456,17 @@
         {
           "label": "麦克风音频真的上行到服务端（分片数 > 0）",
           "pass": true,
-          "evidence": "{\"sid\":\"s-muirt851-b0bafd6d\",\"state\":\"answer\",\"paused\":false,\"capturing\":true,\"playing\":false,\"queueLength\":0,\"playedMs\":12844,\"bytesSent\":128000,\"chunksSent\":40,\"bytesSentWhilePaused\":0,\"bytesAttemptedWhilePaused\":0,\"streamSentBytes\":0,\"streamPending\":0,\"appendWhilePausedRejected\":0,\"audioEvents\":40,\"audioEventBytes\":614400,\"lastInterrupt\":null,\"errors\":[],\"lastError\":null,\"transcript\":\"复盘时你发现不同院系参与度存在差异，针对这一困难，你进行了怎样的归因分析，并如何将反思转化为可复用的流程优化？\",\"review\":{\"contractVersion\":\"0.2.0\",\"questionId\":\"q2\",\"reviewBasis\":{\"turnIds\":[\"t9\",\"t11\",\"t13\"],\"textVersion\":\"raw\"},\"dimensions\":{\"relevance\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"再讲我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动\",\"start\":33,\"end\":68,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"明确列举了确保投稿量增长的具体执行动作。\"},\"specificity\":{\"level\":\"部分清楚\",\"quote\":{\"text\":\"问卷调研定主题，谈下五个院系渠道，写范文做冷启动\",\"start\":44,\"end\":68,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"有具体手段和数量，但缺乏执行细节描述。\"},\"contribution\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"再讲我个人的三个动作\",\"start\":33,\"end\":43,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"使用“我个人的”明确界定个人职责范围。\"},\"resultsReflection\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"最后给出投稿一百四十三篇，增长约八成，参与院系从三个增加到七个的结果\",\"start\":69,\"end\":103,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"提供了详细的数据结果及后续沉淀反思。\"},\"structure\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"如果重答一次，我会先说明活动目标\",\"start\":0,\"end\":16,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"采用总分结构，逻辑顺序清晰连贯。\"}},\"factGaps\":[\"缺少各具体动作对最终数据贡献的归因分析\",\"未说明在遇到阻碍时如何调整策略\"],\"topImprovement\":\"补充具体动作与数据增长之间的因果关联或过程细节\",\"nextFacts\":[\"哪个动作对投稿量提升贡献最大及其依据\",\"执行过程中遇到的主要困难及解决方式\"],\"reviewVersion\":\"prompts@0.2.0\"},\"report\":null,\"micProbe\":null,\"peak\":0.999969482421875,\"deleted\":null}"
+          "evidence": "{\"sid\":\"s-muley1vd-f320d6a4\",\"state\":\"answer\",\"paused\":false,\"capturing\":true,\"playing\":false,\"queueLength\":0,\"playedMs\":9523,\"bytesSent\":128000,\"chunksSent\":40,\"bytesSentWhilePaused\":0,\"bytesAttemptedWhilePaused\":0,\"streamSentBytes\":0,\"streamPending\":0,\"appendWhilePausedRejected\":0,\"audioEvents\":30,\"audioEventBytes\":453120,\"lastInterrupt\":null,\"errors\":[],\"lastError\":null,\"transcript\":\"\",\"review\":{\"contractVersion\":\"0.2.0\",\"questionId\":\"q2\",\"reviewBasis\":{\"turnIds\":[\"t9\",\"t11\"],\"textVersion\":\"raw\"},\"dimensions\":{\"relevance\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动\",\"start\":35,\"end\":68,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"明确列举了个人承担的关键工作，直接回应问题前半部分。\"},\"specificity\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"投稿一百四十三篇，增长约八成，参与院系从三个增加到七个\",\"start\":73,\"end\":100,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"提供了具体的数字指标和对比数据，事例细节丰富且具体。\"},\"contribution\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动\",\"start\":35,\"end\":68,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"清晰界定了“我”的具体行动（调研、谈判、写作），贡献归属明确。\"},\"resultsReflection\":{\"level\":\"部分清楚\",\"quote\":{\"text\":\"这部分沉淀目前还没有量化到结果里\",\"start\":152,\"end\":168,\"turnId\":\"t11\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"有结果数据和反思意识，但反思内容较简略，未深入分析影响机制。\"},\"structure\":{\"level\":\"充分清楚\",\"quote\":{\"text\":\"再讲我个人的三个动作\",\"start\":33,\"end\":43,\"turnId\":\"t9\",\"textVersion\":\"raw\",\"matchType\":\"exact\"},\"reason\":\"使用“先说明...再讲...最后给出...”等连接词，逻辑层次分明。\"}},\"factGaps\":[\"缺少对‘关键工作’与‘最终结果’之间因果关系的详细推导过程\",\"缺少执行过程中遇到的具体困难及解决策略\"],\"topImprovement\":\"补充说明这三个动作是如何具体导致投稿量增长的逻辑链条\",\"nextFacts\":[\"描述在谈下院系渠道或写范文时遇到的最大挑战及应对方法\",\"解释为什么选择这三个动作作为关键工作而非其他任务\"],\"reviewVersion\":\"prompts@0.2.0\"},\"report\":null,\"micProbe\":null,\"peak\":0.999969482421875,\"deleted\":null}"
         },
         {
           "label": "空转写状态明确（E_EMPTY_TRANSCRIPT）",
           "pass": true,
-          "evidence": "{\"code\":\"E_EMPTY_TRANSCRIPT\",\"message\":\"这一轮没有识别到说话内容\",\"hint\":\"按「重读本题」再说一次；不消耗追问次数\",\"at\":\"2026-09-26T19:21:08.007Z\"}"
+          "evidence": "{\"code\":\"E_EMPTY_TRANSCRIPT\",\"message\":\"这一轮没有识别到说话内容\",\"hint\":\"按「重读本题」再说一次；不消耗追问次数\",\"at\":\"2026-09-28T15:42:11.658Z\"}"
         },
         {
           "label": "空转写不产生用户轮、不进入评审",
           "pass": true,
-          "evidence": "turns 7→7 reviews=q1,q2"
+          "evidence": "turns 6→6 reviews=q1,q2"
         },
         {
           "label": "可重读本题继续（不消耗追问次数）",
@@ -478,7 +477,7 @@
     },
     {
       "name": "第 3 题：作答中暂停 → 停止上行（客户端扣住 + 服务端拒收）→ 恢复后完成作答",
-      "ms": 114404,
+      "ms": 54937,
       "detail": {
         "probe": {
           "rejectedBefore": 0,
@@ -486,7 +485,7 @@
           "bytesSentWhilePaused": 0
         },
         "pausedStatus": {
-          "sid": "s-muirt851-b0bafd6d",
+          "sid": "s-muley1vd-f320d6a4",
           "state": "answer",
           "paused": true,
           "capturing": false,
@@ -519,7 +518,7 @@
           "code": "E_EMPTY_TRANSCRIPT",
           "message": "这一轮没有识别到说话内容",
           "hint": "按「重读本题」再说一次；不消耗追问次数",
-          "at": "2026-09-26T19:21:39.542Z"
+          "at": "2026-09-28T15:42:25.019Z"
         }
       },
       "assertions": [
@@ -531,7 +530,7 @@
         {
           "label": "暂停期间客户端一个字节都没发出去（扣住不发）",
           "pass": true,
-          "evidence": "{\"sid\":\"s-muirt851-b0bafd6d\",\"state\":\"answer\",\"paused\":true,\"capturing\":false,\"playing\":false,\"queueLength\":0,\"playedMs\":0,\"bytesSent\":3200,\"chunksSent\":1,\"bytesSentWhilePaused\":0,\"bytesAttemptedWhilePaused\":3200,\"streamSentBytes\":455978,\"streamPending\":5,\"appendWhilePausedRejected\":0,\"audioEvents\":0,\"audioEventBytes\":0,\"lastInterrupt\":null,\"errors\":[],\"lastError\":null,\"transcript\":\"\",\"review\":null,\"report\":null,\"micProbe\":null,\"peak\":0,\"deleted\":null}"
+          "evidence": "{\"sid\":\"s-muley1vd-f320d6a4\",\"state\":\"answer\",\"paused\":true,\"capturing\":false,\"playing\":false,\"queueLength\":0,\"playedMs\":0,\"bytesSent\":3200,\"chunksSent\":1,\"bytesSentWhilePaused\":0,\"bytesAttemptedWhilePaused\":3200,\"streamSentBytes\":455978,\"streamPending\":5,\"appendWhilePausedRejected\":0,\"audioEvents\":0,\"audioEventBytes\":0,\"lastInterrupt\":null,\"errors\":[],\"lastError\":null,\"transcript\":\"\",\"review\":null,\"report\":null,\"micProbe\":null,\"peak\":0,\"deleted\":null}"
         },
         {
           "label": "暂停期间服务端明确拒收上行音频（E_UPLINK_PAUSED）",
@@ -546,18 +545,18 @@
         {
           "label": "恢复后完成第 3 题并进入评审",
           "pass": true,
-          "evidence": "state=rewrite 答完轮数=4 lastError={\"code\":\"E_EMPTY_TRANSCRIPT\",\"message\":\"这一轮没有识别到说话内容\",\"hint\":\"按「重读本题」再说一次；不消耗追问次数\",\"at\":\"2026-09-26T19:21:39.542Z\"}"
+          "evidence": "state=rewrite 答完轮数=4 lastError={\"code\":\"E_EMPTY_TRANSCRIPT\",\"message\":\"这一轮没有识别到说话内容\",\"hint\":\"按「重读本题」再说一次；不消耗追问次数\",\"at\":\"2026-09-28T15:42:25.019Z\"}"
         }
       ]
     },
     {
       "name": "生成全场报告（真实模型练习点 + 已校验反馈回填）",
-      "ms": 8055,
+      "ms": 7874,
       "detail": {
         "reportSource": "model_priority_practice",
         "priorityPractice": [
-          "补充关键决策（如选题确定、参与度差异归因）背后的分析逻辑与具体执行动作，避免仅陈述结果或后期复盘",
-          "建立具体动作与最终数据/结果之间的因果关联，明确归因过程及策略调整细节"
+          "补充回答中关于“如何确定选题”和“如何启动冷启动”的具体事实，以回应题目核心要求。",
+          "补充说明这三个动作是如何具体导致投稿量增长的逻辑链条"
         ],
         "perQuestion": [
           "reviewed",
@@ -579,7 +578,7 @@
         {
           "label": "报告过 session-report 契约",
           "pass": true,
-          "evidence": "[\"补充关键决策（如选题确定、参与度差异归因）背后的分析逻辑与具体执行动作，避免仅陈述结果或后期复盘\",\"建立具体动作与最终数据/结果之间的因果关联，明确归因过程及策略调整细节\"]"
+          "evidence": "[\"补充回答中关于“如何确定选题”和“如何启动冷启动”的具体事实，以回应题目核心要求。\",\"补充说明这三个动作是如何具体导致投稿量增长的逻辑链条\"]"
         },
         {
           "label": "每题 feedback 原样来自已校验反馈",
@@ -595,7 +594,7 @@
     },
     {
       "name": "回放：用户轨与面试官轨按轮下载并在页面里真正播放",
-      "ms": 13200,
+      "ms": 12321,
       "detail": {
         "checked": 8,
         "played": 8,
@@ -604,21 +603,21 @@
             "turnId": "t1",
             "track": "user",
             "ok": true,
-            "bytes": 361004,
-            "durationSec": 7.52,
+            "bytes": 372524,
+            "durationSec": 7.76,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 1639
+            "playedMs": 1502
           },
           {
             "turnId": "t1",
             "track": "interviewer",
             "ok": true,
-            "bytes": 361004,
-            "durationSec": 7.52,
+            "bytes": 372524,
+            "durationSec": 7.76,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 3269
+            "playedMs": 3013
           },
           {
             "turnId": "t2",
@@ -628,7 +627,7 @@
             "durationSec": 24.257,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 4997
+            "playedMs": 4540
           },
           {
             "turnId": "t2",
@@ -638,27 +637,27 @@
             "durationSec": 24.257,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 6533
+            "playedMs": 6070
           },
           {
             "turnId": "t3",
             "track": "user",
             "ok": true,
-            "bytes": 222764,
-            "durationSec": 4.64,
+            "bytes": 211244,
+            "durationSec": 4.4,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 8187
+            "playedMs": 7577
           },
           {
             "turnId": "t3",
             "track": "interviewer",
             "ok": true,
-            "bytes": 222764,
-            "durationSec": 4.64,
+            "bytes": 211244,
+            "durationSec": 4.4,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 2187
+            "playedMs": 9084
           },
           {
             "turnId": "t4",
@@ -668,7 +667,7 @@
             "durationSec": 21.489,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 3833
+            "playedMs": 2782
           },
           {
             "turnId": "t4",
@@ -678,7 +677,7 @@
             "durationSec": 21.489,
             "sampleRate": 24000,
             "source": "file",
-            "playedMs": 5471
+            "playedMs": 4310
           }
         ]
       },
@@ -686,7 +685,7 @@
         {
           "label": "两轨都至少有一轮可回放并真正出声",
           "pass": true,
-          "evidence": "[{\"turnId\":\"t1\",\"track\":\"user\",\"ok\":true,\"bytes\":361004,\"durationSec\":7.52,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":1639},{\"turnId\":\"t1\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":361004,\"durationSec\":7.52,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":3269},{\"turnId\":\"t2\",\"track\":\"user\",\"ok\":true,\"bytes\":776274,\"durationSec\":24.257,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":4997},{\"turnId\":\"t2\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":776274,\"durationSec\":24.257,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":6533},{\"turnId\":\"t3\",\"track\":\"user\",\"ok\":true,\"bytes\":222764,\"durationSec\":4.64,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":8187},{\"turnId\":\"t3\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":222764,\"durationSec\":4.64,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":2187},{\"turnId\":\"t4\",\"track\":\"user\",\"ok\":true,\"bytes\":687684,\"durationSec\":21.489,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":3833},{\"turnId\":\"t4\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":687684,\"durationSec\":21.489,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":5471}]"
+          "evidence": "[{\"turnId\":\"t1\",\"track\":\"user\",\"ok\":true,\"bytes\":372524,\"durationSec\":7.76,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":1502},{\"turnId\":\"t1\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":372524,\"durationSec\":7.76,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":3013},{\"turnId\":\"t2\",\"track\":\"user\",\"ok\":true,\"bytes\":776274,\"durationSec\":24.257,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":4540},{\"turnId\":\"t2\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":776274,\"durationSec\":24.257,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":6070},{\"turnId\":\"t3\",\"track\":\"user\",\"ok\":true,\"bytes\":211244,\"durationSec\":4.4,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":7577},{\"turnId\":\"t3\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":211244,\"durationSec\":4.4,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":9084},{\"turnId\":\"t4\",\"track\":\"user\",\"ok\":true,\"bytes\":687684,\"durationSec\":21.489,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":2782},{\"turnId\":\"t4\",\"track\":\"interviewer\",\"ok\":true,\"bytes\":687684,\"durationSec\":21.489,\"sampleRate\":24000,\"source\":\"file\",\"playedMs\":4310}]"
         },
         {
           "label": "回放来源是磁盘文件（不是内存兜底）",
@@ -697,9 +696,9 @@
     },
     {
       "name": "重启服务后：历史、反馈、报告与音频仍可用",
-      "ms": 272,
+      "ms": 556,
       "detail": {
-        "turns": 20,
+        "turns": 18,
         "reviews": 3,
         "hasReport": true
       },
@@ -707,7 +706,7 @@
         {
           "label": "重启后会话仍可读（轮次/反馈/报告俱在）",
           "pass": true,
-          "evidence": "turns=20 reviews=3 report=true"
+          "evidence": "turns=18 reviews=3 report=true"
         },
         {
           "label": "重启后录音文件仍可下载",
@@ -728,12 +727,12 @@
     },
     {
       "name": "两开关：关历史不产生持久记录；关录音不产生音频文件",
-      "ms": 31665,
+      "ms": 42657,
       "detail": {
-        "offHistory": "s-muis2iel-6ef5fce3",
-        "offAudio": "s-muis2v8y-17a48c3b",
-        "audioFilesBefore": 20,
-        "audioFilesAfter": 20
+        "offHistory": "s-mulf3amu-e754ebce",
+        "offAudio": "s-mulf3u3t-82da9cbd",
+        "audioFilesBefore": 18,
+        "audioFilesAfter": 18
       },
       "assertions": [
         {
@@ -744,7 +743,7 @@
         {
           "label": "关历史后不产生音频文件",
           "pass": true,
-          "evidence": "audioFiles=20（前 20）"
+          "evidence": "audioFiles=18（前 18）"
         },
         {
           "label": "关历史的会话在接口里如实标注 persisted=false",
@@ -754,7 +753,7 @@
         {
           "label": "关历史的会话仍完成了真实 ASR（不是空跑）",
           "pass": true,
-          "evidence": "[[\"interviewer\",\"请结合你策划「毕业故事」\"],[\"user\",\"我遇到的困难是第一次活动\"],[\"interviewer\",\"你提到的“选题建议”具体\"]]"
+          "evidence": "[[\"interviewer\",\"请结合JD中关于‘策划并\"],[\"user\",\"我遇到的困难是第一次活动\"],[\"interviewer\",\"请具体说明你为院系提供的\"]]"
         },
         {
           "label": "会话列表里查不到关历史的会话",
@@ -769,7 +768,7 @@
         {
           "label": "关录音后磁盘音频文件数不变",
           "pass": true,
-          "evidence": "audioFiles=20"
+          "evidence": "audioFiles=18"
         },
         {
           "label": "关录音后该轮 audioFile 为 null（不伪造路径）",
@@ -779,104 +778,96 @@
         {
           "label": "关录音后本场回放只来自内存、磁盘上没有音频文件",
           "pass": true,
-          "evidence": "http=200 source=memory audioFiles=20"
+          "evidence": "http=200 source=memory audioFiles=18"
         }
       ]
     },
     {
       "name": "删除主会话：数据库记录 + 音频文件 + 临时文件的前后对照",
-      "ms": 26,
+      "ms": 15,
       "detail": {
         "before": {
           "rows": {
             "sessions": 1,
-            "turns": 20,
+            "turns": 18,
             "feedbacks": 4
           },
           "audioFiles": [
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t1-interviewer.wav",
-              "bytes": 361004
+              "path": "audio/s-muley1vd-f320d6a4/turn-t1-interviewer.wav",
+              "bytes": 372524
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t10-interviewer.wav",
-              "bytes": 268844
+              "path": "audio/s-muley1vd-f320d6a4/turn-t10-interviewer.wav",
+              "bytes": 245804
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t11-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t11-user.wav",
               "bytes": 456022
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t12-interviewer.wav",
-              "bytes": 230444
+              "path": "audio/s-muley1vd-f320d6a4/turn-t12-interviewer.wav",
+              "bytes": 453164
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t13-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t13-interviewer.wav",
+              "bytes": 341804
+            },
+            {
+              "path": "audio/s-muley1vd-f320d6a4/turn-t14-user.wav",
               "bytes": 456022
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t14-interviewer.wav",
-              "bytes": 614444
+              "path": "audio/s-muley1vd-f320d6a4/turn-t15-interviewer.wav",
+              "bytes": 257324
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t15-interviewer.wav",
-              "bytes": 541484
-            },
-            {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t16-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t16-user.wav",
               "bytes": 456022
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t17-interviewer.wav",
-              "bytes": 218924
-            },
-            {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t18-user.wav",
-              "bytes": 456022
-            },
-            {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t19-interviewer.wav",
-              "bytes": 199724
-            },
-            {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t2-user.wav",
-              "bytes": 776274
-            },
-            {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t20-user.wav",
-              "bytes": 456022
-            },
-            {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t3-interviewer.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t17-interviewer.wav",
               "bytes": 222764
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t4-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t18-user.wav",
+              "bytes": 456022
+            },
+            {
+              "path": "audio/s-muley1vd-f320d6a4/turn-t2-user.wav",
+              "bytes": 776274
+            },
+            {
+              "path": "audio/s-muley1vd-f320d6a4/turn-t3-interviewer.wav",
+              "bytes": 211244
+            },
+            {
+              "path": "audio/s-muley1vd-f320d6a4/turn-t4-user.wav",
               "bytes": 687684
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t5-interviewer.wav",
-              "bytes": 226604
+              "path": "audio/s-muley1vd-f320d6a4/turn-t5-interviewer.wav",
+              "bytes": 261164
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t6-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t6-user.wav",
               "bytes": 736516
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t7-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t7-user.wav",
               "bytes": 559454
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t8-interviewer.wav",
-              "bytes": 387884
+              "path": "audio/s-muley1vd-f320d6a4/turn-t8-interviewer.wav",
+              "bytes": 441644
             },
             {
-              "path": "audio/s-muirt851-b0bafd6d/turn-t9-user.wav",
+              "path": "audio/s-muley1vd-f320d6a4/turn-t9-user.wav",
               "bytes": 788228
             }
           ],
           "tmpFiles": [
-            "tmp/uploads/s-muirt851-b0bafd6d-stray-resume.pdf"
+            "tmp/uploads/s-muley1vd-f320d6a4-stray-resume.pdf"
           ],
           "turnsInMemory": 0,
           "memoryAudioKeys": 0,
@@ -896,32 +887,30 @@
         },
         "removed": {
           "sessions": 1,
-          "turns": 20,
+          "turns": 18,
           "feedbacks": 4,
           "audioFiles": [
-            "audio/s-muirt851-b0bafd6d/turn-t1-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t10-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t11-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t12-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t13-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t14-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t15-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t16-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t17-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t18-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t19-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t2-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t20-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t3-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t4-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t5-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t6-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t7-user.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t8-interviewer.wav",
-            "audio/s-muirt851-b0bafd6d/turn-t9-user.wav"
+            "audio/s-muley1vd-f320d6a4/turn-t1-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t10-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t11-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t12-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t13-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t14-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t15-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t16-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t17-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t18-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t2-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t3-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t4-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t5-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t6-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t7-user.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t8-interviewer.wav",
+            "audio/s-muley1vd-f320d6a4/turn-t9-user.wav"
           ],
           "tmpFiles": [
-            "tmp/uploads/s-muirt851-b0bafd6d-stray-resume.pdf"
+            "tmp/uploads/s-muley1vd-f320d6a4-stray-resume.pdf"
           ]
         },
         "dbRecheck": {
@@ -934,7 +923,7 @@
         {
           "label": "删除前确有数据库记录与音频文件",
           "pass": true,
-          "evidence": "{\"sessions\":1,\"turns\":20,\"feedbacks\":4} audio=20"
+          "evidence": "{\"sessions\":1,\"turns\":18,\"feedbacks\":4} audio=18"
         },
         {
           "label": "删除后数据库无关联记录（独立查询 sqlite 复核）",
@@ -944,12 +933,12 @@
         {
           "label": "删除后音频目录不存在",
           "pass": true,
-          "evidence": "dir=data/web-evidence/audio/s-muirt851-b0bafd6d"
+          "evidence": "dir=data/web-evidence/audio/s-muley1vd-f320d6a4"
         },
         {
           "label": "删除后临时文件被一并清理",
           "pass": true,
-          "evidence": "tmpRemoved=[\"tmp/uploads/s-muirt851-b0bafd6d-stray-resume.pdf\"]"
+          "evidence": "tmpRemoved=[\"tmp/uploads/s-muley1vd-f320d6a4-stray-resume.pdf\"]"
         },
         {
           "label": "删除接口返回删除前后对照且自检通过",
@@ -964,7 +953,7 @@
         {
           "label": "删除没有波及其它会话的文件",
           "pass": true,
-          "evidence": "before=24 after=4"
+          "evidence": "before=22 after=4"
         }
       ]
     },
@@ -972,13 +961,13 @@
       "name": "凭证与日志纪律：浏览器侧无密钥、日志无简历全文与完整转写",
       "ms": 1,
       "detail": {
-        "logBytes": 17834
+        "logBytes": 18208
       },
       "assertions": [
         {
           "label": "服务日志里没有凭证值",
           "pass": true,
-          "evidence": "logBytes=17834"
+          "evidence": "logBytes=18208"
         },
         {
           "label": "服务日志里没有 sk-* 模式",
@@ -993,7 +982,7 @@
         {
           "label": "健康检查只报凭证存在性、不返回值",
           "pass": true,
-          "evidence": "present=true length=116"
+          "evidence": "present=true length=undefined"
         }
       ]
     }
@@ -1001,7 +990,7 @@
   "totals": {
     "assertions": 64,
     "failed": 0,
-    "ms": 479794
+    "ms": 305360
   },
   "remaining": {
     "sessions": 1,
@@ -1015,44 +1004,44 @@
           "model": "qwen3.8-omni-flash-realtime",
           "ok": true,
           "verbatim": true,
-          "audioBytes": 284160,
-          "firstAudioMs": 591
+          "audioBytes": 330240,
+          "firstAudioMs": 673
         },
         {
           "model": "qwen3.5-omni-flash-realtime",
           "ok": true,
           "verbatim": true,
-          "audioBytes": 276480,
-          "firstAudioMs": 465
+          "audioBytes": 264960,
+          "firstAudioMs": 451
         },
         {
           "model": "qwen3-omni-flash-realtime",
           "ok": true,
           "verbatim": false,
           "audioBytes": 34560,
-          "firstAudioMs": 407
+          "firstAudioMs": 443
         }
       ]
     },
-    "mainSession": "s-muirt851-b0bafd6d",
+    "mainSession": "s-muley1vd-f320d6a4",
     "q1": {
       "roundsDetail": [
         {
           "injected": "我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
           "transcript": "我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
-          "uiTranscript": "那两篇范文具体写了什么内容？如何体现选题方向？",
+          "uiTranscript": "我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
           "gramHits": 95
         },
         {
           "injected": "这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制；内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。",
           "transcript": "这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制。内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。",
-          "uiTranscript": "问卷中哪类偏好数据直接决定了“毕业故事”这一选题？",
+          "uiTranscript": "这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制。内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。",
           "gramHits": 85
         },
         {
           "injected": "我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。",
           "transcript": "我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。",
-          "uiTranscript": "",
+          "uiTranscript": "我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。",
           "gramHits": 90
         }
       ],
@@ -1064,25 +1053,25 @@
     "review1": {
       "levels": {
         "relevance": "充分清楚",
-        "specificity": "部分清楚",
+        "specificity": "充分清楚",
         "contribution": "充分清楚",
         "resultsReflection": "充分清楚",
         "structure": "充分清楚"
       },
       "quotesLocated": "5/5",
-      "topImprovement": "补充冷启动阶段关键决策背后的思考逻辑，如为何选择特定院系或范文类型。"
+      "topImprovement": "补充说明如何确保问卷样本覆盖不同群体以增强选题说服力"
     },
     "rewrite": {
       "delta": {
         "added": [
           "定义有效投稿标准",
           "统计口径曾修改两次",
-          "将规则写入活动文档"
+          "将规则写入活动手册"
         ],
         "corrected": [],
         "stillMissing": [
-          "未说明具体量化结果",
-          "缺乏对策划落地成效的补充"
+          "未说明具体投稿数量或增长数据",
+          "未提及渠道拓展与冷启动内容细节"
         ]
       },
       "state": "rewrite"
@@ -1093,25 +1082,25 @@
         "question": {
           "id": "q2",
           "index": 1,
-          "text": "在活动执行过程中，你采取了哪些具体动作来确保投稿量的增长？最终的数据表现如何？",
-          "intent": "考察候选人在活动策划与落地中的个人贡献度，以及其对关键结果指标（KPI）的关注和达成情况，评估其独立负责项目并交付结果的能力。"
+          "text": "在活动执行过程中，你个人主要承担了哪些关键工作？这些工作对最终结果产生了什么影响？",
+          "intent": "区分团队成果与个人贡献，验证候选人在活动策划、资源协调及数据达成中的具体角色和实际产出。"
         },
         "playing": true,
-        "queueLength": 18
+        "queueLength": 22
       },
       "played": {
-        "events": 26,
-        "bytes": 387840,
-        "playedMs": 2287
+        "events": 29,
+        "bytes": 441600,
+        "playedMs": 2198
       },
       "interrupted": {
-        "clearedQueue": 18,
+        "clearedQueue": 22,
         "lastInterrupt": {
-          "clearedQueue": 18,
-          "at": 1790450354824,
+          "clearedQueue": 22,
+          "at": 1790610072184,
           "type": "interrupted",
           "clearedPending": true,
-          "deltasBeforeCancel": 26,
+          "deltasBeforeCancel": 29,
           "deltasAfterCancel": 0
         },
         "playing": false,
@@ -1130,7 +1119,7 @@
           "code": "E_EMPTY_TRANSCRIPT",
           "message": "这一轮没有识别到说话内容",
           "hint": "按「重读本题」再说一次；不消耗追问次数",
-          "at": "2026-09-26T19:21:08.007Z"
+          "at": "2026-09-28T15:42:11.658Z"
         },
         "review": {
           "contractVersion": "0.2.0",
@@ -1138,8 +1127,7 @@
           "reviewBasis": {
             "turnIds": [
               "t9",
-              "t11",
-              "t13"
+              "t11"
             ],
             "textVersion": "raw"
           },
@@ -1147,28 +1135,52 @@
             "relevance": {
               "level": "充分清楚",
               "quote": {
-                "text": "再讲我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
-                "start": 33,
+                "text": "我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
+                "start": 35,
                 "end": 68,
                 "turnId": "t9",
                 "textVersion": "raw",
                 "matchType": "exact"
               },
-              "reason": "明确列举了确保投稿量增长的具体执行动作。"
+              "reason": "明确列举了个人承担的关键工作，直接回应问题前半部分。"
             },
             "specificity": {
-              "level": "部分清楚",
+              "level": "充分清楚",
               "quote": {
-                "text": "问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
-                "start": 44,
+                "text": "投稿一百四十三篇，增长约八成，参与院系从三个增加到七个",
+                "start": 73,
+                "end": 100,
+                "turnId": "t9",
+                "textVersion": "raw",
+                "matchType": "exact"
+              },
+              "reason": "提供了具体的数字指标和对比数据，事例细节丰富且具体。"
+            },
+            "contribution": {
+              "level": "充分清楚",
+              "quote": {
+                "text": "我个人的三个动作：问卷调研定主题，谈下五个院系渠道，写范文做冷启动",
+                "start": 35,
                 "end": 68,
                 "turnId": "t9",
                 "textVersion": "raw",
                 "matchType": "exact"
               },
-              "reason": "有具体手段和数量，但缺乏执行细节描述。"
+              "reason": "清晰界定了“我”的具体行动（调研、谈判、写作），贡献归属明确。"
             },
-            "contribution": {
+            "resultsReflection": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "这部分沉淀目前还没有量化到结果里",
+                "start": 152,
+                "end": 168,
+                "turnId": "t11",
+                "textVersion": "raw",
+                "matchType": "exact"
+              },
+              "reason": "有结果数据和反思意识，但反思内容较简略，未深入分析影响机制。"
+            },
+            "structure": {
               "level": "充分清楚",
               "quote": {
                 "text": "再讲我个人的三个动作",
@@ -1178,41 +1190,17 @@
                 "textVersion": "raw",
                 "matchType": "exact"
               },
-              "reason": "使用“我个人的”明确界定个人职责范围。"
-            },
-            "resultsReflection": {
-              "level": "充分清楚",
-              "quote": {
-                "text": "最后给出投稿一百四十三篇，增长约八成，参与院系从三个增加到七个的结果",
-                "start": 69,
-                "end": 103,
-                "turnId": "t9",
-                "textVersion": "raw",
-                "matchType": "exact"
-              },
-              "reason": "提供了详细的数据结果及后续沉淀反思。"
-            },
-            "structure": {
-              "level": "充分清楚",
-              "quote": {
-                "text": "如果重答一次，我会先说明活动目标",
-                "start": 0,
-                "end": 16,
-                "turnId": "t9",
-                "textVersion": "raw",
-                "matchType": "exact"
-              },
-              "reason": "采用总分结构，逻辑顺序清晰连贯。"
+              "reason": "使用“先说明...再讲...最后给出...”等连接词，逻辑层次分明。"
             }
           },
           "factGaps": [
-            "缺少各具体动作对最终数据贡献的归因分析",
-            "未说明在遇到阻碍时如何调整策略"
+            "缺少对‘关键工作’与‘最终结果’之间因果关系的详细推导过程",
+            "缺少执行过程中遇到的具体困难及解决策略"
           ],
-          "topImprovement": "补充具体动作与数据增长之间的因果关联或过程细节",
+          "topImprovement": "补充说明这三个动作是如何具体导致投稿量增长的逻辑链条",
           "nextFacts": [
-            "哪个动作对投稿量提升贡献最大及其依据",
-            "执行过程中遇到的主要困难及解决方式"
+            "描述在谈下院系渠道或写范文时遇到的最大挑战及应对方法",
+            "解释为什么选择这三个动作作为关键工作而非其他任务"
           ],
           "reviewVersion": "prompts@0.2.0"
         },
@@ -1230,7 +1218,7 @@
         "bytesSentWhilePaused": 0
       },
       "pausedStatus": {
-        "sid": "s-muirt851-b0bafd6d",
+        "sid": "s-muley1vd-f320d6a4",
         "state": "answer",
         "paused": true,
         "capturing": false,
@@ -1263,14 +1251,14 @@
         "code": "E_EMPTY_TRANSCRIPT",
         "message": "这一轮没有识别到说话内容",
         "hint": "按「重读本题」再说一次；不消耗追问次数",
-        "at": "2026-09-26T19:21:39.542Z"
+        "at": "2026-09-28T15:42:25.019Z"
       }
     },
     "report": {
       "reportSource": "model_priority_practice",
       "priorityPractice": [
-        "补充关键决策（如选题确定、参与度差异归因）背后的分析逻辑与具体执行动作，避免仅陈述结果或后期复盘",
-        "建立具体动作与最终数据/结果之间的因果关联，明确归因过程及策略调整细节"
+        "补充回答中关于“如何确定选题”和“如何启动冷启动”的具体事实，以回应题目核心要求。",
+        "补充说明这三个动作是如何具体导致投稿量增长的逻辑链条"
       ],
       "perQuestion": [
         "reviewed",
@@ -1291,21 +1279,21 @@
           "turnId": "t1",
           "track": "user",
           "ok": true,
-          "bytes": 361004,
-          "durationSec": 7.52,
+          "bytes": 372524,
+          "durationSec": 7.76,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 1639
+          "playedMs": 1502
         },
         {
           "turnId": "t1",
           "track": "interviewer",
           "ok": true,
-          "bytes": 361004,
-          "durationSec": 7.52,
+          "bytes": 372524,
+          "durationSec": 7.76,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 3269
+          "playedMs": 3013
         },
         {
           "turnId": "t2",
@@ -1315,7 +1303,7 @@
           "durationSec": 24.257,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 4997
+          "playedMs": 4540
         },
         {
           "turnId": "t2",
@@ -1325,27 +1313,27 @@
           "durationSec": 24.257,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 6533
+          "playedMs": 6070
         },
         {
           "turnId": "t3",
           "track": "user",
           "ok": true,
-          "bytes": 222764,
-          "durationSec": 4.64,
+          "bytes": 211244,
+          "durationSec": 4.4,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 8187
+          "playedMs": 7577
         },
         {
           "turnId": "t3",
           "track": "interviewer",
           "ok": true,
-          "bytes": 222764,
-          "durationSec": 4.64,
+          "bytes": 211244,
+          "durationSec": 4.4,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 2187
+          "playedMs": 9084
         },
         {
           "turnId": "t4",
@@ -1355,7 +1343,7 @@
           "durationSec": 21.489,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 3833
+          "playedMs": 2782
         },
         {
           "turnId": "t4",
@@ -1365,112 +1353,104 @@
           "durationSec": 21.489,
           "sampleRate": 24000,
           "source": "file",
-          "playedMs": 5471
+          "playedMs": 4310
         }
       ]
     },
     "restart": {
-      "turns": 20,
+      "turns": 18,
       "reviews": 3,
       "hasReport": true
     },
     "toggles": {
-      "offHistory": "s-muis2iel-6ef5fce3",
-      "offAudio": "s-muis2v8y-17a48c3b",
-      "audioFilesBefore": 20,
-      "audioFilesAfter": 20
+      "offHistory": "s-mulf3amu-e754ebce",
+      "offAudio": "s-mulf3u3t-82da9cbd",
+      "audioFilesBefore": 18,
+      "audioFilesAfter": 18
     },
     "deletion": {
       "before": {
         "rows": {
           "sessions": 1,
-          "turns": 20,
+          "turns": 18,
           "feedbacks": 4
         },
         "audioFiles": [
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t1-interviewer.wav",
-            "bytes": 361004
+            "path": "audio/s-muley1vd-f320d6a4/turn-t1-interviewer.wav",
+            "bytes": 372524
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t10-interviewer.wav",
-            "bytes": 268844
+            "path": "audio/s-muley1vd-f320d6a4/turn-t10-interviewer.wav",
+            "bytes": 245804
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t11-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t11-user.wav",
             "bytes": 456022
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t12-interviewer.wav",
-            "bytes": 230444
+            "path": "audio/s-muley1vd-f320d6a4/turn-t12-interviewer.wav",
+            "bytes": 453164
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t13-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t13-interviewer.wav",
+            "bytes": 341804
+          },
+          {
+            "path": "audio/s-muley1vd-f320d6a4/turn-t14-user.wav",
             "bytes": 456022
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t14-interviewer.wav",
-            "bytes": 614444
+            "path": "audio/s-muley1vd-f320d6a4/turn-t15-interviewer.wav",
+            "bytes": 257324
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t15-interviewer.wav",
-            "bytes": 541484
-          },
-          {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t16-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t16-user.wav",
             "bytes": 456022
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t17-interviewer.wav",
-            "bytes": 218924
-          },
-          {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t18-user.wav",
-            "bytes": 456022
-          },
-          {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t19-interviewer.wav",
-            "bytes": 199724
-          },
-          {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t2-user.wav",
-            "bytes": 776274
-          },
-          {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t20-user.wav",
-            "bytes": 456022
-          },
-          {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t3-interviewer.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t17-interviewer.wav",
             "bytes": 222764
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t4-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t18-user.wav",
+            "bytes": 456022
+          },
+          {
+            "path": "audio/s-muley1vd-f320d6a4/turn-t2-user.wav",
+            "bytes": 776274
+          },
+          {
+            "path": "audio/s-muley1vd-f320d6a4/turn-t3-interviewer.wav",
+            "bytes": 211244
+          },
+          {
+            "path": "audio/s-muley1vd-f320d6a4/turn-t4-user.wav",
             "bytes": 687684
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t5-interviewer.wav",
-            "bytes": 226604
+            "path": "audio/s-muley1vd-f320d6a4/turn-t5-interviewer.wav",
+            "bytes": 261164
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t6-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t6-user.wav",
             "bytes": 736516
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t7-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t7-user.wav",
             "bytes": 559454
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t8-interviewer.wav",
-            "bytes": 387884
+            "path": "audio/s-muley1vd-f320d6a4/turn-t8-interviewer.wav",
+            "bytes": 441644
           },
           {
-            "path": "audio/s-muirt851-b0bafd6d/turn-t9-user.wav",
+            "path": "audio/s-muley1vd-f320d6a4/turn-t9-user.wav",
             "bytes": 788228
           }
         ],
         "tmpFiles": [
-          "tmp/uploads/s-muirt851-b0bafd6d-stray-resume.pdf"
+          "tmp/uploads/s-muley1vd-f320d6a4-stray-resume.pdf"
         ],
         "turnsInMemory": 0,
         "memoryAudioKeys": 0,
@@ -1490,32 +1470,30 @@
       },
       "removed": {
         "sessions": 1,
-        "turns": 20,
+        "turns": 18,
         "feedbacks": 4,
         "audioFiles": [
-          "audio/s-muirt851-b0bafd6d/turn-t1-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t10-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t11-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t12-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t13-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t14-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t15-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t16-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t17-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t18-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t19-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t2-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t20-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t3-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t4-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t5-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t6-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t7-user.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t8-interviewer.wav",
-          "audio/s-muirt851-b0bafd6d/turn-t9-user.wav"
+          "audio/s-muley1vd-f320d6a4/turn-t1-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t10-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t11-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t12-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t13-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t14-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t15-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t16-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t17-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t18-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t2-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t3-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t4-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t5-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t6-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t7-user.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t8-interviewer.wav",
+          "audio/s-muley1vd-f320d6a4/turn-t9-user.wav"
         ],
         "tmpFiles": [
-          "tmp/uploads/s-muirt851-b0bafd6d-stray-resume.pdf"
+          "tmp/uploads/s-muley1vd-f320d6a4-stray-resume.pdf"
         ]
       },
       "dbRecheck": {
@@ -1525,7 +1503,7 @@
       }
     },
     "hygiene": {
-      "logBytes": 17834
+      "logBytes": 18208
     }
   }
 }

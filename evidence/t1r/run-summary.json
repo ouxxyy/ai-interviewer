@@ -1,8 +1,8 @@
 {
-  "startedAt": "2026-09-26T17:02:37.624Z",
-  "command": "latency:recount",
+  "startedAt": "2026-09-28T15:39:59.223Z",
+  "command": "chain-b",
   "runtime": {
-    "node": "v26.7.0",
+    "node": "v22.22.3",
     "platform": "darwin arm64",
     "host": "local",
     "region": "cn-beijing（dashscope.aliyuncs.com，中国大陆地域）",
@@ -249,7 +249,7 @@
   "chainB": {
     "ok": true,
     "session": {
-      "sessionId": "sess_NJUgw9KC53975W9g6koAr",
+      "sessionId": "sess_UdY58yJ3LD68meYQZICBN",
       "model": "qwen3.8-omni-flash-realtime",
       "voice": "Chelsie",
       "inputAudioFormat": "pcm16",
@@ -263,9 +263,9 @@
         "create_response": true,
         "interrupt_response": true
       },
-      "handshakeMs": 227,
+      "handshakeMs": 185,
       "effective": {
-        "id": "sess_NJUgw9KC53975W9g6koAr",
+        "id": "sess_UdY58yJ3LD68meYQZICBN",
         "object": "realtime.session",
         "model": "qwen3.8-omni-flash-realtime",
         "modalities": [
@@ -273,7 +273,7 @@
           "audio"
         ],
         "instructions": "你是中文面试官。当用户消息要求你朗读文本时，必须逐字朗读该文本，不得改写、增删、重复或追加任何内容；不要自行提问，不要评价回答。",
-        "voice": "Serena",
+        "voice": "Maia",
         "input_audio_format": "pcm16",
         "output_audio_format": "pcm24",
         "input_audio_transcription": {
@@ -290,13 +290,13 @@
         "verbatim": true,
         "interviewerAudio": {
           "path": "data/t1r/chain-b-audio/turn1-interviewer-question.wav",
-          "bytes": 291840,
-          "durationSeconds": 6.08,
-          "sha256": "89b344974408b15a1a667be70e9ff5d9020c6d8e688b9b381f44107fb34e44ab",
-          "peak": 0.4824
+          "bytes": 326400,
+          "durationSeconds": 6.8,
+          "sha256": "ff17d9d702ddd1fb4d0a031cf15b84e461e4f956eeaacc8b5f6ab66130f661d0",
+          "peak": 0.5468
         },
-        "firstAudioMs": 577,
-        "totalMs": 1454,
+        "firstAudioMs": 573,
+        "totalMs": 1531,
         "status": "completed"
       },
       {
@@ -311,8 +311,8 @@
           "peak": 0.6682
         },
         "userTranscript": "我在毕业季征稿活动里负责整体策划和落地。前期我先用问卷收集了两百份同学偏好，然后把主题定成毕业故事。之后我联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。",
-        "asrLatencyMs": 250,
-        "note": "推流 5631ms，pcm 802978 字节 / 25.093s"
+        "asrLatencyMs": 323,
+        "note": "推流 5354ms，pcm 802978 字节 / 25.093s"
       },
       {
         "index": 3,
@@ -322,13 +322,13 @@
         "verbatim": true,
         "interviewerAudio": {
           "path": "data/t1r/chain-b-audio/turn3-interviewer-followup.wav",
-          "bytes": 226560,
-          "durationSeconds": 4.72,
-          "sha256": "72a26a61f1791e790f567f02ac57ea9eb5fd4b8d6279a5cc6a7f5ea1fc724e28",
-          "peak": 0.4179
+          "bytes": 272640,
+          "durationSeconds": 5.68,
+          "sha256": "c51043589598eca7b4568de246659cef56d0ec17ea18cc5bb5b0616d286e0700",
+          "peak": 0.3769
         },
-        "firstAudioMs": 592,
-        "totalMs": 1198,
+        "firstAudioMs": 600,
+        "totalMs": 1308,
         "status": "completed"
       },
       {
@@ -340,18 +340,18 @@
           "path": "data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav",
           "bytes": 92160,
           "durationSeconds": 1.92,
-          "sha256": "77031a46ec59aaca9d282a3bbe3b498c6e71da8e796c69fcb16982417ca47336",
-          "peak": 0.3965
+          "sha256": "d8e65dd91e3634f10b0af1ceb39aed2f4ad79c8b922f627429323a56522b9987",
+          "peak": 0.4355
         },
-        "totalMs": 1002,
+        "totalMs": 1069,
         "status": "cancelled",
         "interrupt": {
-          "cancelSentAtMs": 1790439883645,
+          "cancelSentAtMs": 1790610010856,
           "audioDeltasBeforeCancel": 5,
           "audioDeltasAfterCancel": 1,
           "bytesAfterCancel": 15360,
           "finalStatus": "cancelled",
-          "stoppedWithinMs": 69
+          "stoppedWithinMs": 73
         }
       }
     ],
@@ -367,26 +367,26 @@
     "premisePersistInterviewerAudio": {
       "supported": true,
       "turnsWithAudio": 3,
-      "totalBytes": 610560,
+      "totalBytes": 691200,
       "evidence": [
-        "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜6.08s｜291840B｜sha256=89b344974408b15a…",
-        "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜4.72s｜226560B｜sha256=72a26a61f1791e79…",
-        "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=77031a46ec59aaca…"
+        "轮 1：data/t1r/chain-b-audio/turn1-interviewer-question.wav｜6.8s｜326400B｜sha256=ff17d9d702ddd1fb…",
+        "轮 3：data/t1r/chain-b-audio/turn3-interviewer-followup.wav｜5.68s｜272640B｜sha256=c51043589598eca7…",
+        "轮 4：data/t1r/chain-b-audio/turn4-interviewer-interrupted.wav｜1.92s｜92160B｜sha256=d8e65dd91e3634f1…"
       ]
     },
     "committedClips": [
       {
         "name": "evidence/t1r/audio/clip-interviewer-question.wav",
-        "bytes": 291884,
-        "sha256": "13cf299919953d8ebf3ba4810716a16fbcd7e1a4757d9eb9d42bdb3c6379f993",
-        "durationSeconds": 6.08,
+        "bytes": 326444,
+        "sha256": "6ffb3121d2a5d80be32ca5b0923191a0478fd566bc4f205d1b426856ee3eef60",
+        "durationSeconds": 6.8,
         "note": "面试官提问（服务端产出并落盘，取自链 B 轮 1）"
       },
       {
         "name": "evidence/t1r/audio/clip-interviewer-followup.wav",
-        "bytes": 226604,
-        "sha256": "e0c8f770ac762ed6b2cb72ba054d2c2966428a2126707c135dda6c23e538fa99",
-        "durationSeconds": 4.72,
+        "bytes": 272684,
+        "sha256": "32ebdd1c37e708c7f38630caab42923a9371bb9bddf3f53cbbf643635eb935f9",
+        "durationSeconds": 5.68,
         "note": "面试官追问（服务端注入文本后朗读，取自链 B 轮 3）"
       }
     ]

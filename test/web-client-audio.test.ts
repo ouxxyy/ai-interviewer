@@ -62,10 +62,68 @@ class FakeWebSocket {
   }
 }
 
+class FakeAudioContext {
+  static instances: FakeAudioContext[] = [];
+  static staySuspended = false;
+
+  state: AudioContextState = 'suspended';
+  resumeCalls = 0;
+  readonly destination = {} as AudioDestinationNode;
+  readonly audioWorklet = { addModule: async () => undefined } as unknown as AudioWorklet;
+
+  constructor(_options?: AudioContextOptions) {
+    FakeAudioContext.instances.push(this);
+  }
+
+  createMediaStreamSource(): MediaStreamAudioSourceNode {
+    return { connect: () => undefined } as unknown as MediaStreamAudioSourceNode;
+  }
+
+  createGain(): GainNode {
+    return { gain: { value: 1 }, connect: () => undefined, disconnect: () => undefined } as unknown as GainNode;
+  }
+
+  async resume(): Promise<void> {
+    this.resumeCalls += 1;
+    if (!FakeAudioContext.staySuspended) this.state = 'running';
+  }
+
+  async close(): Promise<void> {
+    this.state = 'closed';
+  }
+}
+
+class FakeAudioWorkletNode {
+  readonly port = { onmessage: null as ((event: MessageEvent<ArrayBuffer>) => void) | null };
+  connect(): void {}
+  disconnect(): void {}
+}
+
 function installDom(): void {
   const globals = globalThis as unknown as Record<string, unknown>;
   globals.WebSocket = FakeWebSocket;
   globals.location = { protocol: 'http:', host: '127.0.0.1:18918' };
+}
+
+function installCaptureDom(): { stopped: boolean[] } {
+  installDom();
+  const globals = globalThis as unknown as Record<string, unknown>;
+  const stopped: boolean[] = [];
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: {
+      mediaDevices: {
+        getUserMedia: async () => ({
+          getTracks: () => [{ stop: () => stopped.push(true) }],
+        }),
+      },
+    },
+  });
+  globals.AudioContext = FakeAudioContext;
+  globals.AudioWorkletNode = FakeAudioWorkletNode;
+  FakeAudioContext.instances = [];
+  FakeAudioContext.staySuspended = false;
+  return { stopped };
 }
 
 interface Recorder {
@@ -202,4 +260,32 @@ test('连续面试：提交回答与无播放队列的暂停恢复都会回到 i
   assert.equal(await runtime.commitAnswer(), true);
   assert.equal(recorded.statuses.filter((status) => status === 'idle').length, idleBeforeCommit + 1, '回答提交后要明确退出 listening');
   assert.match(socket.sent.at(-1) ?? '', /answer\.commit/);
+});
+
+test('真实麦克风链路：AudioContext 必须显式 resume 后才标记正在录音', async () => {
+  installCaptureDom();
+  const { runtime, recorded } = makeRuntime();
+  const connecting = runtime.connect('s-mic');
+  FakeWebSocket.last.establish();
+  await connecting;
+
+  assert.equal(await runtime.startAnswer(), true);
+  assert.equal(FakeAudioContext.instances.length, 1);
+  assert.equal(FakeAudioContext.instances[0]?.resumeCalls, 1, '必须显式唤醒因异步 getUserMedia 而可能挂起的 AudioContext');
+  assert.equal(runtime.isCapturing, true);
+  assert.equal(recorded.statuses.at(-1), 'listening');
+});
+
+test('真实麦克风链路：AudioContext 仍挂起时不得伪装成正在录音', async () => {
+  const capture = installCaptureDom();
+  FakeAudioContext.staySuspended = true;
+  const { runtime, recorded } = makeRuntime();
+  const connecting = runtime.connect('s-mic-suspended');
+  FakeWebSocket.last.establish();
+  await connecting;
+
+  assert.equal(await runtime.startAnswer(), false);
+  assert.equal(runtime.isCapturing, false);
+  assert.equal(recorded.errors.at(-1)?.code, 'E_MIC_DENIED');
+  assert.equal(capture.stopped.length, 1, '启动失败必须立即释放麦克风轨道');
 });

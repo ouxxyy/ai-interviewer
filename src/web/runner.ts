@@ -468,9 +468,29 @@ export class InterviewRunner {
       throw err;
     }
     if (commit.empty) {
+      // 只记录幅度统计，不落盘失败回答的音频或原话；区分无上行、全静音和有声但 ASR 为空。
+      let samples = 0;
+      let peak = 0;
+      let sumSquares = 0;
+      for (const chunk of this.answerChunks) {
+        for (let offset = 0; offset + 1 < chunk.length; offset += 2) {
+          const sample = chunk.readInt16LE(offset) / 32768;
+          samples++;
+          peak = Math.max(peak, Math.abs(sample));
+          sumSquares += sample * sample;
+        }
+      }
       const fired = this.machine.fire('ERROR_EMPTY_TRANSCRIPT');
       this.setError('E_EMPTY_TRANSCRIPT', '这一轮没有识别到说话内容', '按「重读本题」再说一次；不消耗追问次数');
-      this.logger.warn('runner.empty_transcript', { sid: this.sid, accepted: fired.accepted, latencyMs: commit.latencyMs });
+      this.logger.warn('runner.empty_transcript', {
+        sid: this.sid,
+        accepted: fired.accepted,
+        latencyMs: commit.latencyMs,
+        audioChunks: this.answerChunks.length,
+        audioBytes: this.answerChunks.reduce((total, chunk) => total + chunk.length, 0),
+        audioPeak: Number(peak.toFixed(6)),
+        audioRms: samples === 0 ? 0 : Number(Math.sqrt(sumSquares / samples).toFixed(6)),
+      });
       return this.snapshot();
     }
     const snapshotBefore = this.machine.snapshot();

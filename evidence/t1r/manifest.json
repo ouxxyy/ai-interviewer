@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T17:02:37.627Z",
+  "generatedAt": "2026-09-28T15:40:10.945Z",
   "artifacts": [
     {
       "path": "evidence/t1r/models/catalog.json",
@@ -158,30 +158,30 @@
     {
       "path": "evidence/t1r/chain-b/summary.json",
       "kind": "json",
-      "bytes": 57421,
-      "committed": true,
-      "sha256": "a0940db33a116d958d36c2d09616d52750b83322f19e8910b4a97e5f2a458ea8"
+      "bytes": 59755,
+      "sha256": "0e21c209ae3e7639eabd580c0089741257b91b53612dc93db9e1d1e08a6c87f7",
+      "committed": true
     },
     {
       "path": "evidence/t1r/chain-b/events.jsonl",
       "kind": "jsonl",
-      "bytes": 33260,
-      "committed": true,
-      "sha256": "2e158fbd9c9a87a3b257f00f4bd40d821a3ccdf87beb9ae253c92ce8fa5d6b55"
+      "bytes": 34620,
+      "sha256": "63e68c2e8b0f780345aac18c8fba4f6342b5e21b00d05462f100a4137aff4883",
+      "committed": true
     },
     {
       "path": "evidence/t1r/audio/clip-interviewer-question.wav",
       "kind": "wav",
-      "bytes": 291884,
-      "sha256": "13cf299919953d8ebf3ba4810716a16fbcd7e1a4757d9eb9d42bdb3c6379f993",
+      "bytes": 326444,
+      "sha256": "6ffb3121d2a5d80be32ca5b0923191a0478fd566bc4f205d1b426856ee3eef60",
       "committed": true,
       "note": "面试官提问（服务端产出并落盘，取自链 B 轮 1）"
     },
     {
       "path": "evidence/t1r/audio/clip-interviewer-followup.wav",
       "kind": "wav",
-      "bytes": 226604,
-      "sha256": "e0c8f770ac762ed6b2cb72ba054d2c2966428a2126707c135dda6c23e538fa99",
+      "bytes": 272684,
+      "sha256": "32ebdd1c37e708c7f38630caab42923a9371bb9bddf3f53cbbf643635eb935f9",
       "committed": true,
       "note": "面试官追问（服务端注入文本后朗读，取自链 B 轮 3）"
     },
@@ -202,8 +202,8 @@
     {
       "path": "evidence/t1r/run-summary.json",
       "kind": "json",
-      "bytes": 37049,
-      "sha256": "66af0726c195a1ade5d1d673919734c04e39f9cd580a6dce74bfffbd5928b694",
+      "bytes": 37037,
+      "sha256": "8c5616cd1b2f737582e54be2ca0e3bba18ae478f7bc5a42bf4c1a1fcbfa0fbba",
       "committed": true
     },
     {
@@ -216,13 +216,13 @@
   ],
   "notes": [
     {
-      "at": "2026-09-26T17:02:37.619Z",
+      "at": "2026-09-28T15:39:59.222Z",
       "key": "env",
       "value": {
         "dotenvPath": ".env",
         "filePresent": true,
         "injectedKeys": [
-          "DASHSCOPE_API_KEY",
+          "DASHSCOPE_API_KEY(已由 shell 提供，保留 shell 值)",
           "NO_PROXY"
         ],
         "emptyKeys": [],

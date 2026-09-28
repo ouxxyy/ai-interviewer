@@ -230,6 +230,8 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
       output_audio_format: REALTIME_DEFAULTS.outputAudioFormat,
       // 手动控制轮次：应用层决定何时提交回答、何时让面试官开口（D2）。
       turn_detection: null,
+      // 这是直接 WebSocket 的载荷；enable_input_audio_transcription 等是 SDK 调用参数，
+      // 不能直接代替线上已验收的嵌套字段。
       input_audio_transcription: { model: this.opts.inputTranscriptionModel ?? 'qwen3-asr-flash-realtime' },
       instructions:
         cfg.instructions ??
@@ -272,7 +274,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
   /** 用户「回答完毕」：提交缓冲，触发真实 ASR。 */
   commitAudio(): void {
     this.commitSentAt = Date.now();
-    this.userTranscriptBuf = '';
+    // ASR 预览可以早于 commit 到达；此处清空会丢失整轮已识别内容。
     this.send({ type: 'input_audio_buffer.commit' });
   }
 
@@ -359,9 +361,16 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
       return;
     }
     if (type === 'conversation.item.input_audio_transcription.delta') {
-      const d = String(obj.delta ?? obj.transcript ?? '');
-      this.userTranscriptBuf += d;
-      this.record('recv', type, d.length);
+      // qwen3.8 的 text 是已确认前缀，stash 是可变后缀，两者每次都是当前完整预览，不能累加。
+      // 同时保留旧协议 delta/transcript 的兼容路径，但不把面试官输出混入用户回答。
+      if (typeof obj.text === 'string' || typeof obj.stash === 'string') {
+        this.userTranscriptBuf = `${String(obj.text ?? '')}${String(obj.stash ?? '')}`;
+      } else if (typeof obj.delta === 'string') {
+        this.userTranscriptBuf += obj.delta;
+      } else if (typeof obj.transcript === 'string') {
+        this.userTranscriptBuf = obj.transcript;
+      }
+      this.record('recv', type, this.userTranscriptBuf.length);
       for (const cb of this.transcriptCbs) cb(this.userTranscriptBuf, false);
       return;
     }
@@ -381,7 +390,10 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
           voice: String(s.voice ?? ''),
           inputAudioFormat: String(s.input_audio_format ?? ''),
           outputAudioFormat: String(s.output_audio_format ?? ''),
-          inputAudioTranscriptionModel: (s.input_audio_transcription as { model?: string } | undefined)?.model ?? null,
+          inputAudioTranscriptionModel:
+            typeof s.input_audio_transcription_model === 'string'
+              ? s.input_audio_transcription_model
+              : (s.input_audio_transcription as { model?: string } | undefined)?.model ?? null,
           turnDetection: s.turn_detection ?? null,
           handshakeMs: Date.now() - this.origin,
           updated: null,
@@ -420,14 +432,26 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
         break;
       }
       case 'conversation.item.input_audio_transcription.completed': {
-        const transcript = String(obj.transcript ?? this.userTranscriptBuf);
+        const completed = typeof obj.transcript === 'string' ? obj.transcript : '';
+        // 上游偶发在 completed 给空串时，不覆盖已经收到的有效 text + stash 预览。
+        const transcript = completed.trim() !== '' ? completed : this.userTranscriptBuf;
         const result: UserTranscriptResult = {
           transcript,
           latencyMs: this.commitSentAt === 0 ? 0 : Date.now() - this.commitSentAt,
         };
-        this.userTranscriptBuf = transcript;
+        // 本轮结束才释放缓存，防止下一轮空回答复用上一轮文本。
+        this.userTranscriptBuf = '';
         for (const cb of this.transcriptCbs) cb(transcript, true);
         for (const w of this.transcriptWaiters.splice(0)) w.resolve(result);
+        break;
+      }
+      case 'conversation.item.input_audio_transcription.failed': {
+        this.userTranscriptBuf = '';
+        const err = (obj.error ?? {}) as Record<string, unknown>;
+        const code = String(err.code ?? 'unknown');
+        const message = String(err.message ?? '用户语音转写失败');
+        const failure = new Error(`用户语音转写失败 ${code}：${message.slice(0, 200)}`);
+        for (const w of this.transcriptWaiters.splice(0)) w.reject(failure);
         break;
       }
       case 'error': {

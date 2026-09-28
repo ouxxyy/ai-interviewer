@@ -179,7 +179,9 @@ materials_review → question → answer → followup? → review → rewrite? �
 
 ## 8. 已知限制（如实标注）
 
-1. **正式产品前端已实现，但本轮未重跑付费的真实模型全流程**：构建、同源托管、API smoke 与实现页面截图已覆盖；付费链路的既有证据仍见 `docs/web-acceptance.md`。
+- **2026-09-28 空转写排查已完成模型链路验收**：已修复 `commitAudio()` 清空提交前 ASR 预览的问题，并恢复直接 WebSocket 的 `input_audio_transcription.model` 字段。真实网页验收 64/64、真实链 B 均通过；用户现场确认实际故障来自浏览器误选虚拟麦克风。失败日志新增 PCM 峰值／RMS，仅记录数值，不记录音频或原话。详见 `docs/web-acceptance.md` 与 `docs/t1r-acceptance.md`。
+
+1. **正式产品前端已实现；付费真实模型全流程已于 2026-09-28 重跑**：验收由同源 `/harness` 驱动底层 API、WS、音频和持久化链路；正式页面视觉与真人麦克风仍按各自证据口径判断。
 2. **真人麦克风未验证**：本机 Chrome 153 的 `--use-file-for-fake-audio-capture` 预检为**静音**（RMS 0.0，默认假设备 0.72），
    因此验收里的「作答语音」由页面按同一 WS 协议推流注入（`say` 合成语音）；真实麦克风链路由 Chrome 假设备
    （提示音）单独覆盖（空转写状态）。**真人对着麦克风说话、环境噪声、真实语速仍未验证**。

@@ -66,8 +66,11 @@ npm run web:serve        # 构建并启动本地服务
 ## 开发与维护
 
 ```bash
-npm test                                              # 构建并跑全部单测（node --test，190 项）
+npm test                                              # 构建并跑全部单测（node --test，196 项）
 npm run build                                         # 编译 Node 端并构建 React 前端到 dist/web-client/
+npm run web:dev                                       # 启动 Vite 开发服务，代理 API 与 WS 到 8918
+npm run web:info                                      # 查看数据目录、迁移版本、凭证存在性与设置
+npm run web:evidence                                  # 真实 Chrome + 百炼全链路验收（会产生 API 费用）
 npm run validate -- <file.json> <contract-name>       # 独立契约校验 CLI
 ```
 
