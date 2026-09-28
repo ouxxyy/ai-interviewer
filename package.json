@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "基于 JD 与经历的中文 AI 面试训练工具（三入口 MVP）——T1-S 静态验收包",
+  "license": "MIT",
+  "description": "基于 JD 与经历的中文语音 AI 面试陪练（本地网页／Skill／简版 Prompt 三入口）",
   "scripts": {
     "build": "npm run clean:webtest && npm run build:server && npm run build:web && npm run build:webtest",
     "clean:webtest": "node scripts/clean-webtest-output.mjs",
