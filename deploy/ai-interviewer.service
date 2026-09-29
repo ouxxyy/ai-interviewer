@@ -1,0 +1,26 @@
+[Unit]
+Description=AI Interviewer BYOK
+After=network.target
+[Service]
+Type=simple
+User=ai-interviewer
+Group=ai-interviewer
+WorkingDirectory=/www/ai-interviewer/app
+Environment=NODE_ENV=production
+Environment=AI_INTERVIEWER_PUBLIC=on
+Environment=AI_INTERVIEWER_PUBLIC_ORIGIN=https://interview.redboook.cn
+Environment=AI_INTERVIEWER_DATA_DIR=/www/ai-interviewer/data
+Environment=AI_INTERVIEWER_PORT=8918
+ExecStart=/www/server/nodejs/v22.23.3/bin/node /www/ai-interviewer/app/dist/src/web/cli.js serve
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/www/ai-interviewer/data
+MemoryMax=600M
+TasksMax=128
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+[Unit]
+Description=Consistent backup of AI Interviewer
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /www/ai-interviewer/app/deploy/backup.sh

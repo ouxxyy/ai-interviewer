@@ -91,3 +91,9 @@ location /realtime {
 6. 备份、开机拉起和失败日志检查；从备份恢复的演练另记，不能以“配置了计划任务”冒充恢复验证。
 
 百炼申请说明以 [阿里云官方文档](https://help.aliyun.com/zh/model-studio/get-api-key/) 为来源，2026-09-30 核对。需华北2（北京）Key，与应用端点同地域。
+
+## 本次服务器实际采用的进程管理
+
+2026-09-30：服务器已通过宝塔页面安装 Node `v22.23.3`；保留命令行默认 Node20。实际使用 `deploy/ai-interviewer.service` 的 systemd 单实例（不是 PM2），专用无登录用户 `ai-interviewer`、只读源码、仅数据目录可写，600MB 内存上限。配置模板位于 `deploy/`。
+
+备份使用独立 systemd timer，每天服务器时间 04:30 短暂停面试官服务、完整归档 SQLite/WAL/主密钥/录音后恢复。这会中断当时在线场次，历史仍在；档案仅 root 可读，保留约 7 天。本地备份不等于异地灾备，尚无异地副本。日志由系统 journald 管理，未引入 PM2 日志组件。
