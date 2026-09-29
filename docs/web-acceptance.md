@@ -140,3 +140,9 @@
 - **未做**：多用户与鉴权（只绑回环、本机单用户）、HTTPS、流式评审渲染、A8 三入口一致性终验（等网页前端）。
 
 完整结构化数据见 `evidence/web/summary.json`；证据文件 sha256 见 `evidence/web/manifest.json`。
+
+## 2026-09-30 公网部署补充（独立于上述历史真实模型验收）
+
+公网入口 `https://interview.redboook.cn/` 已部署；198 项离线测试、免费 Chrome prototype 音频链路、公网 28 项 HTTPS/WSS 双访客隔离检查及 6 项服务重启持久性检查通过。详见 `docs/public-deployment-acceptance.md` 与 `evidence/public/`。
+
+本轮未获新增真实 API 花费确认，因此未重跑 `web:evidence` / T1-R；公网真人麦克风和真实模型整场仍为**未验证**，不得将本文旧验收数字当作新公网验收结果。

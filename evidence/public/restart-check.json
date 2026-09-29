@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-29T17:31:23.173Z",
+  "checks": [
+    "visitor 0: /api/settings persisted after service restart",
+    "visitor 0: /api/model-config persisted after service restart",
+    "visitor 0: /api/sessions persisted after service restart",
+    "visitor 1: /api/settings persisted after service restart",
+    "visitor 1: /api/model-config persisted after service restart",
+    "visitor 1: /api/sessions persisted after service restart"
+  ]
+}
