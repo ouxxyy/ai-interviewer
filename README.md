@@ -6,7 +6,7 @@
 
 **44 秒宣传片：**
 
-![44 秒宣传片](https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba)
+https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 
 <p align="center"><sub>宣传视频画面为方案 C 实现评审素材，内容全是虚构演示数据。</sub></p>
 
