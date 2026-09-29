@@ -82,7 +82,7 @@ export function ModelSettingsPage({ settings, onUpdate, onNavigate }: ModelSetti
         <section className="model-config-grid" aria-label="当前模型配置">
           <ConfigCard icon={Cpu} label="题目与评审" value={config?.textModel ?? '读取中…'} />
           <ConfigCard icon={Waveform} label="实时对话" value={config?.realtimeModel ?? '读取中…'} detail={config ? `音色 ${config.voice}` : undefined} />
-          <ConfigCard icon={ShieldCheck} label="保存位置" value="项目根 .env" detail="不写入浏览器存储，不回显原值" />
+          <ConfigCard icon={ShieldCheck} label="保存位置" value={config?.storage === 'visitor-encrypted' ? '服务器加密存储（按访客隔离）' : '项目根 .env'} detail="不写入浏览器存储，不回显原值" />
         </section>
 
         <section className="answer-mode-panel" aria-labelledby="answer-mode-title">
@@ -102,8 +102,19 @@ export function ModelSettingsPage({ settings, onUpdate, onNavigate }: ModelSetti
           {modeSaved ? <p className="config-saved" role="status"><CheckCircle size={17} weight="fill" aria-hidden="true" />开麦方式已保存。</p> : null}
         </section>
 
+        <section className="credential-form" aria-labelledby="key-help-title">
+          <h2 id="key-help-title">如何申请百炼 API Key</h2>
+          <ol>
+            <li>注册并登录阿里云账号，按控制台提示完成实名认证、开通百炼模型服务。</li>
+            <li>打开<a href="https://bailian.console.aliyun.com/" target="_blank" rel="noreferrer">百炼控制台</a>，选择<strong>华北 2（北京）</strong>地域，进入“密钥管理 / API Key”。本应用使用北京端点，其他地域的 Key 不能混用。</li>
+            <li>点击“创建 API Key”，按页面选择归属账号和业务空间（个人使用可选默认业务空间），确认后复制完整 Key。没有创建权限时联系账号管理员。</li>
+            <li>将 Key 粘贴到下方并保存，再新建一场训练。这里需要百炼 API Key，不是阿里云 AccessKey ID / Secret。</li>
+          </ol>
+          <p>保存成功仅代表格式与存储成功，模型权限与余额要在实际调用时验证。费用由你的百炼账号承担，请检查模型权限、额度与账单；不要把 Key 发给他人或写进简历。</p>
+          <p>若提示鉴权失败，核对地域、Key 是否撤销及模型权限；额度不足请前往百炼查看账单。详见<a href="https://help.aliyun.com/zh/model-studio/get-api-key/" target="_blank" rel="noreferrer">阿里云官方获取说明</a>。</p>
+        </section>
         <form className="credential-form" onSubmit={(event) => void save(event)}>
-          <div className="credential-form__heading"><span><Key size={23} weight="bold" aria-hidden="true" /></span><div><h2>配置百炼 API Key</h2><p>提交只经过 <code>127.0.0.1</code> 同源请求；服务端不记录、不回显密钥。对之后新建的场次立即生效。</p></div></div>
+          <div className="credential-form__heading"><span><Key size={23} weight="bold" aria-hidden="true" /></span><div><h2>配置百炼 API Key</h2><p>{config?.storage === 'visitor-encrypted' ? 'Key 经同源 HTTPS 提交，服务器按访客隔离加密保存。浏览器仅保存访客 Cookie；清除 Cookie 或换浏览器后须重新配置。' : 'Key 经同源请求提交到本地服务，仅保存在项目根 .env。'}服务端不在日志中记录、不回显密钥。新建场次使用新配置。</p></div></div>
           <label htmlFor="dashscope-api-key">{config?.configured ? '替换现有 Key' : '输入 API Key'}</label>
           <div className="credential-input-row">
             <input id="dashscope-api-key" type="password" value={apiKey} onChange={(event) => { setApiKey(event.target.value); setSaved(false); }} autoComplete="off" spellCheck={false} placeholder="sk-…" disabled={busy || config === null} />

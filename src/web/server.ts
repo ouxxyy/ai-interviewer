@@ -11,6 +11,7 @@
  * 本模块只负责托管，不包含视觉/交互层实现。
  */
 import http from 'node:http';
+import { isIP } from 'node:net';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -28,7 +29,8 @@ import { parseMaterialFile } from './materials.js';
 import { REPO_ROOT, type WebPaths } from './paths.js';
 import type { SettingsStore } from './settings.js';
 import type { Store } from './store.js';
-import type { CredentialConfigStore } from './credentials.js';
+import type { CredentialStore, VisitorRegistry } from './visitor.js';
+import { PUBLIC_DISCLOSURE } from './disclosure.js';
 
 const MAX_BODY_BYTES = 16 * 1024 * 1024;
 const HARNESS_FILE = path.join(REPO_ROOT, 'src', 'web', 'public', 'harness.html');
@@ -37,7 +39,8 @@ export interface ServerDeps {
   manager: SessionManager;
   store: Store;
   settings: SettingsStore;
-  credentials: CredentialConfigStore;
+  credentials: CredentialStore;
+  visitors?: VisitorRegistry;
   logger: Logger;
   paths: WebPaths;
   staticDir: string;
@@ -160,9 +163,8 @@ function optionalAnswerStartMode(body: Record<string, unknown>): 'continuous' | 
 }
 
 export function createServer(deps: ServerDeps): RunningServer {
-  const { manager, store, settings, credentials, logger } = deps;
-  let configToken = randomUUID();
-  let configWrites: number[] = [];
+  const { logger } = deps;
+  const configs = new WeakMap<CredentialStore, { token: string; writes: number[] }>();
 
   const server = http.createServer((req, res) => {
     void handle(req, res);
@@ -172,19 +174,36 @@ export function createServer(deps: ServerDeps): RunningServer {
     const url = new URL(req.url ?? '/', `http://${deps.host}:${deps.port}`);
     const route = `${req.method ?? 'GET'} ${url.pathname}`;
     try {
+      if (deps.visitors) {
+        const ip = req.headers['x-real-ip'];
+        res.once('finish', () => logger.info('http.access', { method: req.method, status: res.statusCode, ...(typeof ip === 'string' && isIP(ip) ? { ip } : {}) }));
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'");
+      }
+      if (req.method === 'GET' && url.pathname === '/api/bootstrap') {
+        return json(res, 200, deps.visitors ? deps.visitors.bootstrap(req, res) : { mode: { public: false, keyConfigured: deps.credentials.status().configured } });
+      }
+      const scope = deps.visitors && url.pathname.startsWith('/api/') ? deps.visitors.require(req) : deps;
+      const { manager, store, settings, credentials, paths } = scope;
+      const disclosure = deps.visitors ? PUBLIC_DISCLOSURE : DISCLOSURE;
+      const disclosureVersion = disclosure.version;
+      let config = configs.get(credentials);
+      if (!config) { config = { token: randomUUID(), writes: [] }; configs.set(credentials, config); }
       if (req.method === 'GET' && url.pathname === '/api/health') {
         return json(res, 200, {
           ok: true,
           host: deps.host,
           port: deps.port,
           credential: { key: credentials.status().keyName, present: credentials.status().configured },
-          versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, rulesDigest: rulesDigest(), disclosure: DISCLOSURE_VERSION },
+          versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, rulesDigest: rulesDigest(), disclosure: disclosureVersion },
           liveSessions: manager.listLive().length,
           dbVersion: store.dataPaths.dbFile === '' ? 0 : undefined,
         });
       }
       if (req.method === 'GET' && url.pathname === '/api/disclosure') {
-        return json(res, 200, { disclosure: DISCLOSURE, acknowledged: !settings.needsDisclosure(), current: settings.get() });
+        return json(res, 200, { disclosure, acknowledged: !settings.needsDisclosure(), current: settings.get() });
       }
       if (req.method === 'GET' && url.pathname === '/api/model-config') {
         return json(res, 200, {
@@ -192,31 +211,31 @@ export function createServer(deps: ServerDeps): RunningServer {
           textModel: process.env.AI_INTERVIEWER_TEXT_MODEL?.trim() || DASHSCOPE_DEFAULTS.model,
           realtimeModel: process.env.AI_INTERVIEWER_REALTIME_MODEL?.trim() || REALTIME_DEFAULTS.model,
           voice: REALTIME_DEFAULTS.defaultVoice,
-          configToken,
+          configToken: config.token,
         });
       }
       if (req.method === 'PATCH' && url.pathname === '/api/model-config') {
-        if (req.headers['x-config-token'] !== configToken) {
+        if (req.headers['x-config-token'] !== config.token) {
           throw new AppError('E_FORBIDDEN', '模型配置令牌无效或已过期', { hint: '刷新模型配置页后重试' });
         }
         const now = Date.now();
-        configWrites = configWrites.filter((at) => now - at < 60_000);
-        if (configWrites.length >= 5) throw new AppError('E_CONFLICT', '一分钟内配置次数过多', { hint: '稍后再试' });
+        config.writes = config.writes.filter((at) => now - at < 60_000);
+        if (config.writes.length >= 5) throw new AppError('E_CONFLICT', '一分钟内配置次数过多', { hint: '稍后再试' });
         const body = await readJsonObject(req, 4096);
         const status = credentials.update(requireString(body, 'apiKey', { min: 20, max: 512 }));
-        configWrites.push(now);
-        configToken = randomUUID();
+        config.writes.push(now);
+        config.token = randomUUID();
         logger.info('model_config.updated', { configured: status.configured, keyName: status.keyName });
         return json(res, 200, {
           ...status,
           textModel: process.env.AI_INTERVIEWER_TEXT_MODEL?.trim() || DASHSCOPE_DEFAULTS.model,
           realtimeModel: process.env.AI_INTERVIEWER_REALTIME_MODEL?.trim() || REALTIME_DEFAULTS.model,
           voice: REALTIME_DEFAULTS.defaultVoice,
-          configToken,
+          configToken: config.token,
         });
       }
       if (req.method === 'GET' && url.pathname === '/api/settings') {
-        return json(res, 200, { settings: settings.get(), disclosureVersion: DISCLOSURE_VERSION, needsDisclosure: settings.needsDisclosure() });
+        return json(res, 200, { settings: settings.get(), disclosureVersion, needsDisclosure: settings.needsDisclosure() });
       }
       if ((req.method === 'PATCH' || req.method === 'POST') && url.pathname === '/api/settings') {
         const body = await readJsonObject(req);
@@ -228,7 +247,7 @@ export function createServer(deps: ServerDeps): RunningServer {
           ...(saveHistory === undefined ? {} : { saveHistory }),
           ...(saveAudio === undefined ? {} : { saveAudio }),
           ...(answerStartMode === undefined ? {} : { answerStartMode }),
-          ...(disclosureAck === true ? { disclosureAckVersion: DISCLOSURE_VERSION } : {}),
+          ...(disclosureAck === true ? { disclosureAckVersion: disclosureVersion } : {}),
         });
         logger.info('settings.updated', { saveHistory: updated.saveHistory, saveAudio: updated.saveAudio, answerStartMode: updated.answerStartMode, disclosureAck: updated.disclosureAckVersion });
         return json(res, 200, { settings: updated, needsDisclosure: settings.needsDisclosure() });
@@ -245,12 +264,14 @@ export function createServer(deps: ServerDeps): RunningServer {
         return json(res, 200, store.listSessions({ limit, offset, includeSynthetic }));
       }
       if (req.method === 'POST' && url.pathname === '/api/sessions') {
+        if (deps.visitors && manager.listLive().length >= 5) throw new AppError('E_QUOTA', '最多保留 5 场在线训练，请删除旧场次后继续');
+        if (deps.visitors && !credentials.status().configured) throw new AppError('E_VALIDATION', '请先配置你的百炼 API Key');
         const body = await readJsonObject(req);
         const synthetic = optionalBool(body, 'synthetic') ?? true;
         const saveHistory = optionalBool(body, 'saveHistory');
         const saveAudio = optionalBool(body, 'saveAudio');
         const ack = optionalBool(body, 'disclosureAck');
-        if (ack === true) settings.update({ disclosureAckVersion: DISCLOSURE_VERSION });
+        if (ack === true) settings.update({ disclosureAckVersion: disclosureVersion });
         if (settings.needsDisclosure()) {
           throw new AppError('E_DISCLOSURE_REQUIRED', '首次使用前需要先确认告知内容', {
             hint: 'GET /api/disclosure 查看内容后，带 disclosureAck: true 再创建会话',
@@ -272,6 +293,7 @@ export function createServer(deps: ServerDeps): RunningServer {
       if (sidMatch) {
         const sid = decodeURIComponent(sidMatch[1]!);
         const rest = sidMatch[2] ?? '';
+        if (deps.visitors && !store.getSession(sid) && !manager.get(sid)) throw new AppError('E_NOT_FOUND', '会话不存在');
         if (req.method === 'GET' && rest === '') {
           return json(res, 200, manager.detail(sid));
         }
@@ -303,7 +325,7 @@ export function createServer(deps: ServerDeps): RunningServer {
             filename,
             buffer,
             contentType: String(req.headers['content-type'] ?? ''),
-            tmpDir: deps.paths.uploadTmpDir,
+            tmpDir: paths.uploadTmpDir,
             sessionId: r.sid,
           });
           if (!parsed.outcome.ok) {
@@ -374,6 +396,7 @@ export function createServer(deps: ServerDeps): RunningServer {
       }
 
       if (req.method === 'GET' && (url.pathname === '/harness' || url.pathname === '/harness.html')) {
+        if (deps.visitors) throw new AppError('E_NOT_FOUND', '页面不存在');
         if (!existsSync(HARNESS_FILE)) throw new AppError('E_NOT_FOUND', '验收用最小客户端不存在');
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end(readFileSync(HARNESS_FILE));
@@ -402,10 +425,23 @@ export function createServer(deps: ServerDeps): RunningServer {
 
   // ---------- WebSocket：浏览器音频与阶段事件 ----------
 
-  const wss = new WebSocketServer({ server, path: '/realtime' });
+  const wsManagers = new WeakMap<http.IncomingMessage, SessionManager>();
+  const wss = new WebSocketServer({ server, path: '/realtime', maxPayload: 256 * 1024,
+    verifyClient: (info, done) => {
+      if (!deps.visitors) return done(true);
+      try {
+        const scope = deps.visitors.require(info.req, true);
+        const sid = new URL(info.req.url ?? '/', deps.visitors.origin).searchParams.get('sid') ?? '';
+        if (!scope.manager.get(sid)) return done(false, 404, 'Not Found');
+        wsManagers.set(info.req, scope.manager);
+        done(true);
+      } catch (e) { const err = asAppError(e); done(false, err.httpStatus, err.code); }
+    },
+  });
   wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
     const url = new URL(req.url ?? '/', `http://${deps.host}:${deps.port}`);
     const sid = url.searchParams.get('sid') ?? '';
+    const manager = deps.visitors ? wsManagers.get(req)! : deps.manager;
     const runner = manager.get(sid);
     const send = (msg: Record<string, unknown>): void => {
       if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
@@ -420,6 +456,7 @@ export function createServer(deps: ServerDeps): RunningServer {
     send({ type: 'state', snapshot: runner.snapshot() });
     logger.info('ws.connected', { sid });
 
+    ws.on('error', () => ws.close());
     ws.on('message', (data: Buffer, isBinary: boolean) => {
       if (isBinary) {
         send({ type: 'error', error: { code: 'E_BAD_REQUEST', message: '音频请用 JSON 的 audio.append（base64 PCM16@16k）发送' } });

@@ -36,7 +36,7 @@ export interface WebSettings {
 export interface ModelConfigStatus {
   configured: boolean;
   keyName: 'DASHSCOPE_API_KEY';
-  storage: '.env';
+  storage: '.env' | 'visitor-encrypted';
   textModel: string;
   realtimeModel: string;
   voice: string;

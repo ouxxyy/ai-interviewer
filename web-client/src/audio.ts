@@ -174,6 +174,7 @@ export class RealtimeAudio {
   private async startCapture(): Promise<void> {
     if (this.capturing) return;
     try {
+      if (globalThis.isSecureContext === false) throw new Error('麦克风需要 HTTPS 安全连接，请使用本站 HTTPS 地址');
       this.microphone = await navigator.mediaDevices.getUserMedia({
         audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false },
       });

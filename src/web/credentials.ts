@@ -18,7 +18,7 @@ export const DASHSCOPE_KEY_NAME = 'DASHSCOPE_API_KEY';
 export interface CredentialConfigStatus {
   configured: boolean;
   keyName: typeof DASHSCOPE_KEY_NAME;
-  storage: '.env';
+  storage: '.env' | 'visitor-encrypted';
 }
 
 export class CredentialConfigStore {

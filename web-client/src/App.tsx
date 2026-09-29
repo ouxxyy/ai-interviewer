@@ -43,7 +43,7 @@ export default function App() {
   useEffect(() => {
     if (preview !== null) return;
     let active = true;
-    void api.settings()
+    void api.bootstrap().then(() => api.settings())
       .then((settingsResult) => {
         if (!active) return;
         setSettings(settingsResult.settings);

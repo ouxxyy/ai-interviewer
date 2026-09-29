@@ -207,3 +207,13 @@ materials_review → question → answer → followup? → review → rewrite? �
   `evidence/web/summary.json` 与 `docs/web-acceptance.md`，每条带 sha256 的 manifest 同目录）。
 - 离线测试：`npm test`（数据层／材料／编排／实时桥／对外接口，全部不花钱）。
 - 断言由代码计算，验收记录里逐条给出实测数字；未做到项集中在 §8 与验收记录末尾。
+
+## 公网 BYOK 模式（2026-09-30）
+
+`GET /api/bootstrap`：公网模式初始化 HttpOnly / SameSite=Strict / HTTPS Secure Cookie，返回 `mode.public` 与 `mode.keyConfigured`；本地模式只返回状态，不签发身份。公网 API（除 bootstrap）及 `/realtime` 需要有效访客身份。HTTP 测试客户端可使用 `X-Visitor-Token`；浏览器仅用 Cookie，不把身份放 URL 或 localStorage。所有跨源请求拒绝；Cookie 写请求与 WS 必须校验精确 Origin。
+
+设置 `AI_INTERVIEWER_PUBLIC=on` 与 `AI_INTERVIEWER_PUBLIC_ORIGIN=https://<域名>` 开启。按访客独立 Store/Manager/SQLite/录音路径隔离；旧本地数据库不迁移、不暴露。凭证以 AES-256-GCM 加密存储，主密钥位于持久数据目录（必须备份）。公网 `/harness` 为 404。
+
+### §8 公网上线补充限制
+
+匿名身份无法跨浏览器找回，清除 Cookie 不删除服务端记录；请先删除历史。每访客最多 5 场在线会话，每分钟 240 次请求；全局每分钟最多签发 20 个新身份、总计 5000 个，最多 64 个驻留访客，30 分钟无请求后释放内存。当前为小规模试用容量，不承诺高并发。真实麦克风、公网上游调用与公网延迟须按实际验收记录核定。

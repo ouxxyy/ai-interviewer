@@ -34,7 +34,7 @@
     "t1r:session-config": "npm run build && node dist/src/t1r/run-t1r.js session-config"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

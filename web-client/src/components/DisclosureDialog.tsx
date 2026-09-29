@@ -44,7 +44,7 @@ export function DisclosureDialog({ disclosure, busy, onConfirm, onLeave }: Discl
           <span className="version-chip">{disclosure.version}</span>
         </div>
         <div className="disclosure-grid">
-          <DisclosureCell icon={HouseLine} title="留在本机" items={disclosure.staysLocal} />
+          <DisclosureCell icon={HouseLine} title={disclosure.version.startsWith('disclosure@public') ? '保存在本站服务器' : '留在本机'} items={disclosure.staysLocal} />
           <DisclosureCell icon={CloudArrowUp} title="发给云模型" items={disclosure.sentToCloud} />
           <DisclosureCell icon={Database} title="保存位置" items={[disclosure.storage.database, disclosure.storage.audio, disclosure.storage.note]} />
           <DisclosureCell icon={Trash} title="如何删除" items={disclosure.deletion} />

@@ -9,10 +9,11 @@
  * 启动打印的三件事（PM §5）：数据落在哪、什么内容会发给云模型、怎么停与怎么删。
  */
 import path from 'node:path';
+import { VisitorRegistry } from './visitor.js';
 import process from 'node:process';
 import { credentialStatus, loadDotEnv, requireCredential } from '../t1r/env.js';
 import { InterviewDb } from './db.js';
-import { DISCLOSURE, DISCLOSURE_VERSION } from './disclosure.js';
+import { DISCLOSURE, DISCLOSURE_VERSION, PUBLIC_DISCLOSURE } from './disclosure.js';
 import { AppError } from './errors.js';
 import { Logger } from './log.js';
 import { SessionManager } from './manager.js';
@@ -41,6 +42,8 @@ function parseArgs(argv: string[]): Map<string, string> {
 }
 
 export interface ServeOptions {
+  publicMode?: boolean;
+  publicOrigin?: string;
   port?: number;
   dataDir?: string;
   staticDir?: string;
@@ -88,8 +91,29 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     ...(realtimeModel === undefined ? {} : { realtimeModel }),
     ...(opts.createBridge === undefined ? {} : { createBridge: opts.createBridge }),
   });
+  const publicMode = opts.publicMode ?? process.env.AI_INTERVIEWER_PUBLIC === 'on';
+  const visitors = publicMode ? new VisitorRegistry(path.join(paths.root, 'public'), opts.publicOrigin ?? process.env.AI_INTERVIEWER_PUBLIC_ORIGIN ?? '', (root, credentials, key) => {
+    const visitorPaths = webPaths(root);
+    const visitorDb = new InterviewDb(visitorPaths.dbFile);
+    visitorDb.migrate();
+    const visitorStore = new Store(visitorDb, visitorPaths);
+    const visitorSettings = new SettingsStore(visitorDb, PUBLIC_DISCLOSURE.version);
+    const visitorManager = new SessionManager({
+      store: visitorStore, logger, paths: visitorPaths, credential: key,
+      textClientForSession: credential => opts.textClient ?? new DashscopeTextClient({ credential: () => credential,
+        ...(process.env.AI_INTERVIEWER_TEXT_MODEL ? { model: process.env.AI_INTERVIEWER_TEXT_MODEL } : {}),
+      }),
+      textClient: opts.textClient ?? new DashscopeTextClient({ credential: key,
+        ...(process.env.AI_INTERVIEWER_TEXT_MODEL ? { model: process.env.AI_INTERVIEWER_TEXT_MODEL } : {}),
+      }),
+      ...(realtimeModel === undefined ? {} : { realtimeModel }),
+      ...(opts.createBridge === undefined ? {} : { createBridge: opts.createBridge }),
+    });
+    return { manager: visitorManager, store: visitorStore, settings: visitorSettings, credentials, paths: visitorPaths,
+      close: () => { visitorManager.closeAll(); visitorDb.close(); } };
+  }) : undefined;
   const port = opts.port ?? Number(process.env.AI_INTERVIEWER_PORT ?? SERVER_DEFAULTS.port);
-  const running = createServer({ manager, store, settings, credentials, logger, paths, staticDir: opts.staticDir ?? webStaticRoot(), port, host: SERVER_DEFAULTS.host });
+  const running = createServer({ visitors, manager, store, settings, credentials, logger, paths, staticDir: opts.staticDir ?? webStaticRoot(), port, host: SERVER_DEFAULTS.host });
   await new Promise<void>((resolve, reject) => {
     running.server.once('error', reject);
     running.server.listen(port, SERVER_DEFAULTS.host, () => resolve());
@@ -102,6 +126,7 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     logger,
     db,
     close: async () => {
+      visitors?.close();
       manager.closeAll();
       await running.close();
       db.close();
@@ -110,6 +135,10 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
 }
 
 function printStartupBanner(url: string, paths: ReturnType<typeof webPaths>, settings: SettingsStore): void {
+  if (process.env.AI_INTERVIEWER_PUBLIC === 'on') {
+    process.stdout.write(`AI 面试官公网 BYOK 服务：${url}（仅回环监听，由 HTTPS 反代）\n公开源站：${process.env.AI_INTERVIEWER_PUBLIC_ORIGIN}\n访客数据与加密凭证：${paths.root}/public\n全局 API Key 禁用；harness 禁用。请备份数据及 credential-master.key。\n`);
+    return;
+  }
   const current = settings.get();
   const credential = credentialStatus();
   const lines = [
@@ -176,7 +205,7 @@ async function main(): Promise<void> {
   const port = portFlag === undefined ? Number(process.env.AI_INTERVIEWER_PORT ?? SERVER_DEFAULTS.port) : Number(portFlag);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new AppError('E_VALIDATION', `端口不合法：${String(portFlag)}`);
   // 凭证缺失不阻塞启动（可以先把界面与本地数据层跑起来），但实时语音会明确报缺凭证。
-  if (credentialStatus().present) requireCredential();
+  if (process.env.AI_INTERVIEWER_PUBLIC !== 'on' && credentialStatus().present) requireCredential();
   const started = await startServer({ port, ...(flags.get('data-dir') === undefined ? {} : { dataDir: flags.get('data-dir')! }), logger });
   printStartupBanner(started.url, webPaths(flags.get('data-dir') ?? dataRoot()), started.settings);
   const shutdown = async (): Promise<void> => {

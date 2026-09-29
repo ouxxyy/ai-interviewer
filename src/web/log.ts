@@ -52,6 +52,7 @@ export class Logger {
   log(level: LogLevel, event: string, fields: Record<string, unknown> = {}): void {
     const record: LogRecord = { at: new Date().toISOString(), level, event, ...(redactValue(fields) as Record<string, unknown>) };
     this.records.push(record);
+    if (this.records.length > 2000) this.records.shift();
     const order: LogLevel[] = ['debug', 'info', 'warn', 'error'];
     if (order.indexOf(level) >= order.indexOf(this.level)) {
       const line = JSON.stringify(record);

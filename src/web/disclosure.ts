@@ -49,3 +49,27 @@ export const DISCLOSURE = {
 } as const;
 
 export type Disclosure = typeof DISCLOSURE;
+
+/** Public hosting has a separate consent version; local consent stays unchanged. */
+export const PUBLIC_DISCLOSURE = {
+  ...DISCLOSURE,
+  version: 'disclosure@public-1',
+  staysLocal: [
+    '开启保存后，材料、转写、反馈、报告与可选录音保存在本站服务器，按访客隔离；并非只留在你的电脑。',
+    '浏览器保存 HttpOnly 访客 Cookie，它是访问历史与配置的唯一凭证；请勿共享浏览器个人资料。',
+    '清除 Cookie、换浏览器或无痕窗口会成为新访客，无法恢复旧记录。服务器管理员有管理数据的能力。',
+  ],
+  sentToCloud: [
+    ...DISCLOSURE.sentToCloud.slice(0, 4),
+    'API Key 经本站同源 HTTPS 提交，在服务器加密保存；不回显、不写浏览器存储或日志。本站以你的 Key 调用百炼。',
+  ],
+  storage: {
+    root: '本站服务器的访客独立目录', database: '每位访客独立的 SQLite 历史库',
+    audio: '每位访客独立的录音目录', uploads: '上传解析临时文件（解析完即删）', note: DISCLOSURE.storage.note,
+  },
+  deletion: [
+    '在历史记录页面删除单场训练，同时删除其文本记录与录音。',
+    '清除浏览器 Cookie 不会删除服务器数据；请先删除历史，再清理 Cookie。',
+    '如需停用 Key，请在百炼控制台撤销；备份中的历史数据按站点备份保留期清理。',
+  ],
+};

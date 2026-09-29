@@ -55,6 +55,7 @@ export class SessionManager {
       logger: Logger;
       credential: string | (() => string);
       textClient: TextLlmClient;
+      textClientForSession?: (credential: string) => TextLlmClient;
       paths: WebPaths;
       realtimeModel?: string;
       voice?: string;
@@ -64,11 +65,12 @@ export class SessionManager {
 
   create(req: CreateSessionRequest): InterviewRunner {
     const sid = `s-${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
+    const credential = typeof this.opts.credential === 'function' ? this.opts.credential() : this.opts.credential;
     const runner = new InterviewRunner({
       store: this.opts.store,
-      textClient: this.opts.textClient,
+      textClient: this.opts.textClientForSession?.(credential) ?? this.opts.textClient,
       logger: this.opts.logger,
-      credential: typeof this.opts.credential === 'function' ? this.opts.credential() : this.opts.credential,
+      credential,
       sessionId: sid,
       synthetic: req.synthetic ?? true,
       saveHistory: req.saveHistory ?? true,

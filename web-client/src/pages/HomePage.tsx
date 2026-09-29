@@ -178,7 +178,7 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
         </section>
       </main>
       <footer className="privacy-pills" aria-label="隐私承诺">
-        <PrivacyPill icon={HardDrives} text="材料与报告保留在本机" />
+        <PrivacyPill icon={HardDrives} text="材料与报告按隐私设置保存" />
         <PrivacyPill icon={ShieldCheck} text="密钥不进浏览器存储" />
         <PrivacyPill icon={LockKey} text="你可随时删除本场记录" />
       </footer>

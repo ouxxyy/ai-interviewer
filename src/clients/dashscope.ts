@@ -11,6 +11,7 @@ import type { CompletionRequest, CompletionResponse, TextLlmClient, TextModelCon
 import { readCredential } from './types.js';
 
 export interface DashscopeOptions {
+  credential?: () => string;
   model?: string;
   baseUrl?: string;
   timeoutMs?: number;
@@ -34,7 +35,7 @@ export class DashscopeTextClient implements TextLlmClient {
   readonly name = 'dashscope';
   private readonly config: TextModelConfig;
 
-  constructor(opts: DashscopeOptions = {}) {
+  constructor(private readonly opts: DashscopeOptions = {}) {
     this.config = {
       baseUrl: opts.baseUrl ?? DASHSCOPE_DEFAULTS.baseUrl,
       model: opts.model ?? DASHSCOPE_DEFAULTS.model,
@@ -65,7 +66,8 @@ export class DashscopeTextClient implements TextLlmClient {
   }
 
   private async call(req: CompletionRequest, messages: Array<{ role: string; content: string }> | null): Promise<CompletionResponse> {
-    const apiKey = readCredential(this.config.apiKeyEnv);
+    const apiKey = this.opts.credential ? this.opts.credential() : readCredential(this.config.apiKeyEnv);
+    if (!apiKey) throw new Error('请先配置百炼 API Key');
     const controller = new AbortController();
     const timeoutMs = req.timeoutMs ?? this.config.timeoutMs;
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -89,7 +91,7 @@ export class DashscopeTextClient implements TextLlmClient {
       if (!res.ok) {
         // 错误体可能很长，截断且不含凭证；状态码与 request id 是排障关键。
         const text = await res.text().catch(() => '');
-        throw new Error(`DashScope HTTP ${res.status}（model=${this.config.model}）：${text.slice(0, 300)}`);
+        throw new Error(`DashScope HTTP ${res.status}（model=${this.config.model}）：${text.split(apiKey).join('<redacted>').slice(0, 300)}`);
       }
       const data = (await res.json()) as ChatCompletionPayload;
       const text = data.choices?.[0]?.message?.content ?? '';

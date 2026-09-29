@@ -47,7 +47,7 @@ export const DEFAULT_SETTINGS: WebSettings = {
 };
 
 export class SettingsStore {
-  constructor(private readonly db: InterviewDb) {}
+  constructor(private readonly db: InterviewDb, private readonly disclosureVersion = DISCLOSURE_VERSION) {}
 
   get(): WebSettings {
     const rows = this.db.raw.prepare('SELECT key, value FROM settings').all() as Array<{ key: string; value: string }>;
@@ -98,6 +98,6 @@ export class SettingsStore {
 
   /** 告知是否已按**当前版本**确认过；未确认时界面与服务都应先要求确认。 */
   needsDisclosure(): boolean {
-    return this.get().disclosureAckVersion !== DISCLOSURE_VERSION;
+    return this.get().disclosureAckVersion !== this.disclosureVersion;
   }
 }

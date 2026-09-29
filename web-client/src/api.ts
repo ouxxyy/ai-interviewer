@@ -39,6 +39,7 @@ export async function request<T>(method: string, url: string, body?: unknown): P
 }
 
 export const api = {
+  bootstrap: () => request<{ mode: { public: boolean; keyConfigured: boolean } }>('GET', '/api/bootstrap'),
   settings: () => request<{ settings: WebSettings; disclosureVersion: string; needsDisclosure: boolean }>('GET', '/api/settings'),
   disclosure: () => request<{ disclosure: Disclosure; acknowledged: boolean; current: WebSettings }>('GET', '/api/disclosure'),
   acknowledgeDisclosure: () => request<{ settings: WebSettings; needsDisclosure: boolean }>('PATCH', '/api/settings', { disclosureAck: true }),
