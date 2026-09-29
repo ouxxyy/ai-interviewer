@@ -4,6 +4,12 @@
 
 它只训练「经历面试」这一件事：把问题答准、把个人贡献讲清楚、看清自己的证据缺口，并通过重答改进。它不预测录用结果，也不复刻招聘方的评分体系。
 
+**44 秒宣传片：**
+
+![44 秒宣传片](assets/promo-v3.mp4)
+
+<p align="center"><sub>宣传视频画面为方案 C 实现评审素材，内容全是虚构演示数据。</sub></p>
+
 <p align="center">
   <img src="assets/ui-home.png" width="32%" alt="开练前的数据使用告知页">
   <img src="assets/ui-session.png" width="32%" alt="语音面试进行中：提问、作答与被引用的原话">
