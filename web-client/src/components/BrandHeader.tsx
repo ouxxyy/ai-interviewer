@@ -1,18 +1,19 @@
-import { ClockCounterClockwise, LockKey, SlidersHorizontal } from '@phosphor-icons/react';
+import { ClockCounterClockwise, EnvelopeSimple, LockKey, SlidersHorizontal } from '@phosphor-icons/react';
 
 interface BrandHeaderProps {
   onNavigate(path: string): void;
   compact?: boolean;
+  showContact?: boolean;
 }
 
-export function BrandHeader({ onNavigate, compact = false }: BrandHeaderProps) {
+export function BrandHeader({ onNavigate, compact = false, showContact = false }: BrandHeaderProps) {
   const follow = (event: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
     event.preventDefault();
     onNavigate(path);
   };
   return (
-    <header className={`brand-header${compact ? ' brand-header--compact' : ''}`}>
+    <header className={`brand-header${compact ? ' brand-header--compact' : ''}${showContact ? ' brand-header--contact' : ''}`}>
       <a className="brand-mark" href="/" onClick={(event) => follow(event, '/')} aria-label="返回首页">
         <span aria-hidden="true">8</span>
         <strong>欧八面试陪练</strong>
@@ -30,6 +31,12 @@ export function BrandHeader({ onNavigate, compact = false }: BrandHeaderProps) {
           <LockKey size={16} weight="bold" aria-hidden="true" />
           隐私说明
         </a>
+        {showContact && (
+          <a className="nav-text nav-contact" href="https://albertou.redboook.cn/" target="_blank" rel="noopener noreferrer" aria-label="联系我（新标签页打开）">
+            <EnvelopeSimple size={17} weight="bold" aria-hidden="true" />
+            联系我
+          </a>
+        )}
       </nav>
     </header>
   );

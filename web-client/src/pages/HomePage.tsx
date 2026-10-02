@@ -119,7 +119,7 @@ export function HomePage({ settings, preview = false, onNavigate, onSessionReady
   return (
     <div className="page page--home">
       <a className="skip-link" href="#home-main">跳到主要内容</a>
-      <BrandHeader onNavigate={onNavigate} />
+      <BrandHeader onNavigate={onNavigate} showContact />
       <main id="home-main" className="home-main">
         <section className="home-character" aria-label="小八陪你练面试">
           <div className="toy-stage toy-stage--hero">

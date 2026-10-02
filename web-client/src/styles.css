@@ -419,6 +419,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .nav-ticket { padding-inline: 11px; }
   .nav-text { width: 44px; justify-content: center; font-size: 0 !important; }
   .nav-text svg { width: 18px; height: 18px; }
+  .nav-contact { width: auto; padding-inline: 8px; font-size: 13px !important; }
   .home-main { display: block; padding: 22px 18px 30px; }
   .home-character { display: none; }
   .home-copy h1 { font-size: 35px; }
@@ -463,6 +464,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 @media (max-width: 560px) {
+  .brand-header--contact { flex-wrap: wrap; row-gap: 4px; }
+  .brand-header--contact .brand-nav { width: 100%; justify-content: flex-end; }
   .brand-nav .nav-ticket svg { display: none; }
   .brand-mark { gap: 9px; }
   .brand-mark > span { width: 36px; height: 36px; }
