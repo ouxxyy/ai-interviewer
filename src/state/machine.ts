@@ -7,7 +7,7 @@
  * 硬约束：
  * - 每题追问 0–2 次（followupCount ≤ 2）
  * - 每题重答 ≤1 次；重答轮 0 追问（D5）
- * - 共 3 道主问题；第 3 题点评后只能进报告
+ * - 共 4 个环节；第 4 项点评后只能进报告
  * - 任意非终态可提前结束 → report（D6：零完成也生成报告）
  */
 
@@ -40,6 +40,7 @@ export type SessionEvent =
   // 异常与恢复
   | 'TEXT_REVISED'
   | 'REVISE_AFTER_REVIEW'
+  | 'RETRY_REVIEW'
   | 'ERROR_DISCONNECT'
   | 'ERROR_TIMEOUT'
   | 'ERROR_EMPTY_TRANSCRIPT'
@@ -65,9 +66,10 @@ export interface MachineSnapshot {
   followupCount: number; // 当前题已追问次数
   rewriteUsed: boolean; // 当前题是否已重答
   completed: number; // 已完成（点评）题数
+  currentReviewed: boolean; // 当前题是否持有有效点评，用于重答/修订幂等计数
 }
 
-const MAX_QUESTIONS = 3;
+const MAX_QUESTIONS = 4;
 const MAX_FOLLOWUPS = 2;
 
 export class SessionMachine {
@@ -76,9 +78,10 @@ export class SessionMachine {
   private followupCount = 0;
   private rewriteUsed = false;
   private completed = 0;
+  private currentReviewed = false;
 
   snapshot(): MachineSnapshot {
-    return { state: this.state, questionIndex: this.questionIndex, followupCount: this.followupCount, rewriteUsed: this.rewriteUsed, completed: this.completed };
+    return { state: this.state, questionIndex: this.questionIndex, followupCount: this.followupCount, rewriteUsed: this.rewriteUsed, completed: this.completed, currentReviewed: this.currentReviewed };
   }
 
   /** 从快照恢复（断线恢复／重放／穷举核对用）。非法快照直接抛错，不做静默夹取。 */
@@ -94,12 +97,16 @@ export class SessionMachine {
     m.questionIndex = snapshot.questionIndex;
     m.followupCount = snapshot.followupCount;
     m.rewriteUsed = snapshot.rewriteUsed;
+    if (snapshot.completed > MAX_QUESTIONS) throw new Error(`completed 超出上限 ${MAX_QUESTIONS}`);
     m.completed = snapshot.completed;
+    if (typeof snapshot.currentReviewed !== 'boolean') throw new Error('currentReviewed 必须为布尔值');
+    if (snapshot.currentReviewed && snapshot.completed === 0) throw new Error('currentReviewed 与 completed 不一致');
+    m.currentReviewed = snapshot.currentReviewed;
     return m;
   }
 
   /** 非法转移统一拒绝并返回原因，不抛异常，便于测试与日志。 */
-  fire(event: SessionEvent): MachineOutput {
+  fire(event: SessionEvent, options: { reviewValid?: boolean } = {}): MachineOutput {
     const reject = (why: string): MachineOutput => ({ accepted: false, state: this.state, actions: [], error: why });
     const accept = (next: SessionState, ...actions: MachineAction[]): MachineOutput => {
       this.state = next;
@@ -140,6 +147,11 @@ export class SessionMachine {
 
       case 'REVIEW_DONE':
         if (this.state !== 'review') return reject(`状态 ${this.state} 没有待完成点评`);
+        if (options.reviewValid === false) this.invalidateCurrentReview();
+        else {
+          if (!this.currentReviewed) this.completed += 1;
+          this.currentReviewed = true;
+        }
         return accept('rewrite', { type: 'show_feedback_and_offer_rewrite' });
 
       case 'REWRITE_START':
@@ -151,6 +163,7 @@ export class SessionMachine {
       case 'REWRITE_DONE':
         if (this.state !== 'answer' && this.state !== 'followup') return reject(`状态 ${this.state} 没有进行中的重答`);
         if (!this.rewriteUsed) return reject('当前不是重答轮');
+        this.invalidateCurrentReview();
         return accept('review', { type: 'run_comparison_review' });
 
       case 'SKIP_REWRITE':
@@ -171,10 +184,16 @@ export class SessionMachine {
 
       case 'TEXT_REVISED':
         if (this.state !== 'answer') return reject(`状态 ${this.state} 不在可修订的提交前阶段`);
+        this.invalidateCurrentReview();
         return accept('answer', { type: 'keep_revision_apart_from_raw' });
+
+      case 'RETRY_REVIEW':
+        if ((this.state !== 'review' && this.state !== 'rewrite') || this.currentReviewed) return reject('只有未取得有效点评时才可重试评审');
+        return accept('review', { type: 'run_review', note: '沿用已确认回答，不消耗重答次数' });
 
       case 'REVISE_AFTER_REVIEW':
         if (this.state !== 'review' && this.state !== 'rewrite') return reject(`状态 ${this.state} 不允许修订后重评审`);
+        this.invalidateCurrentReview();
         return accept('review', { type: 'invalidate_previous_review' }, { type: 'switch_basis_to_revised' }, { type: 'run_review' });
 
       case 'ERROR_MIC_DENIED':
@@ -203,9 +222,15 @@ export class SessionMachine {
     }
   }
 
-  /** 点评完成后的去向：第 3 题 → report，否则回 question 出下一题。 */
+  /** 作废当前题点评；完成数只反映仍有效的反馈。 */
+  private invalidateCurrentReview(): void {
+    if (this.currentReviewed) this.completed -= 1;
+    this.currentReviewed = false;
+  }
+
+  /** 点评完成后的去向：第 4 项 → report，否则回 question 出下一题。 */
   private afterReview(): MachineOutput {
-    this.completed += 1;
+    this.currentReviewed = false;
     this.followupCount = 0;
     this.rewriteUsed = false;
     if (this.questionIndex + 1 >= MAX_QUESTIONS) {
@@ -252,7 +277,7 @@ export const ALL_STATES: SessionState[] = [
 export const ALL_EVENTS: SessionEvent[] = [
   'MATERIALS_CONFIRMED', 'QUESTION_SENT', 'ANSWER_START', 'ANSWER_DONE', 'FOLLOWUP_NEEDED', 'FOLLOWUP_DONE',
   'NO_FOLLOWUP', 'REVIEW_DONE', 'REWRITE_START', 'REWRITE_DONE', 'SKIP_REWRITE', 'NEXT_QUESTION',
-  'REPORT_GENERATED', 'END_SESSION', 'TEXT_REVISED', 'REVISE_AFTER_REVIEW', 'ERROR_DISCONNECT',
+  'REPORT_GENERATED', 'END_SESSION', 'TEXT_REVISED', 'REVISE_AFTER_REVIEW', 'RETRY_REVIEW', 'ERROR_DISCONNECT',
   'ERROR_TIMEOUT', 'ERROR_EMPTY_TRANSCRIPT', 'ERROR_MIC_DENIED', 'ERROR_PARSE_FAILURE',
 ];
 
@@ -267,6 +292,8 @@ export const ALL_EVENTS: SessionEvent[] = [
 export const ALL_ACCEPTED_TRANSITIONS: Array<{ from: SessionState; event: SessionEvent; to: SessionState | 'question-or-report' | 'same' | '*'; note?: string }> = [
   // 正常流
   ...NORMAL_FLOW_TRANSITIONS,
+  { from: 'review', event: 'RETRY_REVIEW', to: 'review', note: '无有效点评' },
+  { from: 'rewrite', event: 'RETRY_REVIEW', to: 'review', note: '上次评审降级' },
   // 提前结束（D6）：任意非终态、非报告态均可提前结束 → report
   { from: 'materials_review', event: 'END_SESSION', to: 'report' },
   { from: 'question', event: 'END_SESSION', to: 'report' },

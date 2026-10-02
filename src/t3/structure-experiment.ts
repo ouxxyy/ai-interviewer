@@ -11,6 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { runReview } from '../review/reviewer.js';
 import { locateQuote } from '../contracts/quote-locator.js';
+import { RULES_VERSION } from '../rules/rules.js';
 import { reviewPrompt, type StructureHintVariant } from '../prompts/prompts.js';
 import type { Feedback, DimensionKey } from '../contracts/types.js';
 import type { DashscopeTextClient } from '../clients/dashscope.js';
@@ -166,6 +167,7 @@ function evaluate(criteria: Preregistration['criteria'], metrics: Record<string,
 
 export async function runStructureExperiment(client: DashscopeTextClient, evidence: EvidenceWriter): Promise<ExperimentResult> {
   const prereg = loadPreregistration();
+  if (!prereg.variants.prose?.includes(RULES_VERSION)) throw new Error('历史结构实验的规则版本与当前提示词不兼容；必须重新预登记。未改写旧实验。');
   const batch = buildBatch(prereg);
   const variants: StructureHintVariant[] = ['prose', 'mechanical'];
   evidence.truncateJsonl('structure-experiment/runs.jsonl');

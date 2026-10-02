@@ -1,0 +1,237 @@
+{
+  "source": {
+    "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/prompt/transcript.json",
+    "sha256": "644a1ea8d04fb2ea37191a57c29d2e33ea8bffb91f55891b3667d1f16aa7a32c"
+  },
+  "plan": {
+    "schema": {
+      "ok": true,
+      "errors": []
+    },
+    "sources": [
+      {
+        "id": "q1",
+        "located": true
+      },
+      {
+        "id": "q2",
+        "located": true
+      },
+      {
+        "id": "q3",
+        "located": true
+      },
+      {
+        "id": "q4",
+        "located": true
+      }
+    ]
+  },
+  "questions": [
+    {
+      "questionId": "q1",
+      "kind": "introduction",
+      "asked": true,
+      "answerMatchesSource": true,
+      "schema": {
+        "ok": true,
+        "errors": []
+      },
+      "identityValid": true,
+      "quotesValid": true,
+      "modelOffsetsValid": false,
+      "accepted": true,
+      "onlyAllowedMetadataChanged": true,
+      "runnerAgrees": true,
+      "nextFacts": [
+        "确认是否需要在重答中优化开场白的身份定位表述"
+      ]
+    },
+    {
+      "questionId": "q2",
+      "kind": "experience",
+      "asked": true,
+      "answerMatchesSource": true,
+      "schema": {
+        "ok": true,
+        "errors": []
+      },
+      "identityValid": true,
+      "quotesValid": true,
+      "modelOffsetsValid": false,
+      "accepted": true,
+      "onlyAllowedMetadataChanged": true,
+      "runnerAgrees": true,
+      "nextFacts": [
+        "确认当时是否采用了A/B测试或其他对照实验方法",
+        "核实各策略单独对转化率的贡献度是如何计算的"
+      ]
+    }
+  ],
+  "quoteChecks": [
+    {
+      "questionId": "q1",
+      "dim": "relevance",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 0,
+      "modelEnd": 20,
+      "computedStart": 0,
+      "computedEnd": 21
+    },
+    {
+      "questionId": "q1",
+      "dim": "specificity",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 21,
+      "modelEnd": 65,
+      "computedStart": 21,
+      "computedEnd": 62
+    },
+    {
+      "questionId": "q1",
+      "dim": "contribution",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 113,
+      "modelEnd": 157,
+      "computedStart": 105,
+      "computedEnd": 145
+    },
+    {
+      "questionId": "q1",
+      "dim": "resultsReflection",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 229,
+      "modelEnd": 293,
+      "computedStart": 225,
+      "computedEnd": 289
+    },
+    {
+      "questionId": "q1",
+      "dim": "structure",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 66,
+      "modelEnd": 228,
+      "computedStart": 62,
+      "computedEnd": 204
+    },
+    {
+      "questionId": "q2",
+      "dim": "relevance",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 10,
+      "modelEnd": 54,
+      "computedStart": 10,
+      "computedEnd": 51
+    },
+    {
+      "questionId": "q2",
+      "dim": "specificity",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 117,
+      "modelEnd": 165,
+      "computedStart": 112,
+      "computedEnd": 158
+    },
+    {
+      "questionId": "q2",
+      "dim": "contribution",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 96,
+      "modelEnd": 116,
+      "computedStart": 94,
+      "computedEnd": 112
+    },
+    {
+      "questionId": "q2",
+      "dim": "resultsReflection",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 229,
+      "modelEnd": 293,
+      "computedStart": 214,
+      "computedEnd": 278
+    },
+    {
+      "questionId": "q2",
+      "dim": "structure",
+      "located": true,
+      "exactTextFound": true,
+      "modelMetadataValid": false,
+      "modelStart": 66,
+      "modelEnd": 228,
+      "computedStart": 51,
+      "computedEnd": 193
+    }
+  ],
+  "quotes": {
+    "total": 10,
+    "located": 10,
+    "exactTextFound": 10,
+    "modelMetadataValid": 0
+  },
+  "report": {
+    "schema": {
+      "ok": true,
+      "errors": []
+    },
+    "reportExact": true,
+    "countAndStatus": true,
+    "versionsValid": true,
+    "prioritiesValid": true,
+    "valid": true,
+    "completedQuestions": 2,
+    "statuses": [
+      "reviewed",
+      "reviewed",
+      "not_reached",
+      "not_reached"
+    ],
+    "priorityPractice": [
+      "需补充“实验设计”的方法论细节，例如如何划分实验组与对照组，以及如何归因于特定策略的效果，以契合JD中“设计并落地转化漏斗实验”的要求。"
+    ]
+  },
+  "requests": {
+    "count": 8,
+    "maxCalls": 10,
+    "httpStatuses": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "usage": {
+      "input": 46600,
+      "output": 5196,
+      "total": 51796
+    },
+    "httpLatencyMs": 71592,
+    "processExitCode": 0
+  },
+  "acceptance": {
+    "applicationAssisted": true,
+    "rawOutput": false,
+    "cliMatches": true
+  },
+  "scope": "单次C13合成案例，介绍＋一道经历题，应用辅助文本流程；不代表普通聊天宿主或档位质量标定"
+}

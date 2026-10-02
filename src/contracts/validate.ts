@@ -1,8 +1,8 @@
 /**
  * 契约校验器：加载五个 JSON Schema 并编译，可被单测与 CLI 共用。
  *
- * T2 起**同时注册两个契约版本**：现行 `0.2.0` 与 T1 期证据记录过的 `0.1.0`
- * （原样留档在 `schemas/v0.1.0/`）。这样升版不会让历史证据变成不可校验——
+ * 同时注册三个契约版本：现行 `0.3.0` 与历史 `0.1.0` / `0.2.0`
+ * （原样留档在对应的 schemas 版本子目录）。这样升版不会让历史证据变成不可校验——
  * 「证据可复核」优先于「只留一份 schema」的整洁。
  */
 import { Ajv } from 'ajv';
@@ -16,17 +16,29 @@ import questionPlanLegacy from './schemas/v0.1.0/question-plan.schema.json' with
 import turnLegacy from './schemas/v0.1.0/turn.schema.json' with { type: 'json' };
 import feedbackLegacy from './schemas/v0.1.0/feedback.schema.json' with { type: 'json' };
 import sessionReportLegacy from './schemas/v0.1.0/session-report.schema.json' with { type: 'json' };
+import candidateMaterialsV02 from './schemas/v0.2.0/candidate-materials.schema.json' with { type: 'json' };
+import questionPlanV02 from './schemas/v0.2.0/question-plan.schema.json' with { type: 'json' };
+import turnV02 from './schemas/v0.2.0/turn.schema.json' with { type: 'json' };
+import feedbackV02 from './schemas/v0.2.0/feedback.schema.json' with { type: 'json' };
+import sessionReportV02 from './schemas/v0.2.0/session-report.schema.json' with { type: 'json' };
 import { CONTRACT_NAMES, CONTRACT_VERSION, SUPPORTED_CONTRACT_VERSIONS, type ContractName, type ContractVersion } from './version.js';
 
 type SchemaMap = Record<ContractName, object>;
 
 const SCHEMAS_BY_VERSION: Record<ContractVersion, SchemaMap> = {
-  '0.2.0': {
+  '0.3.0': {
     'candidate-materials': candidateMaterialsSchema as object,
     'question-plan': questionPlanSchema as object,
     turn: turnSchema as object,
     feedback: feedbackSchema as object,
     'session-report': sessionReportSchema as object,
+  },
+  '0.2.0': {
+    'candidate-materials': candidateMaterialsV02 as object,
+    'question-plan': questionPlanV02 as object,
+    turn: turnV02 as object,
+    feedback: feedbackV02 as object,
+    'session-report': sessionReportV02 as object,
   },
   '0.1.0': {
     'candidate-materials': candidateMaterialsLegacy as object,
@@ -60,11 +72,11 @@ function structuralDiff(a: unknown, b: unknown): string | null {
 
 /**
  * 加载时自检：0.1.0 与 0.2.0 必须**只差版本号**。
- * 这一条把「升版没有偷偷改结构」变成机器可验证的事实，而不是口头声明。
+ * 函数名为历史兼容保留；0.3.0 有明确结构变化，不纳入两版等价断言。
  */
 export function assertLegacyMatchesCurrent(): void {
   for (const name of CONTRACT_NAMES) {
-    const diff = structuralDiff(SCHEMAS_BY_VERSION[CONTRACT_VERSION][name], SCHEMAS_BY_VERSION['0.1.0'][name]);
+    const diff = structuralDiff(SCHEMAS_BY_VERSION['0.2.0'][name], SCHEMAS_BY_VERSION['0.1.0'][name]);
     if (diff !== null) throw new Error(`契约 ${name}：0.2.0 与 0.1.0 结构不一致（应只差版本号）：${diff}`);
   }
 }
@@ -77,7 +89,7 @@ for (const version of SUPPORTED_CONTRACT_VERSIONS) {
 
 interface CompiledValidator {
   (data: unknown): boolean;
-  errors?: Array<{ instancePath?: string; message?: string }>;
+  errors?: Array<{ instancePath?: string; message?: string; keyword?: string; params?: { missingProperty?: string } }>;
 }
 
 const compiled = new Map<string, CompiledValidator>();
@@ -90,6 +102,8 @@ for (const version of SUPPORTED_CONTRACT_VERSIONS) {
 export interface ValidationResult {
   ok: boolean;
   errors: string[];
+  /** 机器诊断不携带模型值；调用方持久化前仍须限制路径字段。 */
+  issues?: Array<{ path: string; rule: string }>;
 }
 
 function run(name: ContractName, version: ContractVersion, data: unknown): ValidationResult {
@@ -97,7 +111,20 @@ function run(name: ContractName, version: ContractVersion, data: unknown): Valid
   if (!fn) throw new Error(`未知契约: ${name}@${version}`);
   const ok = fn(data);
   const errors = (fn.errors ?? []).map((e) => `${e.instancePath || '(root)'}: ${e.message ?? '校验失败'}`);
-  return { ok, errors };
+  if (ok && version === CONTRACT_VERSION && name === 'session-report') {
+    const report = data as import('./types.js').SessionReport;
+    const completed = report.perQuestion.filter((q) => q.status === 'reviewed').length;
+    if (report.completedQuestions !== completed) errors.push('completedQuestions 必须等于已校验反馈条目数');
+    if ((report.sessionStatus === 'completed') !== (completed === report.totalQuestions)) errors.push('sessionStatus 必须与完成条目数一致');
+    for (const q of report.perQuestion) {
+      if (q.feedback !== null && q.feedback.questionId !== q.questionId) errors.push(`${q.questionId}: feedback.questionId 必须属于当前条目`);
+    }
+  }
+  const issues = (fn.errors ?? []).map((e) => ({
+    path: `${e.instancePath ?? ''}${e.keyword === 'required' && e.params?.missingProperty ? `/${e.params.missingProperty}` : ''}` || '/',
+    rule: e.keyword ?? 'schema',
+  }));
+  return { ok: ok && errors.length === 0, errors, ...(issues.length ? { issues } : {}) };
 }
 
 /** 按**当前**契约版本校验（写入新对象时用这个）。 */

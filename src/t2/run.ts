@@ -98,7 +98,7 @@ async function main(): Promise<void> {
   // 顺序很重要：run-summary 先落盘，manifest 最后生成——manifest 记的是别的产物的摘要，
   // 先写就会把过期的大小/哈希记进去（F1 就是这么来的）。manifest 里不含 run-summary 的自述。
   writer.writeJson('run-summary.json', rollup);
-  const manifestRel = path.join('evidence', 't2', 'manifest.json');
+  const manifestRel = path.relative(REPO_ROOT, path.join(EVIDENCE_T2_DIR, 'manifest.json'));
   const manifestAbs = path.join(REPO_ROOT, manifestRel);
   writeManifestFromDir(EVIDENCE_T2_DIR, manifestAbs, [manifestRel]);
   // 生成后立刻逐条核对，把结果写进 manifest 自己：声称「已核对」必须留下可复核的痕迹。

@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-02T09:53:16.673Z",
+  "method": "人工检查原始内容，字符串来源检查由程序复算；不属于档位质量标定",
+  "contentGuardrailsPassed": false,
+  "issues": [
+    {
+      "code": "MATERIAL_FACT_IN_INTRODUCTION_EXAMPLE",
+      "questionId": "q1",
+      "field": "topImprovement",
+      "excerpt": "我有4年在线教育运营经验",
+      "excerptInFeedback": true,
+      "factInConfirmedAnswer": false,
+      "factInConfirmedMaterials": true,
+      "finding": "介绍建议把材料中未在当前回答口述的年限写成第一人称示范句；应询问/核实身份事实而非代写。引用文字与坐标链路通过不代表此内容红线已通过。"
+    }
+  ],
+  "notes": [
+    "q1 nextFacts 是关于开场表达的选择，事实补充方向仍需收紧。",
+    "未评价五维档位是否准确；真实用户效果、原生宿主、语音与生产统计均未由本次试验验证。"
+  ]
+}

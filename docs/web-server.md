@@ -2,12 +2,14 @@
 
 当前交付包含 `web-client/` 的 React + Vite 正式产品端，以及仅绑 `127.0.0.1` 的本地 Node 服务、实时语音代理、状态机、材料解析、SQLite 历史与录音、显式删除、两个保存开关、可切换的开麦方式和常驻隐私说明。首页不再弹首次告知；用户点击“开始这一场”时随建会话请求确认当前告知版本，完整内容始终可从“隐私说明”查看。`/harness` 仍保留为真实 Chrome + 真实模型证据驱动器，不是产品界面。
 
+2026-10-02：本地升级为自我介绍＋三道经历题，contract/rules/prompts@0.3.0。生产前端的埋点与同源麦克风修复已合回构建源；本轮尚未发布生产。来源见 `docs/production-source-sync.md`，新版本验收与未验证项见 `docs/upgrade-v0.3-acceptance.md`。历史 `docs/web-acceptance.md` 仍对应旧版真实模型记录，不据此宣称四环节实调通过。
+
 ---
 
 ## 1. 启动（M1 Mac）
 
 ```bash
-# 1) 依赖：Node ≥ 20（本机实测 v26.7.0）；无需数据库服务，SQLite 用 Node 内置 node:sqlite
+# 1) 依赖：Node ≥ 22.12；无需数据库服务，SQLite 用 Node 内置 node:sqlite
 node --version
 
 # 2) 配置：只放本机，绝不进仓库
@@ -72,12 +74,12 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | GET/PATCH | `/api/model-config` | 读取凭证存在性与当前文本／实时模型；带同源配置令牌写入百炼 Key。响应不回显 Key，写入限速 5 次／分钟 |
 | GET/PATCH/POST | `/api/settings` | 保存开关、开麦方式与告知确认；`{"saveHistory":bool,"saveAudio":bool,"answerStartMode":"continuous|manual","disclosureAck":true}` |
 | GET | `/api/stats` | 真实会话／虚构演示会话分开计数、轮次数、音频文件数 |
-| GET | `/api/sessions?limit&offset&includeSynthetic` | 历史列表，**带分页**（limit 1–100） |
+| GET | `/api/sessions?limit&offset&includeSynthetic` | 历史列表，**带分页**（limit 1–100）；介绍状态与经历完成数分别返回，旧三题记录为未包含介绍 |
 | POST | `/api/sessions` | 建会话：`{synthetic?, saveHistory?, saveAudio?, disclosureAck?}`；未确认告知 → 428 |
 | GET | `/api/sessions/:sid` | 会话详情：材料、问题计划、轮次（含音频可用性）、逐题反馈、重答对比、报告，以及 `reportSource`、`reviewMeta`、`reviewBasis`。**这是「详情形状」，不是 live 快照**：不含 `machine`／`currentQuestion`／`pending`／`lastError`／`halted`（回归见 `test/web-api.test.ts`） |
 | GET | `/api/sessions/:sid/snapshot` | 只读 live 权威快照；用于非幂等 HTTP 动作响应丢失后的状态对账，历史会话返回冲突，不把详情形状冒充快照 |
 | DELETE | `/api/sessions/:sid` | 显式删除，返回**删除前后对照**（`before`/`after`/`removed`/`verified`） |
-| POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 真出题 + 朗读第一题；QuestionPlan 首轮 JSON/Schema 不合规时携带具体错误自动整改重试 1 次，契约不放松 |
+| POST | `/api/sessions/:sid/materials` | 确认材料：`{jd, experience, stage, targetRole}` → 一次生成介绍＋三经历题 + 朗读介绍；首轮计划 JSON/Schema、重复题或材料来源不合规时整改重试 1 次，契约不放松 |
 | POST | `/api/sessions/:sid/materials/upload?filename=` | 上传 PDF／DOCX（原始字节，≤12MB）→ 提取文本；首页只显示文件名与字数，不把解析正文灌入输入框；失败 422 并给退路 |
 | POST | `/api/sessions/:sid/materials/retry-plan` | 出题失败后重试（仍失败就不进流程，不造假计划） |
 | POST | `/api/sessions/:sid/answer/start` | 开始回答（追问轮会自动先 `FOLLOWUP_DONE` 回到答题） |
@@ -85,7 +87,7 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 | POST | `/api/sessions/:sid/answer/repeat-question` | 空转写后重读本题（不消耗追问次数） |
 | POST | `/api/sessions/:sid/turns/:tid/revise` | 修订某轮：`{text}`；评审阶段修订 → 作废旧点评并重评审 |
 | POST | `/api/sessions/:sid/review` | 对已结束的回答提交评审 |
-| POST | `/api/sessions/:sid/rewrite/start` · `/next` | 重答一次；下一题（第 3 题后直接出报告） |
+| POST | `/api/sessions/:sid/rewrite/start` · `/next` | 当前环节重答一次；进入下一环节（第 4 环节即第 3 道经历题后出报告） |
 | POST | `/api/sessions/:sid/end` · `/report` | 提前结束（零完成也出报告）；报告生成 |
 | POST | `/api/sessions/:sid/pause` · `/resume` · `/interrupt` | 暂停（停止上行）／继续；打断（取消旧回应 + 清空待播） |
 | POST | `/api/sessions/:sid/mic-denied` | 浏览器麦克风被拒时上报，落到明确状态 |
@@ -123,7 +125,7 @@ node dist/src/web/cli.js serve --port 8919 --data-dir data/web-other   # 换端�
 materials_review → question → answer → followup? → review → rewrite? → next_question | report → ended
 ```
 
-- 每题追问 ≤2 次、重答 ≤1 次、重答轮 0 追问（D5）；第 3 题点评后只能进报告；任意非终态可提前结束（D6）。
+- 每环节追问 ≤2 次、重答 ≤1 次、重答轮 0 追问（D5）；介绍与三道经历题共四环节，最后一项后进入报告；任意非终态可提前结束（D6）。有效点评立刻计完成，降级和失效反馈不计成功。
 - 默认 `answerStartMode=continuous`：第一题由用户点击一次完成授权；同一页面与连接内，后续主问题、追问和主动重答仅在“状态机可回答 + 面试官音频播放完 + 非暂停/断线/错误”时自动发送 `answer.start`。`manual` 模式每轮都要点击。自动开麦不等于自动判定答完，提交仍由用户控制。
 - 评审走 `runReview`：引用定位用 `src/contracts/quote-locator.ts`，**定不到就重试，重试耗尽降级「暂无法评价」**；
   区间由应用层权威回写，不采信模型自报（`docs/contracts.md`）。
@@ -179,6 +181,14 @@ materials_review → question → answer → followup? → review → rewrite? �
 
 ## 8. 已知限制（如实标注）
 
+- **2026-10-02 评审恢复**：原话坐标先回填再校验，新增安全字段诊断和原回答重试；294/294 单测、27/27 正式 Chrome 替身检查通过，付费调用0。原失败精确字段无法追溯，真实模型复测未验证；本地旧进程待重启确认，见 `docs/review-recovery-2026-10-02.md`。
+
+- **2026-10-02 来源编号修复 web-plan@0.3.3**：后续现场复现说明仅提示模型定点修正仍不可靠；现改为目录编号选择与应用回填原文。285/285 测试、22/22 正式 Chrome 替身检查通过，本地已重启；同一失败材料真实文本复测1次通过（7426 Token，4题来源精确匹配，进入answer），详见 `docs/plan-source-fix-v0.3.3.md`。此前“重试修复”的免费通过记录不代表真实恢复。
+
+- **2026-10-02 计划失败修复**：确认首次漏 `askedTopics`、第二次 q3 来源不匹配。重试已携带原计划定点修正，来源校验保持严格；277/277 单测及 21 项免费 Chrome 检查通过，真实模型恢复未验证。随后按用户授权重启服务，健康检查通过；新建训练使用修复，旧会话不能跨重启继续。见 `docs/web-acceptance-v0.3.0.md`。
+
+- **0.3 四环节真实模型与质量标定未验证**：本轮先执行免费离线、浏览器替身及音频 prototype 检查。`web:evidence`、T1-R 文本链、Skill/Prompt 实调需另行确认费用；真人麦克风、反抢话与公网新流程也未验证。生产埋点资源恢复与本地事件测试不等于统计后台已经收到新口径事件。
+
 - **2026-09-28 空转写排查已完成模型链路验收**：已修复 `commitAudio()` 清空提交前 ASR 预览的问题，并恢复直接 WebSocket 的 `input_audio_transcription.model` 字段。真实网页验收 64/64、真实链 B 均通过；用户现场确认实际故障来自浏览器误选虚拟麦克风。失败日志新增 PCM 峰值／RMS，仅记录数值，不记录音频或原话。详见 `docs/web-acceptance.md` 与 `docs/t1r-acceptance.md`。
 
 1. **正式产品前端已实现；付费真实模型全流程已于 2026-09-28 重跑**：验收由同源 `/harness` 驱动底层 API、WS、音频和持久化链路；正式页面视觉与真人麦克风仍按各自证据口径判断。
@@ -203,9 +213,10 @@ materials_review → question → answer → followup? → review → rewrite? �
 
 ## 9. 验收与证据
 
-- 命令：`npm run web:evidence`（真实 Chrome ＋ 真实百炼调用；数据写 `data/web-evidence/`，证据写
-  `evidence/web/summary.json` 与 `docs/web-acceptance.md`，每条带 sha256 的 manifest 同目录）。
+- 命令：`npm run web:evidence`（真实 Chrome ＋ 真实百炼调用；数据写 `data/web-evidence/`，当前证据写
+  `evidence/web/v0.3.0/summary.json` 与 `docs/web-acceptance-v0.3.0.md`，每条带 sha256 的 manifest 同目录；保留旧版记录）。
 - 离线测试：`npm test`（数据层／材料／编排／实时桥／对外接口，全部不花钱）。
+- 正式网页免费验收：构建后运行 `node scripts/introduction-browser-smoke.mjs`；真实 Chrome 与 fake 音频设备，文本模型及 ASR 为本地替身，模拟同等生产 CSP；不读项目凭证、不发送真实统计。
 - 断言由代码计算，验收记录里逐条给出实测数字；未做到项集中在 §8 与验收记录末尾。
 
 ## 公网 BYOK 模式（2026-09-30）
@@ -217,3 +228,9 @@ materials_review → question → answer → followup? → review → rewrite? �
 ### §8 公网上线补充限制
 
 匿名身份无法跨浏览器找回，清除 Cookie 不删除服务端记录；请先删除历史。每访客最多 5 场在线会话，每分钟 240 次请求；全局每分钟最多签发 20 个新身份、总计 5000 个，最多 64 个驻留访客，30 分钟无请求后释放内存。当前为小规模试用容量，不承诺高并发。真实麦克风、公网上游调用与公网延迟须按实际验收记录核定。
+
+## 10. 匿名统计与生产静态文件
+
+`web-client/public/ouba-analytics.js` 和 `pcm16-worklet.js` 随 Vite 构建复制；HTML 保留现有 Website ID 与同源代理模式。统计只在匹配的生产域名运行，本地不会往统计后台上报。部署仍需保留 Nginx 的精确 `/ouba-tracker.js` 与 `/ouba-metrics/api/send` 代理和原 CSP。
+
+四个事件沿用 `practice_requested/started/ended/completed`，来自材料校验/会话创建及权威快照，保持单标签页去重、演示排除、旧报告不补记；结束与全部完成分开。新四环节事件传 `schema_version:2`，数量按四项；旧三题保留原口径，不能直接合并比较。载荷仅固定枚举与数量，不含材料、回答、录音、设备名称、会话 ID 或令牌。统计脚本或存储失败不会阻塞面试。

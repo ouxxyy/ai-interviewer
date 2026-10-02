@@ -1,0 +1,21 @@
+{
+  "runId": "2026-10-02T14-52-13-650Z-0b3b57f3",
+  "webPlan": "web-plan@0.3.3",
+  "model": "qwen3.8-flash",
+  "scope": "真实文本出题；同生产编排与校验；语音为替身；不评审、不生成报告；原会话只读",
+  "pass": true,
+  "paidCalls": 1,
+  "sourceCount": 22,
+  "rawOutputsSavedPrivately": true,
+  "questions": 4,
+  "allSourcesExact": true,
+  "state": "answer",
+  "usage": [
+    {
+      "promptTokens": 6813,
+      "completionTokens": 613,
+      "totalTokens": 7426
+    }
+  ],
+  "independentRawComparison": "pass: questions unchanged; only sourceId resolved to sourceExcerpt"
+}

@@ -23,7 +23,7 @@ function oneQuestionCycle(m: SessionMachine, opts: { followups: number; rewrite:
   m.fire('SKIP_REWRITE'); // 跳过重答选择点 → 下一题或报告
 }
 
-test('主链路：3 题 happy path 全程合法转移', () => {
+test('主链路：4 项 happy path 全程合法转移', () => {
   const m = fresh();
   assert.equal(m.fire('MATERIALS_CONFIRMED').accepted, true);
   assert.equal(m.snapshot().state, 'question');
@@ -34,8 +34,11 @@ test('主链路：3 题 happy path 全程合法转移', () => {
   assert.equal(m.snapshot().state, 'question');
   assert.equal(m.snapshot().questionIndex, 2);
   oneQuestionCycle(m, { followups: 1, rewrite: false });
+  assert.equal(m.snapshot().state, 'question');
+  assert.equal(m.snapshot().questionIndex, 3);
+  oneQuestionCycle(m);
   assert.equal(m.snapshot().state, 'report');
-  assert.equal(m.snapshot().completed, 3);
+  assert.equal(m.snapshot().completed, 4);
   const r = m.fire('REPORT_GENERATED');
   assert.equal(r.accepted, true);
   assert.equal(m.snapshot().state, 'ended');
@@ -196,10 +199,11 @@ test('转移表正向：ALL_ACCEPTED_TRANSITIONS 每条可实际执行且去向�
         m.fire('MATERIALS_CONFIRMED');
         m.fire('QUESTION_SENT');
         m.fire('ANSWER_DONE');
-        m.fire('REVIEW_DONE');
+        m.fire('REVIEW_DONE', { reviewValid: t.event !== 'RETRY_REVIEW' });
         break;
       case 'report':
         m.fire('MATERIALS_CONFIRMED');
+        oneQuestionCycle(m);
         oneQuestionCycle(m);
         oneQuestionCycle(m);
         oneQuestionCycle(m);
@@ -233,9 +237,9 @@ test('转移表反向断言：实现接受的任一 (状态,事件) 必在表内
 
   while (queue.length > 0) {
     const snap = queue.shift()!;
-    for (const event of ALL_EVENTS) {
+    for (const [event, options] of ALL_EVENTS.flatMap<[typeof ALL_EVENTS[number], { reviewValid?: boolean }]>(e => e === 'REVIEW_DONE' ? [[e, { reviewValid: true }], [e, { reviewValid: false }]] : [[e, {}]])) {
       const m = SessionMachine.restore(snap);
-      const out = m.fire(event);
+      const out = m.fire(event, options);
       if (!out.accepted) continue;
       const pair = pairKey(snap, event);
       reachable.add(pair);
@@ -254,4 +258,57 @@ test('转移表反向断言：实现接受的任一 (状态,事件) 必在表内
   assert.deepEqual(declaredButNotReachable, [], `表内登记但实现不可达的组合：${declaredButNotReachable.join('; ')}`);
   assert.equal(reachable.size, declared.size, `可达组合 ${reachable.size} 应与表内条目 ${declared.size} 一致`);
   assert.ok(seen.size <= 600, `可达配置数 ${seen.size} 应在有界范围内`);
+});
+
+
+test('四环节：介绍和三道经历题都在点评时计完成；重答不重复，修订先作废', () => {
+  const m = fresh();
+  m.fire('MATERIALS_CONFIRMED');
+  m.fire('QUESTION_SENT');
+  m.fire('ANSWER_DONE');
+  m.fire('REVIEW_DONE');
+  assert.equal(m.snapshot().completed, 1, '当前题点评后立即计入完成数');
+  m.fire('REWRITE_START');
+  m.fire('REWRITE_DONE');
+  m.fire('REVIEW_DONE');
+  assert.equal(m.snapshot().completed, 1, '一次重答仍只算一题');
+  m.fire('REVISE_AFTER_REVIEW');
+  assert.equal(m.snapshot().completed, 0, '修订后旧反馈失效，重评失败不能保留完成数');
+  m.fire('REVIEW_DONE');
+  m.fire('NEXT_QUESTION');
+  oneQuestionCycle(m);
+  oneQuestionCycle(m);
+  assert.equal(m.snapshot().state, 'question', '三项完成后仍需第4项');
+  oneQuestionCycle(m);
+  assert.equal(m.snapshot().completed, 4);
+  assert.equal(m.snapshot().state, 'report');
+});
+
+test('点评后立刻提前结束：完成数保留当前题', () => {
+  const m = fresh();
+  m.fire('MATERIALS_CONFIRMED');
+  m.fire('QUESTION_SENT');
+  m.fire('ANSWER_DONE');
+  m.fire('REVIEW_DONE');
+  const ended = m.fire('END_SESSION');
+  assert.equal(ended.accepted, true);
+  assert.equal(m.snapshot().completed, 1);
+  assert.equal(ended.actions.find((a) => a.type === 'generate_report')?.completed, 1);
+});
+
+
+test('降级点评仍可继续或重答，但不计为已完成', () => {
+  const m = fresh();
+  m.fire('MATERIALS_CONFIRMED');
+  m.fire('QUESTION_SENT');
+  m.fire('ANSWER_DONE');
+  m.fire('REVIEW_DONE', { reviewValid: false });
+  assert.equal(m.snapshot().state, 'rewrite');
+  assert.equal(m.snapshot().completed, 0);
+  m.fire('REWRITE_START');
+  m.fire('REWRITE_DONE');
+  m.fire('REVIEW_DONE', { reviewValid: true });
+  assert.equal(m.snapshot().completed, 1);
+  m.fire('NEXT_QUESTION');
+  assert.equal(m.snapshot().completed, 1);
 });

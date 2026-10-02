@@ -1,0 +1,183 @@
+{
+  "startedAt": "2026-10-02T09:49:35.215Z",
+  "command": "prompt:run",
+  "runId": "dc311296-e493-4b42-a7c3-4b36900e0d00",
+  "versionStamp": "rules@0.3.0 ｜ contract@0.3.0 ｜ prompts@0.3.1 ｜ rulesDigest=705810975eedae29edbc9bb6006e5d0c43588c4e87abb69a4c79dcae4334a7a8",
+  "credential": {
+    "key": "DASHSCOPE_API_KEY",
+    "present": true,
+    "length": 116
+  },
+  "dotenv": {
+    "path": ".env",
+    "filePresent": true
+  },
+  "textModel": "qwen3.8-flash",
+  "prompt": {
+    "host": "dashscope-chat-completions",
+    "turns": 16,
+    "closedLoop": {
+      "askedMaterials": true,
+      "askedQuestion": true,
+      "gaveFeedback": true,
+      "feedbackHasAllFiveDims": true,
+      "quotedVerbatim": true,
+      "introductionReviewed": true,
+      "experienceReviewed": true,
+      "reportValid": true
+    },
+    "rawClosedLoop": {
+      "askedMaterials": true,
+      "askedQuestion": true,
+      "gaveFeedback": false,
+      "feedbackHasAllFiveDims": false,
+      "quotedVerbatim": false,
+      "introductionReviewed": false,
+      "experienceReviewed": false,
+      "reportValid": true
+    },
+    "verificationMode": "application_assisted",
+    "quoteChecks": [
+      {
+        "questionId": "q1",
+        "dim": "relevance",
+        "level": "充分清楚",
+        "located": true,
+        "text": "我用相关经历说明自己：这个项目我全程负责。",
+        "start": 0,
+        "end": 21,
+        "matchType": "exact",
+        "modelStart": 0,
+        "modelEnd": 20,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q1",
+        "dim": "specificity",
+        "level": "充分清楚",
+        "located": true,
+        "text": "我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。",
+        "start": 21,
+        "end": 62,
+        "matchType": "exact",
+        "modelStart": 21,
+        "modelEnd": 65,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q1",
+        "dim": "contribution",
+        "level": "充分清楚",
+        "located": true,
+        "text": "为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放",
+        "start": 105,
+        "end": 145,
+        "matchType": "exact",
+        "modelStart": 113,
+        "modelEnd": 157,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q1",
+        "dim": "resultsReflection",
+        "level": "充分清楚",
+        "located": true,
+        "text": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+        "start": 225,
+        "end": 289,
+        "matchType": "exact",
+        "modelStart": 229,
+        "modelEnd": 293,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q1",
+        "dim": "structure",
+        "level": "充分清楚",
+        "located": true,
+        "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。",
+        "start": 62,
+        "end": 204,
+        "matchType": "exact",
+        "modelStart": 66,
+        "modelEnd": 228,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q2",
+        "dim": "relevance",
+        "level": "部分清楚",
+        "located": true,
+        "text": "我先拆了漏斗：试听到付费的流失集中在试听后 48 小时，于是把主攻点放在这个窗口。",
+        "start": 10,
+        "end": 51,
+        "matchType": "exact",
+        "modelStart": 10,
+        "modelEnd": 54,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q2",
+        "dim": "specificity",
+        "level": "充分清楚",
+        "located": true,
+        "text": "第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；",
+        "start": 112,
+        "end": 158,
+        "matchType": "exact",
+        "modelStart": 117,
+        "modelEnd": 165,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q2",
+        "dim": "contribution",
+        "level": "充分清楚",
+        "located": true,
+        "text": "为此我给销售做了两场培训并抽查录音；",
+        "start": 94,
+        "end": 112,
+        "matchType": "exact",
+        "modelStart": 96,
+        "modelEnd": 116,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q2",
+        "dim": "resultsReflection",
+        "level": "充分清楚",
+        "located": true,
+        "text": "复盘时我认为分档券贡献最大，但也发现低分段大额券带来一批退费率偏高的订单，这是我当时没预料到的，后来补了退费成本核算才把账算平。",
+        "start": 214,
+        "end": 278,
+        "matchType": "exact",
+        "modelStart": 229,
+        "modelEnd": 293,
+        "modelMetadataValid": false
+      },
+      {
+        "questionId": "q2",
+        "dim": "structure",
+        "level": "充分清楚",
+        "located": true,
+        "text": "我做了三件事：第一，推动销售把跟进话术从“课程介绍”改为“基于试听表现的个性化反馈”，为此我给销售做了两场培训并抽查录音；第二，把优惠券从通用券改成按试听评分分档发放，高分段给小额券促单、低分段给大额券拉犹豫用户；第三，加了试听完 24 小时的自动提醒，这条是和技术排了两周才上线的。",
+        "start": 51,
+        "end": 193,
+        "matchType": "exact",
+        "modelStart": 66,
+        "modelEnd": 228,
+        "modelMetadataValid": false
+      }
+    ],
+    "tokens": 51796,
+    "versions": {
+      "rules": "rules@0.3.0",
+      "contract": "0.3.0",
+      "prompts": "prompts@0.3.1"
+    }
+  },
+  "acceptance": {
+    "ok": true,
+    "rawHostPassed": false
+  }
+}

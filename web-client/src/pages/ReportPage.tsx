@@ -4,7 +4,7 @@ import { ApiError, api } from '../api';
 import { BrandHeader } from '../components/BrandHeader';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { ErrorState } from '../components/ErrorState';
-import { highlightAdded, questionAnswer, representativeDimension, verifiedQuote } from '../lib/report';
+import { experienceFeedbacks, highlightAdded, introductionStatusLabel, questionLabel, reportProgress, representativeDimension, rewriteComparisons, verifiedQuote } from '../lib/report';
 import type { AppErrorBody, DimensionKey, Feedback, SessionDetail } from '../types';
 
 const DIMENSIONS: Array<{ key: DimensionKey; label: string }> = [
@@ -39,14 +39,14 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
   }, [preview, sid]);
 
   const report = detail?.report;
-  const feedbacks = useMemo(() => detail?.report?.perQuestion.map((item) => item.feedback).filter((item): item is Feedback => item !== null) ?? [], [detail]);
+  const feedbacks = useMemo(() => experienceFeedbacks(detail?.report), [detail]);
   const dimensions = useMemo(() => DIMENSIONS.map((item) => ({ ...item, feedback: representativeDimension(feedbacks, item.key) })), [feedbacks]);
   const worstKey = useMemo(() => [...dimensions].filter((item) => item.feedback.level !== '无法判断').sort((a, b) => LEVEL_RANK[a.feedback.level] - LEVEL_RANK[b.feedback.level])[0]?.key, [dimensions]);
   const quotes = useMemo(() => {
     const currentReport = detail?.report;
     if (detail === null || currentReport == null) return [];
     const seen = new Set<string>();
-    return currentReport.perQuestion.flatMap((question, questionIndex) => {
+    return currentReport.perQuestion.flatMap((question) => {
       if (question.feedback === null) return [];
       const basis = detail.reviewBasis[question.questionId];
       return Object.values(question.feedback.dimensions).flatMap((dimension) => {
@@ -54,19 +54,11 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
         if (quote === null || seen.has(`${question.questionId}:${quote.text}`)) return [];
         seen.add(`${question.questionId}:${quote.text}`);
         const turn = detail.turns.find((candidate) => candidate.id === quote.turnId);
-        return [{ quote, questionIndex, turnType: turn?.turnType ?? 'answer' }];
+        return [{ quote, label: questionLabel(currentReport.perQuestion, question.questionId), turnType: turn?.turnType ?? 'answer' }];
       });
     });
   }, [detail]);
-  const comparison = useMemo(() => {
-    if (detail === null) return null;
-    const questionId = Object.keys(detail.rewriteDeltas).find((id) => questionAnswer(detail.turns, id, 'rewrite') !== '');
-    if (questionId === undefined) return null;
-    const initial = questionAnswer(detail.turns, questionId, 'initial');
-    const rewrite = questionAnswer(detail.turns, questionId, 'rewrite');
-    const index = detail.plan?.questions.findIndex((question) => question.id === questionId) ?? -1;
-    return { questionId, initial, rewrite, index: index + 1, delta: detail.rewriteDeltas[questionId] };
-  }, [detail]);
+  const comparisons = useMemo(() => detail === null ? [] : rewriteComparisons(detail), [detail]);
 
   if (error !== null) {
     return <div className="page"><BrandHeader onNavigate={onNavigate} /><main className="standalone-state"><ErrorState error={error} onAction={(action) => action === 'home' ? onNavigate('/') : location.reload()} /></main></div>;
@@ -80,10 +72,13 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
   const dateLabel = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(created);
   const minutes = Math.max(1, Math.round((updated.getTime() - created.getTime()) / 60_000));
   const durationLabel = new Intl.NumberFormat('zh-CN').format(minutes);
-  const rewriteCount = Object.keys(detail.rewriteDeltas).length;
+  const rewriteCount = comparisons.length;
+  const progress = reportProgress(report);
+  const introduction = report.perQuestion.find((question) => question.kind === 'introduction');
+  const experienceQuestions = report.perQuestion.filter((question) => question.kind !== 'introduction');
   const topImprovement = report.priorityPractice[0] ?? feedbacks[0]?.topImprovement ?? '继续用更具体的事实补强回答。';
   const sourceLabel = detail.reportSource === 'model_priority_practice' ? '模型报告' : detail.reportSource === 'derived_from_validated_feedback' ? '由已校验逐题反馈派生' : '零完成题固定说明';
-  const hasDegraded = detail.reviewMeta.some((item) => item.kind === 'degraded');
+  const hasDegraded = [...new Map(detail.reviewMeta.map(item => [item.questionId, item])).values()].some(item => item.kind === 'degraded');
 
   const confirmDelete = async () => {
     setDeleting(true);
@@ -107,8 +102,8 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
         <header className="report-heading">
           <div>
             <h1>本场复盘 <span>{dateLabel}</span></h1>
-            <p>{report.completedQuestions} / {report.totalQuestions} 题 <i /> {durationLabel} 分钟 <i /> 重答 {rewriteCount} 次</p>
-            <small>{sourceLabel}{hasDegraded ? '，部分题为降级评审' : ''}</small>
+            <p>自我介绍：{progress.introductionLabel} <i /> 经历题 {progress.completedExperienceQuestions} / {progress.totalExperienceQuestions} <i /> {durationLabel} 分钟 <i /> 重答 {rewriteCount} 次</p>
+            <small>{sourceLabel}{hasDegraded ? '，部分题为降级评审' : ''}{preview ? ' · 开发预览：旧三题样例，不计入真实练习与匿名统计' : ''}</small>
           </div>
           <div className="report-character">
             <div className="say-card">这一场，你已经把自己的做法讲得更清楚了。</div>
@@ -116,8 +111,13 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
           </div>
         </header>
 
+        <section className="report-section" aria-labelledby="introduction-title">
+          <div className="section-heading"><h2 id="introduction-title">自我介绍</h2><p>{progress.introductionLabel}</p></div>
+          {introduction?.feedback ? <QuestionFeedback feedback={introduction.feedback} /> : <p className="report-empty">{introduction === undefined ? '这份旧三题报告未包含自我介绍。' : '本场没有可展示的自我介绍点评。'}</p>}
+        </section>
+
+        <div className="section-heading report-section"><h2 id="dimension-title">经历题五维汇总</h2><p>仅汇总经历题；自我介绍单独呈现</p></div>
         <section className="dimension-grid" aria-labelledby="dimension-title">
-          <h2 id="dimension-title" className="sr-only">五维反馈</h2>
           {dimensions.map((dimension) => (
             <article key={dimension.key} className={`dimension-card${dimension.feedback.level === '无法判断' ? ' dimension-card--unknown' : ''}${dimension.key === worstKey ? ' dimension-card--worst' : ''}`}>
               {dimension.key === worstKey ? <span className="worst-sticker">最值得改</span> : null}
@@ -133,14 +133,24 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
           <div><h2>最值得改的一处</h2><p>{topImprovement}</p></div>
         </section>
 
+        <section className="report-section" aria-labelledby="question-feedback-title">
+          <div className="section-heading"><h2 id="question-feedback-title">经历题逐题反馈</h2><p>保留每题五维理由、证据缺口与练习点</p></div>
+          {experienceQuestions.map((question) => (
+            <article className="question-feedback" key={question.questionId}>
+              <div className="section-heading"><h3>{questionLabel(report.perQuestion, question.questionId)}</h3><p>{introductionStatusLabel(question.status)}</p></div>
+              {question.feedback ? <QuestionFeedback feedback={question.feedback} /> : <p className="report-empty">本环节没有可展示的正式点评。</p>}
+            </article>
+          ))}
+        </section>
+
         <section className="report-section" aria-labelledby="report-quotes-title">
           <div className="section-heading"><h2 id="report-quotes-title">评审用到的你的原话</h2><p>锚点来自服务端的评审基准文本</p></div>
           {quotes.length > 0 ? (
             <div className="quote-grid">
-              {quotes.map(({ quote, questionIndex, turnType }) => (
+              {quotes.map(({ quote, label, turnType }) => (
                 <blockquote key={`${quote.turnId}-${quote.start}`}>
                   <Paperclip size={20} weight="bold" aria-hidden="true" />
-                  <div><p>「{quote.text}」</p><cite>第 {questionIndex + 1} 题 <i /> {turnType === 'rewrite' ? '重答原话' : '初答原话'}</cite></div>
+                  <div><p>「{quote.text}」</p><cite>{label} <i /> {turnType === 'rewrite' ? '重答原话' : '初答原话'}</cite></div>
                 </blockquote>
               ))}
             </div>
@@ -149,11 +159,14 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
 
         <section className="report-section" aria-labelledby="compare-title">
           <div className="section-heading"><h2 id="compare-title">初答 vs 重答</h2><p>新增片段只按已验证子串高亮</p></div>
-          {comparison === null ? <p className="report-empty">本场没有完成重答，暂时没有对照内容。</p> : (
-            <div className="compare-grid">
-              <article><span>初答 <i /> 第 {comparison.index} 题</span><p>{comparison.initial}</p></article>
-              <article className="compare-rewrite"><span>重答 <i /> 第 {comparison.index} 题</span><p>{highlightAdded(comparison.rewrite, comparison.delta).map((part, index) => part.marked ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</p></article>
-            </div>
+          {comparisons.length === 0 ? <p className="report-empty">本场没有完成重答，暂时没有对照内容。</p> : (
+            comparisons.map((comparison) => <div className="compare-grid" key={comparison.questionId}>
+              <article><span>初答 <i /> {comparison.label}</span><p>{comparison.initial}</p></article>
+              <article className="compare-rewrite"><span>重答 <i /> {comparison.label}</span><p>{highlightAdded(comparison.rewrite, comparison.delta).map((part, index) => part.marked ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</p>
+                {comparison.delta?.corrected.length ? <p>纠正：{comparison.delta.corrected.join('；')}</p> : null}
+                {comparison.delta?.stillMissing.length ? <p>仍缺：{comparison.delta.stillMissing.join('；')}</p> : null}
+              </article>
+            </div>)
           )}
         </section>
 
@@ -171,4 +184,17 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
 function LevelDots({ level }: { level: '证据不足' | '部分清楚' | '充分清楚' }) {
   const count = level === '证据不足' ? 1 : level === '部分清楚' ? 2 : 3;
   return <div className="level-dots" aria-label={`${level}，三档中第 ${count} 档`}>{[0, 1, 2].map((index) => <i key={index} className={index < count ? 'is-filled' : ''} />)}</div>;
+}
+
+
+function QuestionFeedback({ feedback }: { feedback: Feedback }) {
+  return <div className="question-feedback-body">
+    <p><strong>最值得改：</strong>{feedback.topImprovement}</p>
+    <dl>{DIMENSIONS.map(({ key, label }) => {
+      const dimension = feedback.dimensions[key];
+      return <div key={key}><dt>{label} · {dimension.level}</dt><dd>{dimension.reason}</dd></div>;
+    })}</dl>
+    {feedback.factGaps.length ? <p><strong>证据缺口：</strong>{feedback.factGaps.join('；')}</p> : null}
+    {feedback.nextFacts.length ? <p><strong>下一步：</strong>{feedback.nextFacts.join('；')}</p> : null}
+  </div>;
 }

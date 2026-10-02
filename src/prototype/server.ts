@@ -15,7 +15,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const PUBLIC_DIR = path.join(REPO_ROOT, 'src', 'prototype', 'public');
-const DATA_DIR = path.join(REPO_ROOT, 'data', 'prototype');
+const DATA_DIR = process.env.PROTOTYPE_DATA_DIR ? path.resolve(process.env.PROTOTYPE_DATA_DIR) : path.join(REPO_ROOT, 'data', 'prototype');
 const PORT = Number(process.env.PROTOTYPE_PORT ?? 8917);
 const HOST = '127.0.0.1';
 

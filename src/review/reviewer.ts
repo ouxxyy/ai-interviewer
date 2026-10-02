@@ -1,7 +1,7 @@
 /**
  * 评审流水线（T1-S 用 mock 通道驱动；真实通道属 T1-R，未验证）。
  *
- * 流程：模型原始输出 → JSON 解析 → Schema 校验 → 逐维引用重定位 → 失败重试（带整改反馈）→ 仍失败则降级「暂无法评价」。
+ * 流程：模型原始输出 → JSON 对象检查 → 已知元数据及可定位引用坐标回填 → 完整 Schema 校验 → 逐维引用核验 → 失败重试（带整改反馈）→ 仍失败则降级「暂无法评价」。
  * 红线：引用定位失败不展示该维度等级；绝不猜测填充；降级不伪造成正常反馈。
  */
 import { validateContract } from '../contracts/validate.js';
@@ -9,6 +9,7 @@ import { locateQuote } from '../contracts/quote-locator.js';
 import { CONTRACT_VERSION } from '../contracts/version.js';
 import { PROMPT_VERSION } from '../prompts/prompts.js';
 import type { Feedback, DimensionKey, TextVersion } from '../contracts/types.js';
+import { safeReviewIssues, type ReviewIssue } from './diagnostics.js';
 
 /**
  * 模型通道抽象：attempt 从 1 起；remediation 为上一次失败的整改提示（首次为 null）。
@@ -30,7 +31,7 @@ export interface RunReviewInput {
    * 观测钩子（不改变流水线行为）：每次尝试的判定结果。
    * T1-R 用它把「第几次失败、为什么失败」写进验收证据，避免只看到最终的 ok/degraded。
    */
-  onAttempt?(attempt: number, result: { ok: boolean; cause?: 'json_error' | 'schema_error' | 'quote_not_locatable'; detail?: string }): void;
+  onAttempt?(attempt: number, result: { ok: boolean; cause?: 'json_error' | 'schema_error' | 'quote_not_locatable'; detail?: string; issues?: ReviewIssue[] }): void;
 }
 
 export type ReviewOutcome =
@@ -54,7 +55,14 @@ export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
     } catch (e) {
       lastCause = 'json_error';
       lastDetail = (e as Error).message.slice(0, 120);
-      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail, issues: [{ path: '/', rule: 'invalid_json' }] });
+      continue;
+    }
+
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      lastCause = 'schema_error';
+      lastDetail = '(root): must be object';
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail, issues: [{ path: '/', rule: 'type' }] });
       continue;
     }
 
@@ -67,16 +75,34 @@ export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
     meta.questionId = input.questionId;
     meta.reviewBasis = { turnIds: input.turnIds, textVersion: input.textVersion };
 
+    // 坐标是应用事实。先对可定位原话回填，再执行未放宽的完整 Schema；
+    // 不补 quote.text/turnId、等级、理由或建议，也不移除多余内容字段。
+    const dimensions = (parsed as Record<string, unknown>).dimensions;
+    if (dimensions !== null && typeof dimensions === 'object' && !Array.isArray(dimensions)) {
+      for (const key of DIMS) {
+        const dimension = (dimensions as Record<string, unknown>)[key];
+        if (dimension === null || typeof dimension !== 'object' || Array.isArray(dimension)) continue;
+        const quote = (dimension as Record<string, unknown>).quote;
+        if (quote === null || typeof quote !== 'object' || Array.isArray(quote)) continue;
+        const q = quote as Record<string, unknown>;
+        if (typeof q.text !== 'string' || typeof q.turnId !== 'string' || !input.turnIds.includes(q.turnId)) continue;
+        const loc = locateQuote(input.basisText, q.text);
+        if (!loc.located) continue;
+        Object.assign(q, { start: loc.start, end: loc.end, matchType: loc.matchType, textVersion: input.textVersion });
+      }
+    }
+
     const schemaResult = validateContract('feedback', parsed);
     if (!schemaResult.ok) {
       lastCause = 'schema_error';
       lastDetail = schemaResult.errors.join('; ').slice(0, 200);
-      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail, issues: safeReviewIssues(schemaResult.issues ?? []) });
       continue;
     }
 
     const fb = parsed as Feedback;
     const quoteErrors: string[] = [];
+    const quoteIssues: ReviewIssue[] = [];
     for (const dim of DIMS) {
       const d = fb.dimensions[dim];
       if (d.level === '无法判断') {
@@ -88,11 +114,13 @@ export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
         continue;
       }
       if (!input.turnIds.includes(d.quote.turnId)) {
+        quoteIssues.push({ path: `/dimensions/${dim}/quote/turnId`, rule: 'turn_mismatch' });
         quoteErrors.push(`${dim}: turnId ${d.quote.turnId} 不在评审对象轮次 ${input.turnIds.join(',')} 中`);
         continue;
       }
       const loc = locateQuote(input.basisText, d.quote.text);
       if (!loc.located) {
+        quoteIssues.push({ path: `/dimensions/${dim}/quote/text`, rule: 'quote_not_found' });
         quoteErrors.push(`${dim}: 引用无法在评审对象中定位（${loc.reason}）：${d.quote.text.slice(0, 20)}…`);
         continue;
       }
@@ -105,7 +133,7 @@ export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
     if (quoteErrors.length > 0) {
       lastCause = 'quote_not_locatable';
       lastDetail = quoteErrors.join('; ').slice(0, 200);
-      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail });
+      input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail, issues: safeReviewIssues(quoteIssues) });
       continue;
     }
 

@@ -1,0 +1,11 @@
+{
+  "source": "collaboration review_prompt_fix",
+  "readOnly": true,
+  "initialFindings": [
+    "计划耗尽重试或中途请求异常会丢失败对话",
+    "API聊天宿主等价注释与应用辅助边界不一致"
+  ],
+  "followupVerdict": "复审通过，原 Important 与 Minor 均可关闭。本轮范围内未发现其他阻断问题。",
+  "scope": "仅代码与免费验证；真实模型、普通聊天宿主和质量标定仍未验证。",
+  "targetedLog": "logs/targeted-final.log"
+}

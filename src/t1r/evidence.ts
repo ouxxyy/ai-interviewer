@@ -10,11 +10,13 @@ import { appendFileSync, readFileSync, writeFileSync, mkdirSync, existsSync, rea
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { assertNoSecret, REPO_ROOT } from './env.js';
+import { CONTRACT_VERSION } from '../contracts/version.js';
 
-export const EVIDENCE_DIR = path.join(REPO_ROOT, 'evidence', 't1r');
-export const DATA_DIR = path.join(REPO_ROOT, 'data', 't1r');
-export const EVIDENCE_T2_DIR = path.join(REPO_ROOT, 'evidence', 't2');
-export const DATA_T2_DIR = path.join(REPO_ROOT, 'data', 't2');
+// 新运行单独落在当前契约目录，不能覆盖历史 0.1/0.2 真实证据。
+export const EVIDENCE_DIR = path.join(REPO_ROOT, 'evidence', 't1r', `v${CONTRACT_VERSION}`);
+export const DATA_DIR = path.join(REPO_ROOT, 'data', 't1r', `v${CONTRACT_VERSION}`);
+export const EVIDENCE_T2_DIR = path.join(REPO_ROOT, 'evidence', 't2', `v${CONTRACT_VERSION}`);
+export const DATA_T2_DIR = path.join(REPO_ROOT, 'data', 't2', `v${CONTRACT_VERSION}`);
 
 export interface ArtifactRecord {
   /** 相对仓库根的路径。 */

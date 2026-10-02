@@ -167,6 +167,8 @@ export class MockRealtimeClient implements RealtimeLike {
 }
 
 export interface TextScript {
+  /** 网页新传输：从提示词提供的目录选择来源编号。 */
+  planSourceIds?: boolean;
   /** 追问判定脚本（按顺序消费；用尽后 need=false）。 */
   followups?: Array<{ need: boolean; question?: string; reason?: string; gap?: string }>;
   /** 每次评审前 N 次返回坏 JSON（验证重试与首次通过率口径）。 */
@@ -175,6 +177,10 @@ export interface TextScript {
   planError?: string;
   /** 计划前 N 次返回可解析但不符合契约的结构（验证自动整改重试）。 */
   badPlanAttempts?: number;
+  /** 某一次计划返回不可定位来源（验证共享来源门与重试）。 */
+  badPlanSourceAttempts?: number;
+  /** 评审调用抛出异常（可在测试中动态切换）。 */
+  reviewError?: string;
   /** 计划只有 2 题（验证契约门）。 */
   planQuestionCount?: number;
   /** 已完成的评审调用次数（按提示词统计）。 */
@@ -204,11 +210,13 @@ export class ScriptedTextClient implements TextLlmClient {
   private followups: NonNullable<TextScript['followups']>;
   private badReviewAttempts: number;
   private badPlanAttempts: number;
+  private badPlanSourceAttempts: number;
 
   constructor(private readonly script: TextScript = {}) {
     this.followups = [...(script.followups ?? [])];
     this.badReviewAttempts = script.badReviewAttempts ?? 0;
     this.badPlanAttempts = script.badPlanAttempts ?? 0;
+    this.badPlanSourceAttempts = script.badPlanSourceAttempts ?? 0;
   }
 
   async complete(req: CompletionRequest): Promise<CompletionResponse> {
@@ -217,13 +225,19 @@ export class ScriptedTextClient implements TextLlmClient {
     this.counts[kind] = (this.counts[kind] ?? 0) + 1;
     if (kind === 'plan') {
       if (this.script.planError !== undefined) throw new Error(this.script.planError);
-      const n = this.script.planQuestionCount ?? 3;
+      const n = this.script.planQuestionCount ?? 4;
       const plan: QuestionPlan = {
-        contractVersion: '0.2.0',
+        contractVersion: '0.3.0',
         questions: Array.from({ length: n }, (_, i) => ({
           id: `q${i + 1}`,
-          text: `第 ${i + 1} 题：请说明你在该项目里的具体分工与结果。`,
-          sourceExcerpt: '负责社区内容运营',
+          kind: i === 0 ? 'introduction' : 'experience',
+          text: [
+            '请做一段与内容运营岗位相关的自我介绍。',
+            '请说明你在征稿活动中个人负责的具体动作。',
+            '你在渠道扩散时遇到过什么困难，做了什么取舍？',
+            '你怎么判断活动的效果，复盘后改变了哪些流程？',
+          ][i] ?? `第${i + 1}题：请补充新的经历背景。`,
+          sourceExcerpt: '内容运营',
           intent: '验证个人贡献',
           topics: [`主题${i + 1}`],
         })),
@@ -232,6 +246,16 @@ export class ScriptedTextClient implements TextLlmClient {
       if (this.badPlanAttempts > 0) {
         this.badPlanAttempts -= 1;
         (plan.questions[0] as unknown as { topics: unknown[] }).topics = [{ label: '错误结构' }];
+      }
+      if (this.badPlanSourceAttempts > 0) {
+        this.badPlanSourceAttempts -= 1;
+        plan.questions[0]!.sourceExcerpt = '我从未在材料中提过的事实';
+      }
+      if (this.script.planSourceIds) {
+        const catalog = req.prompt.match(/【原文来源目录[^\n]*\n([^\n]+)/)?.[1];
+        if (!catalog) throw new Error('缺少来源目录');
+        const sources = JSON.parse(catalog) as Array<{ id: string; text: string }>;
+        return { text: JSON.stringify({ ...plan, questions: plan.questions.map(({ sourceExcerpt: _excerpt, ...q }, i) => ({ ...q, sourceId: sources[i % sources.length]!.id })) }), usage: { promptTokens: 100, completionTokens: 50 } };
       }
       return { text: JSON.stringify(plan), usage: { promptTokens: 100, completionTokens: 50 } };
     }
@@ -243,6 +267,7 @@ export class ScriptedTextClient implements TextLlmClient {
       };
     }
     if (kind === 'review') {
+      if (this.script.reviewError !== undefined) throw new Error(this.script.reviewError);
       if (this.badReviewAttempts > 0) {
         this.badReviewAttempts -= 1;
         return { text: '这不是 JSON', usage: { promptTokens: 10, completionTokens: 5 } };
@@ -254,7 +279,7 @@ export class ScriptedTextClient implements TextLlmClient {
         return basis.slice(start, start + len) || basis.slice(0, Math.min(4, basis.length));
       };
       const fb: Feedback = {
-        contractVersion: '0.2.0',
+        contractVersion: '0.3.0',
         questionId: 'q1',
         reviewBasis: { turnIds: ['t1'], textVersion: 'raw' },
         dimensions: {
@@ -267,14 +292,14 @@ export class ScriptedTextClient implements TextLlmClient {
         factGaps: ['个人分工的具体动作', '活动结果数据'],
         topImprovement: '补充你个人负责的具体动作',
         nextFacts: ['你个人负责的具体动作', '活动结果数据'],
-        reviewVersion: 'prompts@0.2.0',
+        reviewVersion: 'prompts@0.3.0',
       };
       return { text: JSON.stringify(fb), usage: { promptTokens: 900, completionTokens: 400 } };
     }
     if (kind === 'report') {
       if (this.script.reportPriority === null) return { text: '不是 JSON', usage: { promptTokens: 10, completionTokens: 5 } };
       const priority = this.script.reportPriority ?? ['补充你个人负责的具体动作'];
-      return { text: JSON.stringify({ contractVersion: '0.2.0', priorityPractice: priority }), usage: { promptTokens: 300, completionTokens: 40 } };
+      return { text: JSON.stringify({ contractVersion: '0.3.0', priorityPractice: priority }), usage: { promptTokens: 300, completionTokens: 40 } };
     }
     if (kind === 'rewrite_delta') {
       return { text: JSON.stringify({ added: ['补充了个人分工'], corrected: [], stillMissing: ['仍缺结果数据'] }), usage: { promptTokens: 200, completionTokens: 30 } };

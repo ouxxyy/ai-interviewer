@@ -1,3 +1,4 @@
+import { observePractice } from '../lib/analytics';
 import { ArrowCounterClockwise, ArrowRight, HandPalm, Microphone, Pause, Play, SpeakerHigh, Stop, Waveform } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ENTRY_HINTS } from '../../../src/rules/entry-hints';
@@ -5,8 +6,8 @@ import { ApiError, api } from '../api';
 import { RealtimeAudio } from '../audio';
 import { BrandHeader } from '../components/BrandHeader';
 import { ErrorState } from '../components/ErrorState';
-import { verifiedQuote } from '../lib/report';
-import { agentActivity, answerOpportunityKey, defaultRetry, isSnapshot, latestReviewedFeedback, questionProgress, recoveryNotice, recoveryStep, shouldAutoStartAnswer, type FailedOp, type ObservedSession, type RecoveryStep } from '../lib/session-view';
+import { questionLabel, verifiedQuote } from '../lib/report';
+import { currentReviewFailure, agentActivity, answerOpportunityKey, canRewriteQuestion, canEndSession, nextQuestionLabel, defaultRetry, isSnapshot, latestReviewedFeedback, questionProgress, recoveryNotice, recoveryStep, shouldAutoStartAnswer, type FailedOp, type ObservedSession, type RecoveryStep } from '../lib/session-view';
 import type { AppErrorBody, MaterialsDraft, SessionDetail, Snapshot } from '../types';
 
 interface SessionPageProps {
@@ -54,6 +55,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   const [busy, setBusy] = useState(preview === undefined);
   const [error, setError] = useState<AppErrorBody | null>(null);
   const [notice, setNotice] = useState('');
+  const [microphoneLabel, setMicrophoneLabel] = useState('');
   const audioRef = useRef<RealtimeAudio | null>(null);
   const setupRef = useRef(setup);
   /** 失败的那一步：恢复时按它 + 服务端真实状态决定该重发什么（P1-2）。 */
@@ -64,18 +66,20 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   /** 只在当前页面、当前连接里由一次真实点击开启；刷新/断线后必须再次手动确认，避免意外热麦。 */
   const hasStartedOnceRef = useRef(false);
   const lastAutoStartKeyRef = useRef<string | null>(null);
+  const endingRef = useRef(false);
 
   useEffect(() => { errorRef.current = error; }, [error]);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
 
   const applySnapshot = useCallback((next: Snapshot): boolean => {
     if (!isSnapshot(next)) return false;
+    if (preview === undefined) observePractice(next);
     snapshotRef.current = next;
     setSnapshot(next);
     setBusy(false);
     if (next.lastError !== null) setError(next.lastError);
     return true;
-  }, []);
+  }, [preview]);
 
   useEffect(() => {
     if (preview !== undefined) return;
@@ -102,10 +106,12 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
         if (nextError.code === 'E_OFFLINE') setOffline(true);
         if (nextError.halt === true) setRecording(false);
       },
+      onMicrophone: (label) => { if (active) setMicrophoneLabel(label); },
       onStatus: (status) => {
         if (!active) return;
         setAudioStatus(status);
         if (status === 'offline') setOffline(true);
+        if (status === 'offline' || status === 'closed' || status === 'paused') setRecording(false);
       },
     });
     audioRef.current = runtime;
@@ -159,7 +165,8 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   }, [currentQuestionId, snapshot]);
   const questionText = latestInterviewerTurn?.rawTranscript || snapshot?.currentQuestion?.text || '正在准备这道题';
   const progress = useMemo(() => questionProgress(snapshot?.plan ?? null, questionIndex), [snapshot?.plan, questionIndex]);
-  const coaching = useMemo(() => latestReviewedFeedback(snapshot), [snapshot]);
+  const reviewFailure = useMemo(() => currentReviewFailure(snapshot), [snapshot]);
+  const coaching = useMemo(() => reviewFailure ? null : latestReviewedFeedback(snapshot), [snapshot, reviewFailure]);
   const quotes = useMemo(() => {
     if (coaching === null) return [];
     const seen = new Set<string>();
@@ -169,16 +176,20 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
       .filter((quote) => !seen.has(quote.text) && seen.add(quote.text));
   }, [coaching]);
   const state = snapshot?.state;
-  const waitingReview = state === 'review' || (busy && (state === 'answer' || state === 'followup'));
-  const processing = state === 'review' || busy;
+  const waitingReview = (state === 'review' && reviewFailure === null) || (busy && (state === 'answer' || state === 'followup'));
+  const processing = (state === 'review' && reviewFailure === null) || busy;
   const atRewrite = state === 'rewrite';
+  const canRewrite = canRewriteQuestion(snapshot);
+  const nextLabel = nextQuestionLabel(snapshot);
+  const currentLabel = snapshot?.plan && currentQuestionId ? questionLabel(snapshot.plan.questions, currentQuestionId) : '正在准备';
+  const coachingLabel = snapshot?.plan && coaching ? questionLabel(snapshot.plan.questions, coaching.questionId) : '题目';
   const toggles = snapshot?.toggles ?? detail?.toggles ?? null;
   const locked = busy || offline;
   const elapsedSeconds = useElapsedSeconds(processing || audioStatus === 'connecting');
-  const activity = agentActivity({ state, audioStatus, recording, busy, elapsedSeconds });
+  const activity = agentActivity({ state, audioStatus, recording, busy, elapsedSeconds, reviewFailed: reviewFailure !== null });
   const opportunityKey = useMemo(() => answerOpportunityKey(snapshot), [snapshot]);
   const autoSessionStarted = hasStartedOnceRef.current;
-  const activityDetail = activity.kind === 'ready' && answerStartMode === 'continuous'
+  const activityDetail = activity.kind === 'ready' && reviewFailure === null && state !== 'rewrite' && answerStartMode === 'continuous'
     ? autoSessionStarted
       ? '连续面试已开启：小八说完后会自动开始录音；需要停一下可点“暂停”。'
       : '本次连接请点击一次“开始作答”完成麦克风确认；之后小八说完会自动开麦。'
@@ -207,7 +218,9 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     setNotice('');
     setTranscript('');
     setFinalTranscript(false);
-    const sent = await audioRef.current?.startAnswer();
+    const runtime = audioRef.current;
+    const sent = await runtime?.startAnswer();
+    if (audioRef.current !== runtime) return false;
     setRecording(audioRef.current?.isCapturing === true);
     if (sent !== false) failedOpRef.current = null;
     return audioRef.current?.isCapturing === true;
@@ -225,10 +238,20 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
 
   const action = useCallback(async (name: string, body?: unknown) => {
     if (preview !== undefined) return;
+    if (name === 'end') {
+      if (endingRef.current) return;
+      endingRef.current = true;
+    }
     failedOpRef.current = { kind: 'http', name, ...(body === undefined ? {} : { body }) };
     setBusy(true);
     setError(null);
     try {
+      if (name === 'end') {
+        hasStartedOnceRef.current = false;
+        lastAutoStartKeyRef.current = null;
+        await audioRef.current?.close();
+        setRecording(false);
+      }
       const response = await api.action(sid, name, body);
       failedOpRef.current = null;
       applySnapshot(response.snapshot);
@@ -236,6 +259,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     } catch (caught) {
       setError(toErrorBody(caught, { code: 'E_OFFLINE', message: '网络连接中断' }));
     } finally {
+      if (name === 'end') endingRef.current = false;
       setBusy(false);
     }
   }, [applySnapshot, onNavigate, preview, sid]);
@@ -352,10 +376,12 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
         </aside>
 
         <section className="interview-stage" aria-busy={processing}>
+          {preview ? <p className="session-notice">开发预览：旧三题样例，不计入真实练习与匿名统计。</p> : null}
           <div className="question-bubble">
-            <span className="speaker-label">小八问</span>
+            <span className="speaker-label">小八问 · {currentLabel}</span>
             <h1>{questionText}</h1>
             <p>{snapshot?.currentQuestion?.intent ?? '用具体事实回答，不用追求完美。'}</p>
+            {currentLabel === '自我介绍' ? <p>建议 1–2 分钟，不强制限时；讲清目标岗位、真实亮点和个人价值。</p> : null}
           </div>
 
           <div className={`answer-bubble${recording ? ' is-recording' : ''}`}>
@@ -373,6 +399,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
               <span>Agent 状态</span>
               <strong>{activity.title}</strong>
               <p>{activityDetail}</p>
+              {microphoneLabel ? <p>当前输入：{microphoneLabel}</p> : null}
             </div>
             {activity.kind === 'reviewing' ? (
               <ol className="agent-steps" aria-label="点评流程">
@@ -387,18 +414,26 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
 
           <section className="evidence-strip" aria-labelledby="evidence-title">
             <div className="evidence-heading">
-              <span>{coaching === null ? '等待点评' : `第 ${coaching.questionNumber} 题${coaching.current ? '' : ' · 最近完成'}`}</span>
+              <span>{reviewFailure ? '评审未完成' : coaching === null ? '等待点评' : `${coachingLabel}${coaching.current ? '' : ' · 最近完成'}`}</span>
               <h2 id="evidence-title">评审用到的你的原话</h2>
               <p>只展示通过定位校验的引用，不会把题目或建议冒充成你的原话。</p>
             </div>
             <div className="evidence-content">
               <div className="evidence-list">
                 {quotes.length > 0 ? quotes.map((quote) => <q key={`${quote.turnId}-${quote.start}`}>{quote.text}</q>) : (
-                  <p className="evidence-empty">{waitingReview ? '回答已提交，正在定位可引用的原话…' : transcript !== '' ? '你的原话正在记录；提交点评后，这里会显示被实际引用的片段。' : '完成本题点评后，这里会保留最近一题通过校验的原话。'}</p>
+                  <p className="evidence-empty">{reviewFailure ? '本题尚无通过校验的点评引用。' : waitingReview ? '回答已提交，正在定位可引用的原话…' : transcript !== '' ? '你的原话正在记录；提交点评后，这里会显示被实际引用的片段。' : '完成本题点评后，这里会保留最近一题通过校验的原话。'}</p>
                 )}
               </div>
+              {reviewFailure !== null ? (
+                <aside className="instant-feedback" aria-label="评审未完成" role="status">
+                  <div><span>点评未完成</span><strong>{reviewFailure.message}</strong></div>
+                  <p>{reviewFailure.attempts > 0 ? `已尝试 ${reviewFailure.attempts} 次。` : ''}这不是对你回答好坏的评价，本题暂不计入完成数。</p>
+                  <p>回答已保留，无需重新录音。重新评审会再次调用模型，可能产生费用。</p>
+                  <button className="button button--paper" type="button" disabled={locked || snapshot?.halted === true} onClick={() => void action('review/retry')}>重新评审</button>
+                </aside>
+              ) : null}
               {coaching !== null ? (
-                <aside className="instant-feedback" aria-label={`第 ${coaching.questionNumber} 题即时点评`}>
+                <aside className="instant-feedback" aria-label={`${coachingLabel}即时点评`}>
                   <div><span>即时点评</span><strong>{coaching.feedback.topImprovement}</strong></div>
                   {coaching.feedback.nextFacts.length > 0 ? <p><b>下一步：</b>{coaching.feedback.nextFacts.slice(0, 2).join('；')}</p> : null}
                 </aside>
@@ -409,16 +444,17 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
           <div className="session-controls">
             <div className="control-secondary">
               <button type="button" onClick={() => audioRef.current?.repeatQuestion()} disabled={locked}><SpeakerHigh size={18} weight="bold" aria-hidden="true" />重听本题</button>
-              <button type="button" onClick={() => { if (paused) audioRef.current?.resume(); else audioRef.current?.pause(); setPaused(!paused); }} disabled={locked}>
+              <button type="button" onClick={() => { if (paused) { audioRef.current?.resume(); setNotice('已恢复。点击“开始作答”后继续。'); } else { audioRef.current?.pause(); hasStartedOnceRef.current = false; lastAutoStartKeyRef.current = null; setRecording(false); setNotice('已暂停并停止麦克风采集；恢复后请重新开始作答。'); } setPaused(!paused); }} disabled={locked}>
                 {paused ? <Play size={18} weight="fill" aria-hidden="true" /> : <Pause size={18} weight="fill" aria-hidden="true" />}{paused ? '恢复' : '暂停'}
               </button>
               <button type="button" onClick={() => { const count = audioRef.current?.interrupt() ?? 0; setNotice(`已打断，清空 ${count} 段本地待播音频`); }} disabled={locked}><HandPalm size={18} weight="bold" aria-hidden="true" />打断</button>
+              <button type="button" onClick={() => void action('end')} disabled={preview !== undefined || !canEndSession(snapshot, processing)}><Stop size={18} weight="bold" aria-hidden="true" />结束本场</button>
             </div>
             <div className="control-primary">
               {atRewrite ? (
                 <>
-                  <button className="button button--paper" type="button" onClick={() => void action('rewrite/start')} disabled={locked}><ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />重答一次</button>
-                  <button className="button button--primary" type="button" onClick={() => void action('next')} disabled={locked}>下一题<ArrowRight size={18} weight="bold" aria-hidden="true" /></button>
+                  <button className="button button--paper" type="button" onClick={() => void action('rewrite/start')} disabled={locked || !canRewrite}><ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />重答一次</button>
+                  <button className="button button--primary" type="button" onClick={() => void action('next')} disabled={locked}>{nextLabel}<ArrowRight size={18} weight="bold" aria-hidden="true" /></button>
                 </>
               ) : processing ? (
                 <button className="button button--primary" type="button" disabled><span className="button-pulse" />{activity.title}</button>

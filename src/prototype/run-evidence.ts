@@ -18,7 +18,7 @@ import WebSocket from 'ws';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
-const DATA_DIR = path.join(REPO_ROOT, 'data', 'prototype');
+const DATA_DIR = process.env.PROTOTYPE_DATA_DIR ? path.resolve(process.env.PROTOTYPE_DATA_DIR) : path.join(REPO_ROOT, 'data', 'prototype');
 const EVIDENCE_FILE = path.join(REPO_ROOT, 'docs', 't1s-audio-prototype-evidence.md');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const APP_PORT = Number(process.env.PROTOTYPE_PORT ?? 8917);
@@ -258,7 +258,7 @@ async function main(): Promise<void> {
       fetchJson<{ sessions: unknown[] }>(`http://127.0.0.1:${APP_PORT}/api/sessions`));
     const osScan = listFilesRecursiveSafe(DATA_DIR);
     assert('API 会话列表为空', (listAfter?.sessions?.length ?? -1) === 0, JSON.stringify(listAfter));
-    assert('OS 级 fs 扫描数据目录为空（无残留）', osScan.length === 0, `data/prototype 下残留: ${JSON.stringify(osScan)}`);
+    assert('OS 级 fs 扫描数据目录为空（无残留）', osScan.length === 0, `${DATA_DIR} 下残留: ${JSON.stringify(osScan)}`);
     // chrome 临时 profile 属运行产物，一并清理
     rmSync(tmpProfile, { recursive: true, force: true });
   } finally {
@@ -294,7 +294,7 @@ async function main(): Promise<void> {
   lines.push('');
   lines.push(`## 结论：${failures === 0 ? '静态通过（浏览器音频链路与文件链路全部断言通过）' : `存在 ${failures} 个失败断言`}`);
   lines.push('');
-  lines.push(`总耗时 ${Date.now() - t0}ms。删除后 OS 级扫描 \`data/prototype\` 为空（见最后两步断言）。`);
+  lines.push(`总耗时 ${Date.now() - t0}ms。本次数据目录：\`${DATA_DIR}\`；删除后 OS 级扫描为空（见最后两步断言）。`);
   writeFileSync(EVIDENCE_FILE, lines.join('\n'), 'utf8');
   console.log(`[evidence] written: ${EVIDENCE_FILE}`);
 

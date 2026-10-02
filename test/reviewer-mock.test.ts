@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runReview } from '../src/review/reviewer.js';
-import { validChannel, invalidJsonOnceChannel, schemaInvalidChannel, quoteMissingOnceChannel, quoteAlteredChannel } from '../src/review/fixtures.js';
+import { buildValidReviewJson, validChannel, invalidJsonOnceChannel, schemaInvalidChannel, quoteMissingOnceChannel, quoteAlteredChannel } from '../src/review/fixtures.js';
 import { validateContract } from '../src/contracts/validate.js';
 import { sliceByLocation } from '../src/contracts/quote-locator.js';
 
@@ -80,5 +80,58 @@ test('D11：修订版作为基准时 textVersion 权威回填为 revised', async
     for (const dim of Object.values(out.feedback.dimensions)) {
       if (dim.quote) assert.equal(dim.quote.textVersion, 'revised');
     }
+  }
+});
+
+
+test('引用坐标缺失或类型错误：可定位原话先权威回填再过完整契约', async () => {
+  const fb = JSON.parse(buildValidReviewJson(basis, 'q1', ['t1'], 'raw'));
+  for (const d of Object.values(fb.dimensions) as any[]) {
+    if (!d.quote) continue;
+    delete d.quote.start;
+    d.quote.end = '错误坐标';
+    delete d.quote.matchType;
+    d.quote.textVersion = '错误版本';
+  }
+  const out = await runReview({ ...input, channel: { call: () => JSON.stringify(fb) } });
+  assert.equal(out.kind, 'ok');
+  assert.equal(out.attempts, 1);
+  assert.equal(validateContract('feedback', out.feedback).ok, true);
+  assert.equal(out.feedback.dimensions.relevance.quote?.text, fb.dimensions.relevance.quote.text);
+  assert.equal(out.feedback.dimensions.relevance.reason, fb.dimensions.relevance.reason);
+});
+
+test('非对象 JSON 安全降级而不抛异常', async () => {
+  for (const raw of ['null', '42', '"文本"', '[]']) {
+    const out = await runReview({ ...input, channel: { call: () => raw } });
+    assert.equal(out.kind, 'degraded', raw);
+    if (out.kind === 'degraded') assert.equal(out.cause, 'schema_error');
+  }
+});
+
+test('字段诊断保存字段路径和规则，不含模型内容或未知字段名', async () => {
+  const fb = JSON.parse(buildValidReviewJson(basis, 'q1', ['t1'], 'raw'));
+  delete fb.nextFacts;
+  fb.dimensions.contribution.level = '私人内容不应进入诊断';
+  fb['sk-private-unknown-property-123456'] = '敏感值';
+  const attempts: any[] = [];
+  const out = await runReview({ ...input, channel: { call: () => JSON.stringify(fb) }, onAttempt: (n, r) => attempts.push({ n, ...r }) });
+  assert.equal(out.kind, 'degraded');
+  assert.ok(attempts[0].issues?.some((i: any) => i.path === '/nextFacts' && i.rule === 'required'));
+  assert.ok(attempts[0].issues?.some((i: any) => i.path === '/dimensions/contribution/level' && i.rule === 'enum'));
+  const diagnostics = JSON.stringify(attempts.map(a => a.issues));
+  assert.doesNotMatch(diagnostics, /私人|sk-private|敏感值/);
+});
+
+test('元数据回填不能修补内容、轮次身份或不存在的引用', async () => {
+  for (const mutate of [
+    (fb: any) => { delete fb.nextFacts; },
+    (fb: any) => { fb.dimensions.relevance.quote.turnId = 't999'; },
+    (fb: any) => { fb.dimensions.relevance.quote.text = '从未口述的虚构内容'; delete fb.dimensions.relevance.quote.start; },
+    (fb: any) => { delete fb.dimensions.relevance.quote.turnId; },
+  ]) {
+    const fb = JSON.parse(buildValidReviewJson(basis, 'q1', ['t1'], 'raw'));
+    mutate(fb);
+    assert.equal((await runReview({ ...input, channel: { call: () => JSON.stringify(fb) } })).kind, 'degraded');
   }
 });

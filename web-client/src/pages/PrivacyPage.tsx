@@ -48,7 +48,7 @@ export function PrivacyPage({ settings, onUpdate, onNavigate }: PrivacyPageProps
         {disclosure === null ? <div className="privacy-skeleton"><span /><span /></div> : (
           <div className="privacy-sections">
             <DisclosureSection icon={HouseLine} title={disclosure.version.startsWith('disclosure@public') ? '保存在本站服务器' : '留在本机'} items={disclosure.staysLocal} />
-            <DisclosureSection icon={CloudArrowUp} title="发给云模型" items={disclosure.sentToCloud} />
+            <DisclosureSection icon={CloudArrowUp} title="发送到云服务" items={disclosure.sentToCloud} />
             <DisclosureSection icon={Database} title="保存位置" items={[disclosure.storage.root, disclosure.storage.database, disclosure.storage.audio, disclosure.storage.uploads, disclosure.storage.note]} />
             <DisclosureSection icon={Trash} title="删除方式" items={disclosure.deletion} />
             <DisclosureSection icon={Coins} title="费用说明" items={[disclosure.billing.payer, disclosure.billing.pricing, disclosure.billing.counter]} />

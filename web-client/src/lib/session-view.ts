@@ -44,6 +44,8 @@ export function isAnswering(state: SessionState | undefined): boolean {
   return state === 'answer' || state === 'followup';
 }
 
+import { questionLabel } from './report.js';
+
 // ---------- 题量进度（P2-3） ----------
 
 export interface ProgressItem {
@@ -61,10 +63,29 @@ export function questionProgress(plan: { questions: PlannedQuestion[] } | null, 
   if (plan === null || plan.questions.length === 0) return null;
   return plan.questions.map((question, index) => ({
     key: question.id,
-    label: `第 ${index + 1} 题`,
+    label: questionLabel(plan.questions, question.id),
     current: index === questionIndex,
     done: index < questionIndex,
   }));
+}
+
+/** 重答按钮受本题一次额度约束，不能只等服务端拒绝。 */
+export function canRewriteQuestion(snapshot: Snapshot | null): boolean {
+  return snapshot?.state === 'rewrite' && !snapshot.machine.rewriteUsed;
+}
+
+/** 正常提前结束只在用户选择点可点；处理中禁用，不声称取消后端调用。 */
+export function canEndSession(snapshot: Snapshot | null, processing: boolean): boolean {
+  return snapshot?.status === 'active' && !processing &&
+    (snapshot.state === 'answer' || snapshot.state === 'followup' || snapshot.state === 'rewrite');
+}
+
+export function nextQuestionLabel(snapshot: Snapshot | null): string {
+  const questions = snapshot?.plan?.questions;
+  const index = snapshot?.machine.questionIndex ?? 0;
+  if (questions === undefined) return '下一题';
+  if (index >= questions.length - 1) return '查看报告';
+  return questions[index]?.kind === 'introduction' ? '进入经历题' : '下一题';
 }
 
 // ---------- 过程点评与 Agent 状态 ----------
@@ -93,7 +114,7 @@ export function latestReviewedFeedback(snapshot: Snapshot | null): ReviewedFeedb
     if (question === undefined) continue;
     const feedback = snapshot.reviews[question.id];
     const basis = snapshot.reviewBasis[question.id];
-    if (feedback !== undefined && basis !== undefined) {
+    if (feedback !== undefined && basis !== undefined && !feedback.reviewVersion.startsWith('degraded:')) {
       return {
         questionId: question.id,
         questionNumber: index + 1,
@@ -104,6 +125,23 @@ export function latestReviewedFeedback(snapshot: Snapshot | null): ReviewedFeedb
     }
   }
   return null;
+}
+
+/** 失败属于系统状态，不能把占位建议当作内容评价。 */
+export function currentReviewFailure(snapshot: Snapshot | null): { message: string; attempts: number } | null {
+  const id = snapshot?.currentQuestion?.id;
+  if (!snapshot || !id) return null;
+  if (snapshot.state === 'review' && snapshot.lastError !== null) {
+    return { message: '评审请求未完成。已提交的回答仍保留在本场会话中。', attempts: 0 };
+  }
+  const feedback = snapshot.reviews[id];
+  if (snapshot.state !== 'rewrite' || !feedback?.reviewVersion.startsWith('degraded:')) return null;
+  const meta = [...snapshot.reviewMeta].reverse().find(item => item.questionId === id);
+  const cause = feedback.reviewVersion.slice('degraded:'.length);
+  const message = cause === 'schema_error' ? '点评格式未通过检查。'
+    : cause === 'quote_not_locatable' ? '点评引用未能在你的回答中核实。'
+    : cause === 'json_error' ? '点评返回的内容无法解析。' : '本次未生成有效点评。';
+  return { message, attempts: meta?.attempts ?? 0 };
 }
 
 export type AgentActivityKind = 'connecting' | 'speaking' | 'listening' | 'reviewing' | 'preparing' | 'ready' | 'paused' | 'offline';
@@ -123,6 +161,7 @@ export function agentActivity(input: {
   recording: boolean;
   busy: boolean;
   elapsedSeconds: number;
+  reviewFailed?: boolean;
 }): AgentActivity {
   if (input.audioStatus === 'offline' || input.audioStatus === 'closed') {
     return { kind: 'offline', active: false, title: '实时连接已断开', detail: '已完成的回答仍在服务端；重新连接后可继续。' };
@@ -138,6 +177,9 @@ export function agentActivity(input: {
   }
   if (input.recording || input.audioStatus === 'listening') {
     return { kind: 'listening', active: true, title: '小八正在听你的回答', detail: '你的语音只会进入回答转写；说完后再进行引用核对。' };
+  }
+  if (input.reviewFailed && !input.busy) {
+    return { kind: 'ready', active: false, title: '点评未完成', detail: '回答已保留，可用同一份回答重新评审，无需重新录音。' };
   }
   if (input.state === 'review' || (input.busy && (input.state === 'answer' || input.state === 'followup'))) {
     const detail = input.elapsedSeconds >= 8

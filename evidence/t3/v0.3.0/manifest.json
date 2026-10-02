@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-10-02T07:24:33.953Z",
+  "artifacts": [
+    {
+      "path": "evidence/t3/v0.3.0/before-text-smoke/manifest-snapshot.json",
+      "kind": "json",
+      "bytes": 398,
+      "sha256": "aa97073a770768fb8f6e6bada1b4cf46b21154972363caaa91f1dbda78ae986a",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/before-text-smoke/run-summary-snapshot.json",
+      "kind": "json",
+      "bytes": 750,
+      "sha256": "ae6573e3eb295988792790ed56f74aef32a9bdfcc82fd39f5d798cb205a01c5e",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompt/independent-verification.json",
+      "kind": "json",
+      "bytes": 4300,
+      "sha256": "9ca5e06ffb07dcd1cc54546d5c2b2973ffac981f2b2316a77e13cbab13a41bb0",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompt/smoke-requests.json",
+      "kind": "json",
+      "bytes": 2497,
+      "sha256": "e1c5ce7212c326eef7fa0a81bed2c00c69ada4326666efbd91f3f84f4486b004",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompt/summary.json",
+      "kind": "json",
+      "bytes": 40941,
+      "sha256": "e763c4f8b177ba5049d1645acff175f06b0698f477a5e7e28de19fcefb1ea428",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompt/transcript.json",
+      "kind": "json",
+      "bytes": 44539,
+      "sha256": "49b5854c125099d84b19ef7a10d2a93d0bd7ca1f4687c09b7742e712e70adf36",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/run-summary.json",
+      "kind": "json",
+      "bytes": 933,
+      "sha256": "665e92f9769ec8319f5d7d595d5c15a77e0820ee3617f8eea48c2c9a96800d03",
+      "committed": true
+    }
+  ],
+  "verifiedAgainstDisk": {
+    "total": 7,
+    "mismatches": []
+  },
+  "verifiedAt": "2026-10-02T07:24:33.954Z"
+}

@@ -65,11 +65,17 @@ class FakeWebSocket {
 class FakeAudioContext {
   static instances: FakeAudioContext[] = [];
   static staySuspended = false;
+  static moduleGate: Promise<void> | null = null;
+  static resumeGate: Promise<void> | null = null;
+  static modulePaths: string[] = [];
 
   state: AudioContextState = 'suspended';
   resumeCalls = 0;
   readonly destination = {} as AudioDestinationNode;
-  readonly audioWorklet = { addModule: async () => undefined } as unknown as AudioWorklet;
+  readonly audioWorklet = { addModule: async (url: string) => {
+    FakeAudioContext.modulePaths.push(url);
+    await FakeAudioContext.moduleGate;
+  } } as unknown as AudioWorklet;
 
   constructor(_options?: AudioContextOptions) {
     FakeAudioContext.instances.push(this);
@@ -85,6 +91,7 @@ class FakeAudioContext {
 
   async resume(): Promise<void> {
     this.resumeCalls += 1;
+    await FakeAudioContext.resumeGate;
     if (!FakeAudioContext.staySuspended) this.state = 'running';
   }
 
@@ -115,6 +122,7 @@ function installCaptureDom(): { stopped: boolean[] } {
       mediaDevices: {
         getUserMedia: async () => ({
           getTracks: () => [{ stop: () => stopped.push(true) }],
+          getAudioTracks: () => [{ label: '系统输入测试设备' }],
         }),
       },
     },
@@ -123,6 +131,9 @@ function installCaptureDom(): { stopped: boolean[] } {
   globals.AudioWorkletNode = FakeAudioWorkletNode;
   FakeAudioContext.instances = [];
   FakeAudioContext.staySuspended = false;
+  FakeAudioContext.moduleGate = null;
+  FakeAudioContext.resumeGate = null;
+  FakeAudioContext.modulePaths = [];
   return { stopped };
 }
 
@@ -130,17 +141,19 @@ interface Recorder {
   errors: Array<{ code: string; message: string; halt?: boolean }>;
   statuses: Status[];
   snapshots: unknown[];
+  microphones: string[];
 }
 
 function makeRuntime(): { runtime: RealtimeAudio; recorded: Recorder } {
   installDom();
   FakeWebSocket.instances = [];
-  const recorded: Recorder = { errors: [], statuses: [], snapshots: [] };
+  const recorded: Recorder = { errors: [], statuses: [], snapshots: [], microphones: [] };
   const runtime = new RealtimeAudio({
     onSnapshot: (snapshot) => recorded.snapshots.push(snapshot),
     onTranscript: () => undefined,
     onError: (error) => recorded.errors.push({ code: String(error.code), message: error.message, ...(error.halt === undefined ? {} : { halt: error.halt }) }),
     onStatus: (status) => recorded.statuses.push(status as Status),
+    onMicrophone: (label) => recorded.microphones.push(label),
   });
   return { runtime, recorded };
 }
@@ -288,4 +301,198 @@ test('真实麦克风链路：AudioContext 仍挂起时不得伪装成正在录�
   assert.equal(runtime.isCapturing, false);
   assert.equal(recorded.errors.at(-1)?.code, 'E_MIC_DENIED');
   assert.equal(capture.stopped.length, 1, '启动失败必须立即释放麦克风轨道');
+});
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
+}
+
+function stream(label = '测试麦克风') {
+  const stopped: boolean[] = [];
+  const track = { label, stop: () => stopped.push(true) };
+  return { stopped, value: { getTracks: () => [track], getAudioTracks: () => [track] } as unknown as MediaStream };
+}
+
+function microphoneRequest(request: (constraints: MediaStreamConstraints) => Promise<MediaStream>): void {
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { mediaDevices: { getUserMedia: request } } });
+}
+
+async function connectedCapture() {
+  installCaptureDom();
+  const result = makeRuntime();
+  const connecting = result.runtime.connect('s-capture');
+  FakeWebSocket.last.establish();
+  await connecting;
+  return { ...result, socket: FakeWebSocket.last };
+}
+
+async function flushAsync(): Promise<void> { await new Promise<void>((resolve) => setImmediate(resolve)); }
+
+test('麦克风设备语义：先请求系统 default，仅设备不支持时回退，不在权限拒绝后换设备', async () => {
+  const { runtime } = await connectedCapture();
+  const requested: MediaStreamConstraints[] = [];
+  const mic = stream();
+  microphoneRequest(async (constraints) => {
+    requested.push(constraints);
+    if (requested.length === 1) throw new DOMException('default 不支持', 'OverconstrainedError');
+    return mic.value;
+  });
+  assert.equal(await runtime.startAnswer(), true);
+  assert.deepEqual((requested[0]?.audio as MediaTrackConstraints).deviceId, { exact: 'default' });
+  assert.equal((requested[1]?.audio as MediaTrackConstraints).deviceId, undefined);
+  assert.deepEqual(FakeAudioContext.modulePaths, ['/pcm16-worklet.js'], 'worklet 必须从同源地址加载');
+  await runtime.close();
+  assert.equal(mic.stopped.length, 1);
+
+  const denied = await connectedCapture();
+  let calls = 0;
+  microphoneRequest(async () => { calls += 1; throw new DOMException('拒绝授权', 'NotAllowedError'); });
+  assert.equal(await denied.runtime.startAnswer(), false);
+  assert.equal(calls, 1, '权限拒绝不得绕过到其他麦克风');
+  assert.equal(denied.recorded.errors.at(-1)?.code, 'E_MIC_DENIED');
+});
+
+test('启动失败：worklet 加载失败和 AudioContext 构造失败均释放已授权设备', async () => {
+  const { runtime } = await connectedCapture();
+  const mic = stream();
+  microphoneRequest(async () => mic.value);
+  FakeAudioContext.moduleGate = Promise.reject(new Error('worklet 加载失败'));
+  assert.equal(await runtime.startAnswer(), false);
+  assert.equal(mic.stopped.length, 1);
+  assert.equal(FakeAudioContext.instances[0]?.state, 'closed');
+
+  const second = await connectedCapture();
+  const another = stream();
+  microphoneRequest(async () => another.value);
+  (globalThis as unknown as Record<string, unknown>).AudioContext = class { constructor() { throw new Error('设备忙'); } };
+  assert.equal(await second.runtime.startAnswer(), false);
+  assert.equal(another.stopped.length, 1);
+});
+
+for (const cancel of ['close', 'drop', 'pause', 'commit', 'reconnect'] as const) {
+  test(`采集取消：等待授权期间 ${cancel}，延迟权限返回不能开启热麦`, async () => {
+    const { runtime, recorded, socket } = await connectedCapture();
+    const permission = deferred<MediaStream>();
+    const mic = stream();
+    microphoneRequest(() => permission.promise);
+    const starting = runtime.startAnswer();
+    if (cancel === 'close') await runtime.close();
+    if (cancel === 'drop') socket.drop();
+    if (cancel === 'pause') runtime.pause();
+    if (cancel === 'commit') await runtime.commitAnswer();
+    if (cancel === 'reconnect') {
+      const reconnecting = runtime.reconnect('s-capture');
+      FakeWebSocket.last.establish();
+      await reconnecting;
+    }
+    const count = recorded.statuses.length;
+    permission.resolve(mic.value);
+    assert.equal(await starting, false);
+    assert.equal(runtime.isCapturing, false);
+    assert.equal(mic.stopped.length, 1, '过期授权 stream 必须立即 stop');
+    assert.equal(recorded.statuses.slice(count).includes('listening'), false);
+    assert.equal(recorded.errors.some((error) => error.code === 'E_MIC_DENIED'), false, '取消不应伪装权限失败');
+  });
+}
+
+for (const stage of ['worklet', 'resume'] as const) {
+  test(`采集取消：等待 ${stage} 时 close，资源立即释放且延迟初始化不能复活`, async () => {
+    const { runtime, recorded } = await connectedCapture();
+    const gate = deferred<void>();
+    const mic = stream();
+    microphoneRequest(async () => mic.value);
+    if (stage === 'worklet') FakeAudioContext.moduleGate = gate.promise;
+    else FakeAudioContext.resumeGate = gate.promise;
+    const starting = runtime.startAnswer();
+    await flushAsync();
+    await runtime.close();
+    assert.equal(mic.stopped.length, 1, '关闭不得等待 addModule/resume 才释放麦克风');
+    gate.resolve();
+    assert.equal(await starting, false);
+    assert.equal(runtime.isCapturing, false);
+    assert.equal(FakeAudioContext.instances[0]?.state, 'closed');
+    assert.equal(recorded.statuses.at(-1), 'closed');
+  });
+}
+
+test('资源所有权：旧授权晚到不得清理新采集，也不能用新采集状态返回成功', async () => {
+  const { runtime, recorded } = await connectedCapture();
+  const oldPermission = deferred<MediaStream>();
+  const oldMic = stream('旧设备');
+  const newMic = stream('新设备');
+  let requests = 0;
+  microphoneRequest(() => ++requests === 1 ? oldPermission.promise : Promise.resolve(newMic.value));
+  const oldStart = runtime.startAnswer();
+  await runtime.commitAnswer();
+  assert.equal(await runtime.startAnswer(), true);
+  oldPermission.resolve(oldMic.value);
+  assert.equal(await oldStart, false);
+  assert.equal(runtime.isCapturing, true);
+  assert.equal(oldMic.stopped.length, 1);
+  assert.equal(newMic.stopped.length, 0);
+  assert.equal(recorded.microphones.at(-1), '新设备');
+  await runtime.close();
+  assert.equal(newMic.stopped.length, 1);
+});
+
+test('并发 startAnswer 共享同一次授权，只占用一个麦克风并发送一次 start', async () => {
+  const { runtime, socket } = await connectedCapture();
+  const permission = deferred<MediaStream>();
+  const mic = stream();
+  let requests = 0;
+  microphoneRequest(() => { requests += 1; return permission.promise; });
+  const first = runtime.startAnswer();
+  const second = runtime.startAnswer();
+  assert.equal(requests, 1);
+  assert.equal(socket.sent.filter((value) => JSON.parse(value).type === 'answer.start').length, 1);
+  permission.resolve(mic.value);
+  assert.deepEqual(await Promise.all([first, second]), [true, true]);
+  assert.equal(FakeAudioContext.instances.length, 1);
+  await runtime.close();
+  assert.equal(mic.stopped.length, 1);
+});
+
+test('暂停/恢复语义：暂停立即停采集，恢复不自动开热麦，显式start才能再采集', async () => {
+  const { runtime, recorded } = await connectedCapture();
+  const firstMic = stream('暂停前设备');
+  const secondMic = stream('恢复后设备');
+  let requests = 0;
+  microphoneRequest(async () => ++requests === 1 ? firstMic.value : secondMic.value);
+  assert.equal(await runtime.startAnswer(), true);
+  runtime.pause();
+  assert.equal(runtime.isCapturing, false);
+  assert.equal(firstMic.stopped.length, 1);
+  assert.equal(recorded.statuses.at(-1), 'paused');
+  runtime.resume();
+  assert.equal(runtime.isCapturing, false);
+  assert.equal(recorded.statuses.at(-1), 'idle');
+  assert.equal(requests, 1, '恢复不能绕过显式开始采集');
+  assert.equal(await runtime.startAnswer(), true);
+  assert.equal(secondMic.stopped.length, 0);
+  await runtime.close();
+});
+
+test('旧worklet加载失败晚到时，只清旧context，不影响新麦克风也不误报权限错误', async () => {
+  const { runtime, recorded } = await connectedCapture();
+  const oldModule = deferred<void>();
+  FakeAudioContext.moduleGate = oldModule.promise;
+  const oldMic = stream('旧设备');
+  const freshMic = stream('新设备');
+  let requests = 0;
+  microphoneRequest(async () => ++requests === 1 ? oldMic.value : freshMic.value);
+  const oldStart = runtime.startAnswer();
+  await flushAsync();
+  await runtime.commitAnswer();
+  FakeAudioContext.moduleGate = null;
+  assert.equal(await runtime.startAnswer(), true);
+  oldModule.reject(new Error('旧模块加载失败'));
+  assert.equal(await oldStart, false);
+  assert.equal(freshMic.stopped.length, 0);
+  assert.equal(runtime.isCapturing, true);
+  assert.equal(recorded.errors.some((error) => error.code === 'E_MIC_DENIED'), false);
+  assert.equal(recorded.microphones.at(-1), '新设备');
+  await runtime.close();
 });

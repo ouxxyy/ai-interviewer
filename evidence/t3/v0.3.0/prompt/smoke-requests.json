@@ -1,0 +1,114 @@
+{
+  "startedAt": "2026-10-02T07:18:40.374Z",
+  "endedAt": "2026-10-02T07:19:27.626Z",
+  "maxCalls": 10,
+  "attempts": 8,
+  "processExitCode": 0,
+  "scope": "用户授权的一次介绍＋一道经历题文本实调；不跑语音、宿主或生产",
+  "records": [
+    {
+      "call": 1,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 1,
+      "httpStatus": 200,
+      "latencyMs": 2700,
+      "usage": {
+        "promptTokens": 3238,
+        "completionTokens": 113,
+        "totalTokens": 3351
+      }
+    },
+    {
+      "call": 2,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 3,
+      "httpStatus": 200,
+      "latencyMs": 3030,
+      "usage": {
+        "promptTokens": 3463,
+        "completionTokens": 164,
+        "totalTokens": 3627
+      }
+    },
+    {
+      "call": 3,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 5,
+      "httpStatus": 200,
+      "latencyMs": 9633,
+      "usage": {
+        "promptTokens": 3700,
+        "completionTokens": 560,
+        "totalTokens": 4260
+      }
+    },
+    {
+      "call": 4,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 7,
+      "httpStatus": 200,
+      "latencyMs": 1542,
+      "usage": {
+        "promptTokens": 4390,
+        "completionTokens": 30,
+        "totalTokens": 4420
+      }
+    },
+    {
+      "call": 5,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 9,
+      "httpStatus": 200,
+      "latencyMs": 10591,
+      "usage": {
+        "promptTokens": 4699,
+        "completionTokens": 875,
+        "totalTokens": 5574
+      }
+    },
+    {
+      "call": 6,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 11,
+      "httpStatus": 200,
+      "latencyMs": 2107,
+      "usage": {
+        "promptTokens": 5738,
+        "completionTokens": 47,
+        "totalTokens": 5785
+      }
+    },
+    {
+      "call": 7,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 13,
+      "httpStatus": 200,
+      "latencyMs": 11541,
+      "usage": {
+        "promptTokens": 6049,
+        "completionTokens": 977,
+        "totalTokens": 7026
+      }
+    },
+    {
+      "call": 8,
+      "model": "qwen3.8-flash",
+      "maxTokens": 4096,
+      "messageCount": 15,
+      "httpStatus": 200,
+      "latencyMs": 5867,
+      "usage": {
+        "promptTokens": 7231,
+        "completionTokens": 409,
+        "totalTokens": 7640
+      }
+    }
+  ]
+}

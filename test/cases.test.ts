@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateContract } from '../src/contracts/validate.js';
+import { CONTRACT_VERSION } from '../src/contracts/version.js';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const data = JSON.parse(readFileSync(path.join(REPO_ROOT, 'cases', 'cases.json'), 'utf8')) as {
@@ -87,7 +88,7 @@ test('预期标注完整：五维齐全、档位合法、缺口为空时只允�
 test('案例材料通过 CandidateMaterials 契约校验（confirmed 口径）', () => {
   for (const c of data.cases) {
     const obj = {
-      contractVersion: '0.2.0',
+      contractVersion: CONTRACT_VERSION,
       jd: c.materials.jd,
       experience: c.materials.experience,
       stage: c.stage,

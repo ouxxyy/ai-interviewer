@@ -1,0 +1,81 @@
+{
+  "at": "2026-10-02T09:46:37.265Z",
+  "versions": {
+    "contract": "0.3.0",
+    "rules": "rules@0.3.0",
+    "prompts": "prompts@0.3.1"
+  },
+  "realModelCalls": 0,
+  "logs": [
+    {
+      "name": "red-before-fix",
+      "source": "/private/tmp/ai-interviewer-p031-red-tests.log",
+      "sourceSha256": "df45b7531f52fb6e3c96bc80ed2165d5a4ff06e8100c1bdeeccf9f8728fc8ec8",
+      "path": "logs/red-before-fix.log",
+      "tests": 12,
+      "pass": 10,
+      "fail": 2,
+      "skipped": 0,
+      "redacted": true
+    },
+    {
+      "name": "error-red-before-fix",
+      "source": "/private/tmp/ai-interviewer-p031-error-red.log",
+      "sourceSha256": "5c8edda75f7b28f931de5082593203a8a93d80ee3a21dfa168227a0016db2eba",
+      "path": "logs/error-red-before-fix.log",
+      "tests": 14,
+      "pass": 12,
+      "fail": 2,
+      "skipped": 0,
+      "redacted": true
+    },
+    {
+      "name": "targeted-final",
+      "source": "/private/tmp/ai-interviewer-p031-focused-final.log",
+      "sourceSha256": "f716e607658ef226b648009ede71d959d9e4fe27558ec8b4622a428ed9b0feae",
+      "path": "logs/targeted-final.log",
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0,
+      "redacted": false
+    },
+    {
+      "name": "full-final",
+      "source": "/private/tmp/ai-interviewer-p031-final-tests.log",
+      "sourceSha256": "765c6e5765c285364d0fe71ac6af83bba5bac41e9c18669af719976bdc716c96",
+      "path": "logs/full-final.log",
+      "tests": 275,
+      "pass": 275,
+      "fail": 0,
+      "skipped": 0,
+      "redacted": false
+    },
+    {
+      "name": "full-sandbox-restriction",
+      "source": "/private/tmp/ai-interviewer-p031-all-tests.log",
+      "sourceSha256": "f6df174104333e54c7c1d4825762b0375839afaae5d0bd064feef9f85e0f0288",
+      "path": "logs/full-sandbox-restriction.log",
+      "tests": 273,
+      "pass": 255,
+      "fail": 18,
+      "skipped": 0,
+      "redacted": true
+    }
+  ],
+  "historicalEvidenceManifest": {
+    "total": 7,
+    "mismatches": []
+  },
+  "replay": {
+    "networkCalls": 0,
+    "sourceImmutable": true,
+    "acceptedFeedbacks": 0,
+    "quoteTotal": 10,
+    "quoteLocated": 10,
+    "modelMetadataValid": 1,
+    "reportValid": false
+  },
+  "review": "code-review.json",
+  "newVersionRealTrial": "unverified"
+}

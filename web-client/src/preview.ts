@@ -51,7 +51,7 @@ const q1Feedback: Feedback = {
 };
 
 export const previewSession: Snapshot = {
-  sid: 'preview-session', state: 'answer', status: 'active', machine: { state: 'answer', questionIndex: 1, followupCount: 0, rewriteUsed: false, completed: 1 }, synthetic: false,
+  sid: 'preview-session', state: 'answer', status: 'active', machine: { state: 'answer', questionIndex: 1, followupCount: 0, rewriteUsed: false, completed: 1 }, synthetic: true,
   toggles: { saveHistory: true, saveAudio: true }, materials: { jd: '高级产品经理', experience: '负责企业服务项目', stage: '社招', targetRole: '高级产品经理' },
   plan: { questions, askedTopics: ['项目推进'] }, currentQuestion: { id: 'q2', index: 1, text: questions[1]!.text, intent: questions[1]!.intent }, pending: 'answer', lastError: null, halted: false,
   turns: [q1QuestionTurn, q1Turn, q2QuestionTurn], reviews: { q1: q1Feedback }, reviewBasis: { q1: { questionId: 'q1', text: q1Basis, turnIds: [q1Turn.id], textVersion: 'raw' } }, reviewMeta: [{ questionId: 'q1', kind: 'ok', attempts: 1, quotesTotal: 4, quotesLocated: 4, firstAttemptOk: true }], rewriteDeltas: {}, report: null, reportSource: null,
@@ -66,7 +66,7 @@ export const previewReport: SessionDetail = {
   persisted: true,
   state: 'ended',
   status: 'ended',
-  synthetic: false,
+  synthetic: true,
   createdAt: '2026-09-27T11:00:00Z',
   updatedAt: '2026-09-27T11:32:00Z',
   toggles: { saveHistory: true, saveAudio: true },

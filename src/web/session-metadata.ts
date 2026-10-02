@@ -1,4 +1,5 @@
 import type { Feedback, TextVersion, Turn } from '../contracts/types.js';
+import type { ReviewAttempt } from '../review/diagnostics.js';
 
 export type ReportSource = 'model_priority_practice' | 'derived_from_validated_feedback' | 'fixed_zero_completion';
 
@@ -10,6 +11,8 @@ export interface ReviewMeta {
   quotesTotal: number;
   quotesLocated: number;
   firstAttemptOk: boolean;
+  /** 旧记录可缺省；只含字段路径与固定规则码。 */
+  attemptLog?: ReviewAttempt[];
 }
 
 export interface ReviewBasisDetail {

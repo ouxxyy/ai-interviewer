@@ -2,6 +2,16 @@
 import type { ContractName } from './version.js';
 
 export type Stage = '应届' | '社招';
+export type QuestionKind = 'introduction' | 'experience';
+
+/** 岗位/题型只作判断语境，事实与引用仍只来自当前题已确认回答。 */
+export interface InterviewContext {
+  kind: QuestionKind;
+  jd: string;
+  stage: Stage;
+  targetRole: string;
+  intent: string;
+}
 
 /** D1/D11：评审对象口径。 */
 export type TextVersion = 'raw' | 'revised';
@@ -22,6 +32,7 @@ export interface CandidateMaterials {
 
 export interface PlannedQuestion {
   id: string;
+  kind: QuestionKind;
   text: string;
   /** 来源材料片段（JD 或经历原文的引用）。 */
   sourceExcerpt: string;
@@ -103,6 +114,7 @@ export interface SessionReport {
   totalQuestions: number;
   perQuestion: Array<{
     questionId: string;
+    kind: QuestionKind;
     status: 'reviewed' | 'skipped' | 'not_reached';
     feedback: Feedback | null;
     rewriteDelta: RewriteDelta | null;

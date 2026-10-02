@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-10-02T04:22:39.875Z",
+  "artifacts": [
+    {
+      "path": "evidence/t3/v0.3.0/run-summary.json",
+      "kind": "json",
+      "bytes": 750,
+      "sha256": "ae6573e3eb295988792790ed56f74aef32a9bdfcc82fd39f5d798cb205a01c5e",
+      "committed": true
+    }
+  ],
+  "verifiedAt": "2026-10-02T04:22:39.876Z",
+  "verifiedAgainstDisk": {
+    "total": 1,
+    "mismatches": []
+  }
+}

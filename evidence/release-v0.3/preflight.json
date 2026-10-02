@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-02",
+  "baseCommit": "50e8055e3bb198b32bdb612c4077b5d56ccaa1c7",
+  "npmTest": {
+    "command": "npm test",
+    "tests": 294,
+    "pass": 294,
+    "fail": 0
+  },
+  "browser": {
+    "command": "node scripts/introduction-browser-smoke.mjs --review-recovery",
+    "checks": 27,
+    "pass": true
+  },
+  "prototype": {
+    "command": "npm run prototype:run",
+    "pass": true
+  },
+  "paidCalls": 0,
+  "realModelVerified": false,
+  "realMicrophoneVerified": false,
+  "qualityCalibrated": false
+}

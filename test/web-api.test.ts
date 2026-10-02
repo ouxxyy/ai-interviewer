@@ -108,15 +108,15 @@ test('健康检查与首次使用告知：版本、凭证只报存在性、告�
   try {
     const health = await call(api.url, 'GET', '/api/health');
     assert.equal(health.status, 200);
-    assert.equal(health.body.versions.contract, '0.2.0');
-    assert.equal(health.body.versions.rules, 'rules@0.2.0');
+    assert.equal(health.body.versions.contract, '0.3.0');
+    assert.equal(health.body.versions.rules, 'rules@0.3.0');
     assert.equal(typeof health.body.versions.rulesDigest, 'string');
     assert.equal(health.body.credential.present, false, '测试环境没有注入凭证值');
     assert.equal(JSON.stringify(health.body).includes('sk-'), false);
     const disclosure = await call(api.url, 'GET', '/api/disclosure');
     assert.equal(disclosure.status, 200);
     const d = disclosure.body.disclosure;
-    assert.equal(d.version, 'disclosure@0.2.0');
+    assert.equal(d.version, 'disclosure@0.3.0');
     assert.ok(d.staysLocal.length >= 3 && d.sentToCloud.length >= 3 && d.deletion.length >= 2);
     assert.match(d.storage.database, /interview\.sqlite/);
     assert.match(d.billing.payer, /百炼/);
@@ -180,7 +180,7 @@ test('未经告知确认不得创建会话（428），确认后可创建', async
     assert.equal(blocked.body.error.code, 'E_DISCLOSURE_REQUIRED');
     assert.match(blocked.body.error.hint, /disclosure/);
     const ack = await call(api.url, 'PATCH', '/api/settings', { disclosureAck: true });
-    assert.equal(ack.body.settings.disclosureAckVersion, 'disclosure@0.2.0');
+    assert.equal(ack.body.settings.disclosureAckVersion, 'disclosure@0.3.0');
     const created = await call(api.url, 'POST', '/api/sessions', {});
     assert.equal(created.status, 201);
     assert.match(created.body.sid, /^s-/);
@@ -246,7 +246,7 @@ test('统一错误响应与输入校验：400/404/409 都是同一形状', async
   }
 });
 
-test('HTTP + WS 全链路：三题闭环、音频下行、暂停拒收、打断、回放下载、删除前后对照', async () => {
+test('HTTP + WS 全链路：四环节闭环、音频下行、暂停拒收、打断、回放下载、删除前后对照', async () => {
   const api = await boot('flow', {
     text: { followups: [{ need: true, question: '你刚才说的分工，具体是怎么安排的？' }] },
     realtime: {
@@ -256,6 +256,7 @@ test('HTTP + WS 全链路：三题闭环、音频下行、暂停拒收、打断�
         '追问：我负责联系院系宣传委员，并写了两篇范文。',
         '我负责范文撰写和渠道扩散，投稿量比上一期增长约八成。',
         '遇到的问题是宣传委员只发了一次通知，我加了二次触达写进 SOP。',
+        '我把二次触达写进活动 SOP，让后续活动按新流程执行。',
       ],
     },
   });
@@ -309,9 +310,13 @@ test('HTTP + WS 全链路：三题闭环、音频下行、暂停拒收、打断�
       ws.send(JSON.stringify({ type: 'audio.append', audio: PCM.toString('base64') }));
       const afterThird = await call(api.url, 'POST', `/api/sessions/${sid}/answer/done`);
       assert.equal(afterThird.body.snapshot.state, 'rewrite');
+      await call(api.url, 'POST', `/api/sessions/${sid}/next`);
+      await call(api.url, 'POST', `/api/sessions/${sid}/answer/start`);
+      ws.send(JSON.stringify({ type: 'audio.append', audio: PCM.toString('base64') }));
+      await call(api.url, 'POST', `/api/sessions/${sid}/answer/done`);
       const final = await call(api.url, 'POST', `/api/sessions/${sid}/next`);
       assert.equal(final.body.snapshot.state, 'ended');
-      assert.equal(final.body.snapshot.report.completedQuestions, 3);
+      assert.equal(final.body.snapshot.report.completedQuestions, 4);
       assert.equal(final.body.snapshot.report.sessionStatus, 'completed');
       assert.ok(final.body.snapshot.report.priorityPractice.length >= 1);
       assert.equal(final.body.snapshot.reviewBasis.q1.questionId, 'q1');

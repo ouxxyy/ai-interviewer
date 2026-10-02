@@ -1,0 +1,33 @@
+{
+  "startedAt": "2026-10-02T09:55:40.808Z",
+  "command": "rules:write",
+  "versions": {
+    "contract": "0.3.0",
+    "supportedContracts": [
+      "0.3.0",
+      "0.2.0",
+      "0.1.0"
+    ],
+    "rules": "rules@0.3.0",
+    "prompts": "prompts@0.3.2"
+  },
+  "rulesDigest": "705810975eedae29edbc9bb6006e5d0c43588c4e87abb69a4c79dcae4334a7a8",
+  "credential": {
+    "key": "DASHSCOPE_API_KEY",
+    "present": true,
+    "length": 116
+  },
+  "dotenv": {
+    "path": ".env",
+    "filePresent": true,
+    "injectedKeys": [
+      "DASHSCOPE_API_KEY",
+      "NO_PROXY"
+    ]
+  },
+  "rulesWritten": {
+    "target": "docs/rules.md",
+    "version": "rules@0.3.0",
+    "digest": "705810975eedae29edbc9bb6006e5d0c43588c4e87abb69a4c79dcae4334a7a8"
+  }
+}

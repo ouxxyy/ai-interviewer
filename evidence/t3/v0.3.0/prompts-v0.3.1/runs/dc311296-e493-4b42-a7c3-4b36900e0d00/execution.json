@@ -1,0 +1,8 @@
+{
+  "command": "node --import /private/tmp/ai-interviewer-p031-live-guard.mjs dist/src/t3/cli.js prompt:run",
+  "guardSha256": "98d6b626370a7f3ed466bd21d99de208745f9ee0b9a72fe9e2ac2a4deeb1b6ef",
+  "authorizedScope": "一次介绍＋一道经历题、C13、qwen3.8-flash、最多10次文本调用/每次最多4096输出Token",
+  "journal": "prompt/smoke-requests.json",
+  "consoleLog": "console.log",
+  "noVoiceOrDeployment": true
+}

@@ -1,6 +1,6 @@
 # 安装与验证（ai-interviewer Skill）
 
-> 版本戳：`rules@0.2.0 ｜ contract@0.2.0 ｜ prompts@0.2.0 ｜ rulesDigest=8795410eb4fe98cb6c58067644040838625f17ce4690b97dfef981d74326fa54`
+> 版本戳：`rules@0.3.0 ｜ contract@0.3.0 ｜ prompts@0.3.2 ｜ rulesDigest=705810975eedae29edbc9bb6006e5d0c43588c4e87abb69a4c79dcae4334a7a8`
 > 本入口是**纯文字**训练：没有录音、没有实时语音、不能听也不能说。
 
 ## 安装
@@ -28,7 +28,7 @@ cp -R skills/ai-interviewer ~/.codex/skills/               # Codex
 
 > 请使用 ai-interviewer 技能开始一场中文经历面试训练。先告诉我你的能力边界和你遵循的规则版本号。
 
-期望回答里同时出现：**「没有录音／没有实时语音」**与 **`rules@0.2.0`**。
+期望回答里同时出现：**「没有录音／没有实时语音」**与 **`rules@0.3.0`**。
 两项缺一，就说明 Skill 没被加载（或加载到了别的版本）。
 
 ## 卸载
@@ -38,12 +38,10 @@ rm -rf <你的项目>/.claude/skills/ai-interviewer   # 或 ~/.claude/skills/ai-
 rm -rf <你的项目>/.codex/skills/ai-interviewer    # 或 ~/.codex/skills/ai-interviewer
 ```
 
-## 实测状态（截至 T3 交付）
+## 实测状态
 
-| 宿主 | 状态 | 依据 |
-| --- | --- | --- |
-| Codex CLI | ✅ 实测通过 | `codex exec` 真跑，Skill 被加载并原样报出能力边界与 `rules@0.2.0`；原始终端输出见仓库 `evidence/t3/hosts/codex-raw.txt` |
-| Claude Code | ⚠️ **未验证** | 首次尝试即返回 `API Error: Request rejected (429) · [1310] 您已达到每周/每月使用上限`（2026-09-28 06:07 重置）。按止损纪律**没有重试**，因此没有可报的实测结果 |
+当前 rules@0.3.0 的 Codex、Claude Code 宿主实测均为**未验证**。旧版 `rules@0.2.0` 的 Codex 边界自报证据仍保留在 `evidence/t3/hosts/codex-raw.txt`，仅证明旧版，不代表四环节 0.3 已通过；Claude Code 的历史配额阻塞同样不代表当前状态。
+新版宿主原始输出与判定写入 `evidence/t3/v0.3.0/prompts-v0.3.2/hosts/`；每次模型运行独占其下 `runs/<runId>/`。真实调用需要另行授权费用。
 
 ## 边界
 

@@ -96,3 +96,14 @@ test('P2-1：递归扫描整个生产静态根，不含 webtest 模块与任何�
     }
   }
 });
+
+test('生产静态入口：匿名统计只加载一次，网站ID/同源代理与worklet完整保留', () => {
+  const index = readFileSync(path.join(DIST, 'index.html'), 'utf8');
+  const scripts = [...index.matchAll(/<script\b[^>]*\bsrc=["']([^"']*ouba-analytics\.js[^"']*)["'][^>]*>/g)];
+  assert.equal(scripts.length, 1, '统计入口只能加载一次');
+  assert.ok(scripts[0]?.[0].includes('data-proxy="same-origin"'));
+  assert.ok(scripts[0]?.[0].includes('data-website-id="4897cfc4-d00f-47b5-b150-07db3748db54"'));
+  assert.ok(scripts[0]?.[1]?.startsWith('/ouba-analytics.js'));
+  assert.ok(existsSync(path.join(DIST, 'ouba-analytics.js')));
+  assert.ok(existsSync(path.join(DIST, 'pcm16-worklet.js')), '同源音频worklet必须进入生产静态根');
+});

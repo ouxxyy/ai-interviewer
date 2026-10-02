@@ -1,3 +1,4 @@
+import { requestPractice } from '../lib/analytics';
 import { FileArrowUp, HardDrives, LockKey, Paperclip, ShieldCheck, X } from '@phosphor-icons/react';
 import { useEffect, useRef, useState } from 'react';
 import { ApiError, api } from '../api';
@@ -8,6 +9,7 @@ import type { AppErrorBody, MaterialsDraft, Stage, WebSettings } from '../types'
 
 interface HomePageProps {
   settings: WebSettings;
+  preview?: boolean;
   onNavigate(path: string): void;
   onSessionReady(sid: string, materials: MaterialsDraft): void;
 }
@@ -15,7 +17,7 @@ interface HomePageProps {
 type UploadTarget = 'jd' | 'experience';
 type Attachment = { name: string; text: string; chars: number; kind: string; note?: string };
 
-export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps) {
+export function HomePage({ settings, preview = false, onNavigate, onSessionReady }: HomePageProps) {
   const [jd, setJd] = useState('');
   const [experience, setExperience] = useState('');
   const [targetRole, setTargetRole] = useState('');
@@ -106,6 +108,7 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
     setError(null);
     try {
       const sid = await ensureSession();
+      if (!preview) requestPractice(sid);
       onSessionReady(sid, { jd: effectiveJd.trim(), experience: effectiveExperience.trim(), stage, targetRole: targetRole.trim() });
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: '暂时无法创建会话', hint: '检查本地服务后再试' });
@@ -129,7 +132,7 @@ export function HomePage({ settings, onNavigate, onSessionReady }: HomePageProps
         <section className="home-content">
           <div className="home-copy">
             <h1>别背标准答案。<br /><mark>把自己的经历讲清楚。</mark></h1>
-            <p>给我岗位 JD 和你的真实经历，小八会用 3 道主题陪你追问、重答和复盘。</p>
+            <p>给我岗位 JD 和你的真实经历，先练自我介绍，再用 3 道经历题陪你追问、重答和复盘。自我介绍建议 1–2 分钟，不强制限时；整场约 15–25 分钟，可提前结束。</p>
           </div>
           <div className="materials-sheet">
             <div className="materials-grid">

@@ -17,6 +17,7 @@ import {
   defaultRetry,
   latestReviewedFeedback,
   agentActivity,
+  currentReviewFailure,
   answerOpportunityKey,
   shouldAutoStartAnswer,
   type FailedOp,
@@ -283,4 +284,55 @@ test('连续面试止损：说话中、播放中、暂停、断线、报错、�
   assert.equal(shouldAutoStartAnswer({ ...base, hasError: true }), false);
   assert.equal(shouldAutoStartAnswer({ ...base, busy: true }), false);
   assert.equal(shouldAutoStartAnswer({ ...base, lastAttemptedKey: base.opportunityKey }), false, '同一轮失败后不得循环弹权限或反复热麦');
+});
+
+test('四环节进度：自我介绍独立标注，经历题重新从1开始，介绍后/末題按钮明确下一步', async () => {
+  const { nextQuestionLabel, canRewriteQuestion } = await import('../web-client/src/lib/session-view.js');
+  const plan = { questions: [
+    { id: 'q1', kind: 'introduction' },
+    { id: 'q2', kind: 'experience' },
+    { id: 'q3', kind: 'experience' },
+    { id: 'q4', kind: 'experience' },
+  ], askedTopics: [] } as unknown as Snapshot['plan'];
+  assert.deepEqual(questionProgress(plan, 1)?.map((item) => item.label), ['自我介绍', '经历题 1', '经历题 2', '经历题 3']);
+  const first = { ...snapshot, plan, state: 'rewrite' as const, machine: { ...snapshot.machine, state: 'rewrite' as const } };
+  assert.equal(nextQuestionLabel(first), '进入经历题');
+  assert.equal(nextQuestionLabel({ ...first, machine: { ...first.machine, questionIndex: 1 } }), '下一题');
+  assert.equal(nextQuestionLabel({ ...first, machine: { ...first.machine, questionIndex: 3 } }), '查看报告');
+  assert.equal(canRewriteQuestion(first), true);
+  assert.equal(canRewriteQuestion({ ...first, machine: { ...first.machine, rewriteUsed: true } }), false, '一次重答后不能留可点的第二次重答按钮');
+  assert.equal(canRewriteQuestion(snapshot), false, '作答期间不能重答');
+});
+
+test('正常介绍阶段提前结束：作答/重答选择点可结束，处理中/出题中/终态禁用，不冒充取消后端调用', async () => {
+  const { canEndSession } = await import('../web-client/src/lib/session-view.js');
+  const intro = { ...snapshot, currentQuestion: { ...snapshot.currentQuestion!, kind: 'introduction' as const } };
+  assert.equal(canEndSession(intro, false), true, '未完成介绍也应可提前结束，生成零完成报告');
+  assert.equal(canEndSession({ ...intro, state: 'rewrite' }, false), true, '介绍点评后可生成提前结束报告');
+  assert.equal(canEndSession(intro, true), false, '提交或HTTP动作处理中不能并发结束');
+  assert.equal(canEndSession({ ...intro, state: 'review' }, false), false, '点评正在运行时disabled，不假装取消模型调用');
+  assert.equal(canEndSession({ ...intro, state: 'question' }, false), false, '出题/说题过渡态尚未到用户选择点');
+  assert.equal(canEndSession({ ...intro, state: 'ended', status: 'ended' }, false), false);
+  assert.equal(canEndSession(null, false), false);
+});
+
+test('评审降级不会作为即时点评或最近完成展示', () => {
+  const failed = {
+    ...snapshot,
+    plan: { questions: [{ id: 'q1', text: '介绍' }] },
+    reviews: { q1: { reviewVersion: 'degraded:schema_error', topImprovement: '暂无法评价', nextFacts: ['本次评审未完成，无新增事实要求'] } },
+    reviewBasis: { q1: { questionId: 'q1', text: '回答', turnIds: ['t1'], textVersion: 'raw' } },
+  } as unknown as Snapshot;
+  assert.equal(latestReviewedFeedback(failed), null);
+});
+
+
+test('评审失败状态区分格式和引用问题，正在重答时不沿用旧失败', () => {
+  const failed = { ...snapshot, state: 'rewrite', reviews: { q1: { reviewVersion: 'degraded:schema_error' } }, reviewMeta: [{ questionId: 'q1', kind: 'degraded', attempts: 2 }] } as unknown as Snapshot;
+  assert.match(currentReviewFailure(failed)!.message, /格式/);
+  assert.equal(currentReviewFailure(failed)!.attempts, 2);
+  assert.equal(currentReviewFailure({ ...failed, state: 'answer' }), null);
+  const activity = agentActivity({ state: 'rewrite', audioStatus: 'idle', recording: false, busy: false, elapsedSeconds: 0, reviewFailed: true });
+  assert.equal(activity.title, '点评未完成');
+  assert.equal(currentReviewFailure({ ...failed, reviews: { q1: { reviewVersion: 'prompts@0.3.2' } } } as unknown as Snapshot), null);
 });

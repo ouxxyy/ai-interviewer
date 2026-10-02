@@ -1,6 +1,6 @@
 /**
  * 链 A（文本，T1-R 真实调用）：
- * 同一虚构材料 → 真实 QuestionPlan（3 题，含来源片段与问题意图）→ ≥3 个案例的真实 Feedback JSON。
+ * 同一虚构材料 → 自我介绍＋3经历题计划（含来源片段与问题意图）→ ≥3 个案例的真实 Feedback JSON。
  *
  * 红线（沿用 T1-S 契约，不放松）：
  * - 评审结果必须过 `feedback` Schema；
@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { runReview, type ReviewChannel, type ReviewOutcome } from '../review/reviewer.js';
 import { validateContract } from '../contracts/validate.js';
+import { validateQuestionPlan } from '../contracts/question-plan.js';
 import { locateQuote } from '../contracts/quote-locator.js';
 import { questionPlanPrompt, reviewPrompt, PROMPT_VERSION } from '../prompts/prompts.js';
 import type { DashscopeTextClient } from '../clients/dashscope.js';
@@ -162,7 +163,7 @@ export async function runChainA(client: DashscopeTextClient, opts: ChainAOptions
   const planRaw = await planChannel.call(1, null);
   const planParsed = extractJson(planRaw);
   if (!planParsed.ok) throw new Error(`QuestionPlan 输出无法解析为 JSON：${planParsed.error}`);
-  const planCheck = validateContract('question-plan', planParsed.value);
+  const planCheck = validateQuestionPlan(planParsed.value, material);
   if (!planCheck.ok) throw new Error(`QuestionPlan 未通过 Schema：${planCheck.errors.join('; ')}`);
   const plan = planParsed.value as QuestionPlan;
   opts.evidence.writeJson('chain-a/question-plan.json', plan);
@@ -175,14 +176,17 @@ export async function runChainA(client: DashscopeTextClient, opts: ChainAOptions
   // ---- 2. 真实 Feedback（≥3 个案例）----
   const reviews: ChainAResult['reviews'] = [];
   for (const c of reviewCases) {
-    const questionId = 'q1';
+    const questionId = 'q2'; // 独立经历案例采用经历题语境，不冒充介绍评审。
     const turnIds = ['t1'];
+    if (c.stage !== '应届' && c.stage !== '社招') throw new Error(`案例 ${c.id} 求职阶段不合法`);
     const prompt = reviewPrompt({
+      questionId,
       questionText: c.questionText,
       answerText: c.firstAnswer,
       turnIds,
       textVersion: 'raw',
       isRewrite: false,
+      context: { kind: 'experience', jd: c.materials.jd, stage: c.stage, targetRole: c.targetRole, intent: '核实岗位相关经历中的本人行动、结果证据与反思。' },
     });
     opts.evidence.writeText(`prompts/review-${c.id}.prompt.txt`, prompt, false);
     const channel = new DashscopeReviewChannel(client, prompt, {

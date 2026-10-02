@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-02T09:53:16.680Z",
+  "engineeringAcceptance": {
+    "applicationAssisted": true,
+    "rawOutput": false,
+    "cliMatches": true
+  },
+  "contentGuardrailsPassed": false,
+  "overallPassed": false,
+  "requests": {
+    "count": 8,
+    "maxCalls": 10,
+    "httpStatuses": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "usage": {
+      "input": 46600,
+      "output": 5196,
+      "total": 51796
+    },
+    "httpLatencyMs": 71592,
+    "processExitCode": 0
+  },
+  "quotes": {
+    "total": 10,
+    "located": 10,
+    "exactTextFound": 10,
+    "modelMetadataValid": 0
+  },
+  "contentReviewPath": "prompt/content-review.json",
+  "conclusion": "结构与应用重定位后的文字闭环通过；介绍建议的事实证据边界仍有问题，整体内容验收未通过。"
+}

@@ -13,6 +13,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pcmToWav, sha256, pcmDurationSeconds } from '../t1r/audio.js';
+import { validateContractAuto } from '../contracts/validate.js';
 import type { CandidateMaterials, Feedback, QuestionPlan, SessionReport, Turn } from '../contracts/types.js';
 import type { SessionState } from '../state/machine.js';
 import type { InterviewDb } from './db.js';
@@ -63,6 +64,9 @@ export interface SessionListItem {
   state: SessionState;
   synthetic: boolean;
   completedQuestions: number;
+  introductionStatus: 'reviewed' | 'skipped' | 'not_reached' | 'not_included';
+  completedExperienceQuestions: number;
+  totalExperienceQuestions: number;
   turns: number;
   hasReport: boolean;
   audioFiles: number;
@@ -208,9 +212,33 @@ export class Store {
       state: row.state as SessionState,
       synthetic: Number(row.synthetic) === 1,
       completedQuestions: Number(row.completed_questions),
+      ...this.trainingSummary(fromRow(row)),
       turns,
       hasReport: row.report_json !== null,
       audioFiles,
+    };
+  }
+
+  private trainingSummary(session: StoredSession): Pick<SessionListItem, 'introductionStatus' | 'completedExperienceQuestions' | 'totalExperienceQuestions'> {
+    const questions = session.report?.perQuestion ?? session.plan?.questions.map((q) => ({ questionId: q.id, kind: q.kind, status: null })) ?? [];
+    const introduction = questions.find((q) => q.kind === 'introduction');
+    const hasIntroduction = introduction !== undefined || sessionContractVersion(session) === '0.3.0';
+    if (!hasIntroduction) {
+      return { introductionStatus: 'not_included', completedExperienceQuestions: session.report?.completedQuestions ?? session.completedQuestions, totalExperienceQuestions: session.report?.totalQuestions ?? session.plan?.questions.length ?? 3 };
+    }
+    const experiences = questions.filter((q) => q.kind === 'experience');
+    const reviewed = (q: { questionId: string; status: string | null; feedback?: Feedback | null }): boolean => {
+      if (session.report !== null) return q.status === 'reviewed' && q.feedback != null && q.feedback.questionId === q.questionId && validateContractAuto('feedback', q.feedback).ok;
+      const latest = [...session.reviewMeta].reverse().find((meta) => meta.questionId === q.questionId);
+      const feedback = this.getFeedback(session.id, q.questionId, 'feedback');
+      return latest?.kind === 'ok' && validateContractAuto('feedback', feedback).ok && (feedback as Feedback).questionId === q.questionId;
+    };
+    const introReviewed = introduction !== undefined && reviewed(introduction);
+    const introReached = introduction !== undefined && this.listTurns(session.id).some((t) => t.questionId === introduction.questionId);
+    return {
+      introductionStatus: introReviewed ? 'reviewed' : introduction?.status === 'skipped' || introReached ? 'skipped' : 'not_reached',
+      completedExperienceQuestions: experiences.filter(reviewed).length,
+      totalExperienceQuestions: experiences.length || 3,
     };
   }
 
@@ -286,7 +314,8 @@ export class Store {
     const memory = this.turns.get(sessionId);
     if (memory) return [...memory].sort((a, b) => a.seq - b.seq);
     const rows = this.db.raw.prepare('SELECT * FROM turns WHERE session_id = ? ORDER BY seq ASC').all(sessionId) as unknown as TurnRow[];
-    return rows.map(toTurn);
+    const version = sessionContractVersion(this.getSession(sessionId));
+    return rows.map((row) => toTurn(row, version));
   }
 
   reviseTurn(sessionId: string, turnId: string, revisedText: string | null): Turn {
@@ -319,6 +348,12 @@ export class Store {
         )
         .run(sessionId, questionId, kind, JSON.stringify(payload), new Date().toISOString());
     }
+  }
+
+  /** 修订后的旧点评必须从内存和持久记录同时失效，避免重评失败后历史显示旧评分。 */
+  deleteFeedback(sessionId: string, questionId: string, kind: 'feedback' | 'rewrite_delta'): void {
+    this.feedbacks.get(sessionId)?.delete(`${questionId}:${kind}`);
+    this.db.raw.prepare('DELETE FROM feedbacks WHERE session_id = ? AND question_id = ? AND kind = ?').run(sessionId, questionId, kind);
   }
 
   getFeedback(sessionId: string, questionId: string, kind: 'feedback' | 'rewrite_delta'): unknown | null {
@@ -569,9 +604,17 @@ function fromRow(row: SessionRow): StoredSession {
   };
 }
 
-function toTurn(row: TurnRow): Turn {
+/** 轮次表没有版本列，按会话原始 JSON 版本恢复；无版本时只使用当时规则版本，绝不标成现行版。 */
+function sessionContractVersion(session: StoredSession | null): string {
+  const version = session?.materials?.contractVersion ?? session?.plan?.contractVersion ?? session?.report?.contractVersion;
+  if (typeof version === 'string' && version.length > 0) return version;
+  const ruleVersion = session?.ruleVersion.match(/(?:rules@)?(0\.[123]\.0)$/)?.[1];
+  return ruleVersion ?? 'unknown';
+}
+
+function toTurn(row: TurnRow, contractVersion: string): Turn {
   return {
-    contractVersion: '0.2.0',
+    contractVersion,
     id: row.id,
     questionId: row.question_id,
     speaker: row.speaker as Turn['speaker'],

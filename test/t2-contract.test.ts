@@ -42,8 +42,8 @@ test('三入口共用同一规则版本：四个提示词模板都带 RULES_VERS
 
 test('契约双版本：0.1.0 与 0.2.0 只差版本号，加载时自检通过', () => {
   assert.doesNotThrow(() => assertLegacyMatchesCurrent());
-  assert.equal(CONTRACT_VERSION, '0.2.0');
-  assert.deepEqual([...SUPPORTED_CONTRACT_VERSIONS], ['0.2.0', '0.1.0']);
+  assert.equal(CONTRACT_VERSION, '0.3.0');
+  assert.deepEqual([...SUPPORTED_CONTRACT_VERSIONS], ['0.3.0', '0.2.0', '0.1.0']);
 });
 
 test('契约双版本：0.2.0 对象在 0.1.0 校验器下必须失败（版本号不是摆设）', () => {
@@ -62,7 +62,8 @@ test('契约双版本：0.2.0 对象在 0.1.0 校验器下必须失败（版本�
     nextFacts: ['补充事实'],
     reviewVersion: PROMPT_VERSION,
   };
-  assert.equal(validateContract('feedback', fb).ok, true);
+  assert.equal(validateContract('feedback', fb).ok, false, '历史0.2对象不能当成现行0.3写入');
+  assert.equal(validateContract('feedback', { ...fb, contractVersion: '0.3.0' }).ok, true);
   assert.equal(validateContractAt('feedback', '0.2.0', fb).ok, true);
   assert.equal(validateContractAt('feedback', '0.1.0', fb).ok, false, '0.2.0 的对象不该被 0.1.0 校验器接受');
   const legacy = { ...fb, contractVersion: '0.1.0' };
@@ -146,4 +147,21 @@ test('对照标定的冻结基线能在 git 里对上号（对不上就不该拿
     assert.equal(res.ok, true, `${v} 基线校验失败：${res.detail}`);
   }
   assert.equal(verifyFrozenBaseline('t2').ok, true);
+});
+
+
+test('历史 0.1/0.2 的三题计划继续自动校验，kind 不会被补写', () => {
+  for (const version of ['0.1.0', '0.2.0']) {
+    const plan = {
+      contractVersion: version,
+      questions: Array.from({ length: 3 }, (_, i) => ({ id: `q${i + 1}`, text: '请说说你在项目里具体做了什么？', sourceExcerpt: '材料原文片段', intent: '考察个人贡献', topics: ['经历'] })),
+      askedTopics: [],
+    };
+    const before = JSON.stringify(plan);
+    const auto = validateContractAuto('question-plan', plan);
+    assert.equal(auto.ok, true);
+    assert.equal(auto.usedVersion, version);
+    assert.equal(JSON.stringify(plan), before);
+    assert.equal(validateContract('question-plan', plan).ok, false);
+  }
 });

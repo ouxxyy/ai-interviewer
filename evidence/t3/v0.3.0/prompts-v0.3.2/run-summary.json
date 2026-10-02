@@ -1,0 +1,36 @@
+{
+  "startedAt": "2026-10-02T09:55:40.980Z",
+  "command": "skill:build",
+  "versionStamp": "rules@0.3.0 ｜ contract@0.3.0 ｜ prompts@0.3.2 ｜ rulesDigest=705810975eedae29edbc9bb6006e5d0c43588c4e87abb69a4c79dcae4334a7a8",
+  "credential": {
+    "key": "DASHSCOPE_API_KEY",
+    "present": true,
+    "length": 116
+  },
+  "dotenv": {
+    "path": ".env",
+    "filePresent": true
+  },
+  "artifactsWritten": [
+    {
+      "path": "skills/ai-interviewer/SKILL.md",
+      "bytes": 13659
+    },
+    {
+      "path": "skills/ai-interviewer/references/rules.md",
+      "bytes": 3925
+    },
+    {
+      "path": "prompt/ai-interviewer-prompt.md",
+      "bytes": 16192
+    },
+    {
+      "path": "skills/ai-interviewer/INSTALL.md",
+      "bytes": 2149
+    }
+  ],
+  "acceptance": {
+    "ok": true,
+    "rawHostPassed": null
+  }
+}

@@ -5,15 +5,18 @@
  * `codex-raw.txt` 是 `codex exec` 的真实输出（只把家目录前缀脱敏成 `~`），
  * 边界句与规则版本号是否出现，由本文件用字符串匹配判定。
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../t1r/env.js';
+import { t3OutputPaths } from './paths.js';
 import { RULES_VERSION } from '../rules/rules.js';
 
-const HOSTS_DIR = path.join(REPO_ROOT, 'evidence', 't3', 'hosts');
+const HOSTS_DIR = t3OutputPaths(REPO_ROOT).hostsDir;
 
 export interface HostRecord {
   host: string;
+  requestedRulesVersion: string;
+  observedRulesVersion: string | null;
   command: string;
   status: 'verified' | 'blocked' | 'unverified';
   exitCode: number | null;
@@ -41,28 +44,34 @@ function redact(text: string): { text: string; changed: number } {
   return { text: out, changed: out === before ? 0 : 1 };
 }
 
-export function recordHosts(): HostRecord[] {
+export function recordHosts(opts: { rawDir?: string; outputDir?: string; rulesVersion?: string } = {}): HostRecord[] {
+  const rawDir = opts.rawDir ?? HOSTS_DIR;
+  const outputDir = opts.outputDir ?? HOSTS_DIR;
+  const rulesVersion = opts.rulesVersion ?? RULES_VERSION;
+  mkdirSync(outputDir, { recursive: true });
   const records: HostRecord[] = [];
 
-  // ---- Codex：真实跑过两次，第二次的输出落盘为证据 ----
-  const codexRaw = path.join(HOSTS_DIR, 'codex-raw.txt');
+  // ---- Codex：只读取指定版本目录的原始输出 ----
+  const codexRaw = path.join(rawDir, 'codex-raw.txt');
   if (existsSync(codexRaw)) {
     const original = readFileSync(codexRaw, 'utf8');
     const { text, changed } = redact(original);
-    if (changed === 1) writeFileSync(codexRaw, text);
+    // 历史原始输出只读；脱敏仅用于派生判定，不原地覆盖。
     const boundaryPhrases = ['没有录音', '没有实时语音', '不能听也不能说', '仅支持纯文字'];
     // 宿主的最终回答在最后一次 `tokens used` 之后；之前的正文是宿主回显的 SKILL.md。
     const marker = text.lastIndexOf('tokens used');
     const answerBlock = marker >= 0 ? text.slice(marker) : '';
     const inBlock = boundaryPhrases.filter((p) => answerBlock.includes(p));
     const outsideBlock = boundaryPhrases.filter((p) => !answerBlock.includes(p) && text.includes(p));
-    const versionInBlock = answerBlock.includes(RULES_VERSION);
+    const versionInBlock = answerBlock.includes(rulesVersion);
     records.push({
       host: 'codex',
+      requestedRulesVersion: rulesVersion,
+      observedRulesVersion: /rules@\d+\.\d+\.\d+/.exec(answerBlock)?.[0] ?? null,
       command: `codex exec --skip-git-repo-check "<要求技能自报能力边界与规则版本>"`,
       // 阈值与文档一致：**在回答块内**至少命中一条边界短语，且版本号也在块内。
       status: inBlock.length > 0 && versionInBlock ? 'verified' : 'unverified',
-      exitCode: 0,
+      exitCode: null,
       checks: {
         answerBlockFound: marker >= 0,
         answerBlockChars: answerBlock.length,
@@ -71,27 +80,19 @@ export function recordHosts(): HostRecord[] {
         matchedPhrases: inBlock,
         matchedPhrasesOutsideAnswerBlock: outsideBlock,
       },
-      rawOutput: { path: path.relative(REPO_ROOT, codexRaw), bytes: Buffer.byteLength(text), redacted: changed === 1 },
-      note: 'Skill 从 <项目>/.codex/skills/ 被加载。判定只扫「最后一次 tokens used 之后的回答块」——全文扫描会把宿主回显的 SKILL.md 正文误当成宿主自己的声明。注意 matchedPhrasesOutsideAnswerBlock：那些短语只出现在被回显的文档里。',
+      rawOutput: { path: path.relative(REPO_ROOT, codexRaw), bytes: Buffer.byteLength(original), redacted: changed === 0 },
+      note: '本判定只证明原始宿主最终回答中的边界与版本自报。判定只扫「最后一次 tokens used 之后的回答块」——全文扫描会把宿主回显的 SKILL.md 正文误当成宿主自己的声明。注意 matchedPhrasesOutsideAnswerBlock：那些短语只出现在被回显的文档里。',
     });
   }
 
-  // ---- Claude Code：单次尝试即撞 1310，按止损纪律未重试 ----
-  records.push({
-    host: 'claude-code',
-    command: 'claude -p "请使用 ai-interviewer 技能开始一场中文经历面试训练…"',
-    status: 'blocked',
-    exitCode: null,
-    blocker: {
-      kind: 'provider_quota',
-      message: 'API Error: Request rejected (429) · [1310] 您已达到每周/每月使用上限，您的限额将在 2026-09-28 06:07:54 重置。',
-      retried: false,
-    },
-    note: 'Skill 已按 INSTALL.md 装好（~/.claude/skills 被沙箱拒绝后改用项目内 .claude/skills/），但宿主本身跑不起来：CLI 走的模型链配额打满。按派单的止损要求「撞上 1310 就停下回报、不要重试」，未做第二次尝试，因此没有可报的实测结果。',
-  });
+  if (!existsSync(codexRaw)) records.push({ host: 'codex', requestedRulesVersion: rulesVersion, observedRulesVersion: null, command: 'codex exec（等待新版原始输出）', status: 'unverified', exitCode: null, note: '该版本没有原始宿主输出，不能借用历史版本宣布通过。' });
+  const claudeRaw = path.join(rawDir, 'claude-code-raw.txt');
+  const claudeText = existsSync(claudeRaw) ? readFileSync(claudeRaw, 'utf8') : '';
+  const observed = /rules@\d+\.\d+\.\d+/.exec(claudeText)?.[0] ?? null;
+  records.push({ host: 'claude-code', requestedRulesVersion: rulesVersion, observedRulesVersion: observed, command: 'claude -p（等待可判定的原始最终回答）', status: 'unverified', exitCode: null, note: claudeText ? '当前没有可靠的最终回答块提取协议，未验证；不把回显技能正文当作宿主自己的回答。' : '该版本没有原始宿主输出，未验证；历史配额阻塞不推断为当前状态。' });
 
   writeFileSync(
-    path.join(HOSTS_DIR, 'summary.json'),
+    path.join(outputDir, 'summary.json'),
     `${JSON.stringify({ generatedAt: new Date().toISOString(), hosts: records }, null, 2)}\n`,
   );
   return records;

@@ -1,0 +1,72 @@
+{
+  "generatedAt": "2026-10-02T04:59:55.648833+00:00",
+  "baseCommit": "50e8055e3bb198b32bdb612c4077b5d56ccaa1c7",
+  "branch": "codex/introduction-v03",
+  "tests": {
+    "command": "npm test",
+    "tests": 267,
+    "pass": 267,
+    "fail": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "browser": {
+    "command": "node scripts/introduction-browser-smoke.mjs",
+    "pass": true,
+    "assertions": 21,
+    "paidCalls": 0,
+    "realModelVerified": false,
+    "realMicrophoneVerified": false
+  },
+  "prototype": {
+    "command": "PROTOTYPE_DATA_DIR=/private/tmp/ai-interviewer-v03/prototype-data-final PROTOTYPE_PORT=8927 npm run prototype:run",
+    "assertions": 20,
+    "failures": 0,
+    "pass": true
+  },
+  "productionSnapshot": {
+    "files": 8,
+    "mismatches": []
+  },
+  "oldSchemas": [
+    {
+      "file": "turn.schema.json",
+      "byteIdentical": true
+    },
+    {
+      "file": "candidate-materials.schema.json",
+      "byteIdentical": true
+    },
+    {
+      "file": "session-report.schema.json",
+      "byteIdentical": true
+    },
+    {
+      "file": "feedback.schema.json",
+      "byteIdentical": true
+    },
+    {
+      "file": "question-plan.schema.json",
+      "byteIdentical": true
+    }
+  ],
+  "unchangedLegacyEvidence": true,
+  "legacyChangedPaths": [],
+  "scope": "本地源码/免费验证。未实调模型或发布生产；浏览器事件未发送到统计后台。",
+  "evidencePrivacy": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "log": "logs/evidence-final.log"
+  },
+  "reviews": {
+    "specCompliance": "PASS",
+    "codeQuality": "PASS",
+    "documents": [
+      "reviews/production-review.md",
+      "reviews/core-review.md",
+      "reviews/content-review.md",
+      "reviews/final-review.md"
+    ]
+  }
+}

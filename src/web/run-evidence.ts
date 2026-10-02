@@ -6,7 +6,7 @@
  *   → 真实文本模型做问题计划、追问判定、五维评审、重答对比、全场练习点。
  *
  * 断言全部由代码算出（不手写结论），覆盖：
- * 1. 三题闭环：真实提问语音 + 真实回答转写 + 逐题五维评审 + 报告；
+ * 1. 自我介绍＋三经历题闭环：真实提问语音 + 真实回答转写 + 逐题五维评审 + 报告；
  * 2. 历史与回放：重启后仍可读、两轨按轮可下载并在页面里真正解码播放；
  * 3. 两开关：关历史不产生持久记录、关录音不产生音频文件；
  * 4. 删除会话：数据库记录 / 音频文件 / 临时文件的前后对照；
@@ -16,8 +16,8 @@
  * 用法：npm run web:evidence（真实调用，产生费用；撞 1310／bigmodel 立即停下，不重试）
  */
 import { spawn, type ChildProcess } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import WebSocket from 'ws';
 import { assertNoSecret, credentialStatus, loadDotEnv, requireCredential } from '../t1r/env.js';
@@ -26,30 +26,25 @@ import { DashscopeRealtimeClient, REALTIME_DEFAULTS } from '../clients/realtime-
 import { synthesizeAnswerPcm, chunkPcm, pcmToWav, speechToolingAvailable } from '../t1r/audio.js';
 import { locateQuote } from '../contracts/quote-locator.js';
 import { validateContract } from '../contracts/validate.js';
+import { CONTRACT_VERSION } from '../contracts/version.js';
 import { InterviewDb } from './db.js';
 import { DEMO_MATERIALS } from './materials.js';
 import { webPaths, REPO_ROOT } from './paths.js';
+import { ANSWER_TEXTS, assertAnswerAudioPool, evidenceWorkspace, prepareEvidenceWorkspace } from './evidence-preflight.js';
 
 const PORT = Number(process.env.WEB_EVIDENCE_PORT ?? 8919);
 const APP_URL = `http://127.0.0.1:${PORT}`;
 const CDP_PORT = Number(process.env.WEB_EVIDENCE_CDP_PORT ?? 9334);
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const DATA_DIR = path.join(REPO_ROOT, 'data', 'web-evidence');
-/** 运行器自己的工作目录（Chrome profile、作答音频）放在服务数据目录之外，避免污染删除对照的扫描范围。 */
-const HARNESS_DIR = path.join(REPO_ROOT, 'data', 'web-evidence-harness');
-const AUDIO_WORK = path.join(HARNESS_DIR, 'answer-audio');
-const EVIDENCE_DIR = path.join(REPO_ROOT, 'evidence', 'web');
-const DOC_FILE = path.join(REPO_ROOT, 'docs', 'web-acceptance.md');
+// 路径计算不创建目录；--doc-only 仍只依据既有 summary 的实际路径。
+const workspace = evidenceWorkspace(REPO_ROOT, CONTRACT_VERSION, `run-${randomUUID()}`);
+const DATA_DIR = workspace.dataDir;
+/** Chrome profile、作答音频在服务数据目录之外，避免污染会话删除对照。 */
+const HARNESS_DIR = workspace.harnessDir;
+const AUDIO_WORK = workspace.audioWork;
+const EVIDENCE_DIR = path.join(REPO_ROOT, 'evidence', 'web', `v${CONTRACT_VERSION}`);
+const DOC_FILE = path.join(REPO_ROOT, 'docs', `web-acceptance-v${CONTRACT_VERSION}.md`);
 const INPUT_SAMPLE_RATE = 16_000;
-
-const ANSWER_TEXTS = [
-  '我在毕业季征稿活动里负责整体策划和落地。前期我用问卷收集了两百份同学偏好，把主题定成毕业故事，然后联系了五个院系的宣传委员帮我扩散，自己写了两篇范文做冷启动。活动两周收到一百四十三篇投稿，比上一期增长大概八成。',
-  '这件事里我个人的贡献主要是渠道设计和冷启动内容。渠道上我谈下了五个院系的宣传委员，设计了二次触达的提醒机制；内容上我写了两篇范文，把投稿门槛降下来。最后投稿里大概三成来自我直接推动的院系。',
-  '我遇到的困难是第一次活动只有三个院系投稿集中，其他院系几乎没人参加。我复盘发现宣传委员只在群里发了一次通知，所以第二次我改成先给每个院系单独做选题建议，再请他们在班级群二次触达，参与院系增加到七个。',
-  '复盘时我最大的反思是前期没有定义清楚什么算一次有效投稿，导致统计口径改过两次。后来我把投稿标准、统计时点和负责人写进了活动 SOP，下一次活动就没有再返工。',
-  '如果重答一次，我会先说明活动目标是把投稿量从八十篇提到一百五十篇，再讲我个人的三个动作：问卷调研定主题、谈下五个院系渠道、写范文做冷启动，最后给出投稿一百四十三篇、增长约八成、参与院系从三个增加到七个的结果。',
-  '我还想补充一点，活动结束后我把选题库和范文模板整理成了可复用的文档，下一届的同学可以直接用，这部分沉淀目前还没有量化到结果里。',
-];
 
 /** 证据汇总（模块级：模型核定步骤早于 main 内部的局部声明）。 */
 const collected: Record<string, unknown> = {};
@@ -222,7 +217,6 @@ async function launchChrome(): Promise<ChromeRun> {
   if (!existsSync(CHROME)) throw new Error(`找不到 Chrome：${CHROME}`);
   chromeRuns += 1;
   const profile = path.join(HARNESS_DIR, 'chrome-profiles', `run-${chromeRuns}`);
-  rmSync(profile, { recursive: true, force: true });
   const args = [
     '--headless=new',
     `--remote-debugging-port=${CDP_PORT + chromeRuns}`,
@@ -415,7 +409,7 @@ let realtimeModelForRun: string | undefined;
 async function startServerProcess(): Promise<ChildProcess> {
   mkdirSync(DATA_DIR, { recursive: true });
   const logFd = openSync(path.join(DATA_DIR, 'server.log'), 'a');
-  const server = spawn(process.execPath, [path.join(REPO_ROOT, 'dist', 'src', 'web', 'cli.js'), 'serve', '--port', String(PORT), '--data-dir', 'data/web-evidence'], {
+  const server = spawn(process.execPath, [path.join(REPO_ROOT, 'dist', 'src', 'web', 'cli.js'), 'serve', '--port', String(PORT), '--data-dir', DATA_DIR], {
     cwd: REPO_ROOT,
     stdio: ['ignore', logFd, logFd],
     env: { ...process.env, ...(realtimeModelForRun === undefined ? {} : { AI_INTERVIEWER_REALTIME_MODEL: realtimeModelForRun }) },
@@ -476,7 +470,7 @@ export function renderAcceptanceDoc(summary: Record<string, any>): string {
   lines.push('');
   for (const item of KNOWN_LIMITS) lines.push(`- ${item}`);
   lines.push('');
-  lines.push('完整结构化数据见 `evidence/web/summary.json`；证据文件 sha256 见 `evidence/web/manifest.json`。');
+  lines.push(`完整结构化数据见 \`${path.relative(REPO_ROOT, EVIDENCE_DIR)}/summary.json\`；证据文件 sha256 见同目录 \`manifest.json\`。`);
   return `${lines.join('\n')}\n`;
 }
 
@@ -489,6 +483,8 @@ function writeFatalEvidence(error: string): void {
     const summary = {
       ranAt: new Date().toISOString(),
       fatal: error,
+      dataDir: path.relative(REPO_ROOT, DATA_DIR),
+      harnessDir: path.relative(REPO_ROOT, HARNESS_DIR),
       realtimeModel: realtimeModelForRun ?? REALTIME_DEFAULTS.model,
       steps: steps.map((s) => ({ name: s.name, ms: s.ms, detail: s.detail, assertions: s.assertions })),
       totals: { assertions: steps.reduce((a, s) => a + s.assertions.length, 0), failed: failures, ms: Date.now() - startedAt },
@@ -525,9 +521,7 @@ async function main(): Promise<void> {
     const tooling = speechToolingAvailable();
     if (!tooling.available)
         throw new Error(`语音合成不可用：${tooling.reason ?? '未知原因'}`);
-    rmSync(DATA_DIR, { recursive: true, force: true });
-    rmSync(HARNESS_DIR, { recursive: true, force: true });
-    mkdirSync(AUDIO_WORK, { recursive: true });
+    prepareEvidenceWorkspace(workspace);
     const paths = webPaths(DATA_DIR);
     // 0. 生成作答音频（macOS `say`，非真人；这点写进验收记录）
     await step('生成作答音频（macOS say 合成，16k 单声道 WAV）', async () => {
@@ -539,7 +533,8 @@ async function main(): Promise<void> {
         }
         const silent = path.join(AUDIO_WORK, 'silence.wav');
         writeFileSync(silent, pcmToWav(Buffer.alloc(INPUT_SAMPLE_RATE * 4), INPUT_SAMPLE_RATE));
-        assert('生成 6 段作答语音（WAV + PCM16@16k）', answerPcmFiles.length === 6 && existsSync(silent), `files=${answerPcmFiles.length}, dir=${path.relative(REPO_ROOT, AUDIO_WORK)}`);
+        assertAnswerAudioPool(ANSWER_TEXTS, answerPcmFiles);
+        assert(`生成 ${ANSWER_TEXTS.length} 段作答语音（WAV + PCM16@16k）`, answerPcmFiles.length === ANSWER_TEXTS.length && existsSync(silent), `files=${answerPcmFiles.length}, dir=${path.relative(REPO_ROOT, AUDIO_WORK)}`);
         return { files: answerPcmFiles.map((f) => path.basename(f)) };
     });
     const silentFile = path.join(AUDIO_WORK, 'silence.wav');
@@ -574,7 +569,7 @@ async function main(): Promise<void> {
         const firstRun = await launchChrome();
         chromeVersion = firstRun.version;
         await attachPage(firstRun, sid);
-        const q1 = await step('材料确认（虚构演示）→ 真实问题计划 → 第 1 题真实语音', async () => {
+        const q1 = await step('材料确认（虚构演示）→ 真实四环节计划 → 自我介绍真实语音', async () => {
             const res = await api('POST', `/api/sessions/${sid}/materials`, {
                 jd: DEMO_MATERIALS.jd,
                 experience: DEMO_MATERIALS.experience,
@@ -582,7 +577,7 @@ async function main(): Promise<void> {
                 targetRole: DEMO_MATERIALS.targetRole,
             });
             const snap = res.body.snapshot;
-            assert('问题计划为 3 题且状态进入作答', snap.plan?.questions.length === 3 && snap.state === 'answer', `state=${snap.state} questions=${snap.plan?.questions.length}`);
+            assert('计划为介绍＋3经历题且状态进入作答', snap.plan?.questions.length === 4 && snap.plan.questions[0]?.kind === 'introduction' && snap.plan.questions.slice(1).every((q: any) => q.kind === 'experience') && snap.state === 'answer', `state=${snap.state} questions=${snap.plan?.questions.length}`);
             const audio = await firstRun.cdp.eval('window.__webDriver.waitPlaybackDone().then(() => window.__webDriver.questionAudioStats())');
             assert('浏览器收到面试官真实语音分片并实际播放', audio.events > 0 && audio.bytes > 0, `events=${audio.events} bytes=${audio.bytes}`);
             return { question: snap.currentQuestion.text, questions: snap.plan?.questions.length, audio };
@@ -747,11 +742,22 @@ async function main(): Promise<void> {
         collected.pause = pause;
         run4.cdp.close();
         run4.chrome.kill();
-        // 8. 报告
+        // 8. 第四环节（第三道经历题），保留原有中断/暂停/空转写覆盖。
+        const q4 = await step('第 3 道经历题作答 → 真实评审', async () => {
+            const next = await api('POST', `/api/sessions/${sid}/next`);
+            assert('前三环节之后仍进入最后经历题', next.body.snapshot.currentQuestion?.id === 'q4' && next.body.snapshot.state === 'answer', `state=${next.body.snapshot.state} id=${next.body.snapshot.currentQuestion?.id}`);
+            const ans = await answerUntilReview(sid, {});
+            const detail = await api('GET', `/api/sessions/${sid}`);
+            assert('最后经历题产出有效反馈', ans.state === 'rewrite' && validateContract('feedback', detail.body.reviews?.q4).ok, `state=${ans.state}`);
+            return { state: ans.state, rounds: ans.rounds, transcriptChars: ans.transcripts.at(-1)?.length ?? 0 };
+        });
+        collected.q4 = q4;
+        // 9. 报告
         const reportStep = await step('生成全场报告（真实模型练习点 + 已校验反馈回填）', async () => {
             const res = await api('POST', `/api/sessions/${sid}/next`);
             const snap = res.body.snapshot;
-            assert('三题完成、状态归档为 ended', snap.report?.completedQuestions === 3 && snap.state === 'ended', `completed=${snap.report?.completedQuestions} state=${snap.state}`);
+            assert('介绍＋三经历题完成、状态归档为 ended', snap.report?.completedQuestions === 4 && snap.report?.totalQuestions === 4 && snap.state === 'ended', `completed=${snap.report?.completedQuestions} state=${snap.state}`);
+            assert('报告明确区分介绍与三经历题', snap.report?.perQuestion[0]?.kind === 'introduction' && snap.report.perQuestion.slice(1).length === 3 && snap.report.perQuestion.slice(1).every((p: any) => p.kind === 'experience'), JSON.stringify(snap.report?.perQuestion.map((p: any) => p.kind)));
             assert('报告过 session-report 契约', validateContract('session-report', snap.report).ok, JSON.stringify(snap.report?.priorityPractice));
             assert('每题 feedback 原样来自已校验反馈', snap.report.perQuestion.every((p: any) => p.status === 'reviewed' && validateContract('feedback', p.feedback).ok), snap.report.perQuestion.map((p: any) => p.status).join(','));
             assert('优先练习点来源已标注（模型 or 反馈派生）', ['model_priority_practice', 'derived_from_validated_feedback'].includes(snap.reportSource), `source=${snap.reportSource}`);
@@ -798,7 +804,7 @@ async function main(): Promise<void> {
             const firstUser = before?.results.find((r) => r.track === 'user');
             if (!firstUser) throw new Error('回放步骤里没有可用的用户轨记录，无法验证重启后回放');
             const audio = await fetch(`${APP_URL}/api/sessions/${sid}/turns/${firstUser.turnId}/audio/user`);
-            assert('重启后会话仍可读（轮次/反馈/报告俱在）', detail.status === 200 && detail.body.turns.length > 0 && Object.keys(detail.body.reviews).length === 3 && detail.body.report !== null, `turns=${detail.body.turns.length} reviews=${Object.keys(detail.body.reviews).length} report=${detail.body.report !== null}`);
+            assert('重启后四环节会话仍可读（轮次/反馈/报告俱在）', detail.status === 200 && detail.body.turns.length > 0 && Object.keys(detail.body.reviews).length === 4 && detail.body.report !== null, `turns=${detail.body.turns.length} reviews=${Object.keys(detail.body.reviews).length} report=${detail.body.report !== null}`);
             assert('重启后录音文件仍可下载', audio.status === 200 && (await audio.arrayBuffer()).byteLength > 44, `http=${audio.status}`);
             assert('重启后的会话是历史态（不能继续作答）', detail.body.live === false, `live=${detail.body.live}`);
             const attempts = await api('POST', `/api/sessions/${sid}/answer/start`);
@@ -909,6 +915,7 @@ async function main(): Promise<void> {
         realtimeModel: realtimeModelForRun ?? REALTIME_DEFAULTS.model,
         realtimeModelProbe: modelProbe,
         dataDir: path.relative(REPO_ROOT, DATA_DIR),
+        harnessDir: path.relative(REPO_ROOT, HARNESS_DIR),
         audioSource: '作答语音＝macOS `say` 合成语音的 PCM16@16k，由页面按 100ms 分片推给本地服务（与产品页面上行同一条 WS 协议）；真实麦克风采集链路由 Chrome 假设备单独覆盖（提示音，用于空转写状态）。**真人对着麦克风说话、环境噪声、真实语速仍未验证**。Chrome 153 的 `--use-file-for-fake-audio-capture` 在本机预检为静音（RMS 0.0，默认假设备 0.72），因此未采用。',
         steps: steps.map((s) => ({ name: s.name, ms: s.ms, detail: s.detail, assertions: s.assertions })),
         totals: { assertions: steps.reduce((a, s) => a + s.assertions.length, 0), failed: failures, ms: Date.now() - startedAt },

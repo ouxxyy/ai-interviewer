@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { locateQuote, foldText as contractFold } from '../src/contracts/quote-locator.js';
-import { foldText, verifiedQuote } from '../web-client/src/lib/report.js';
+import { foldText, verifiedQuote, representativeDimension } from '../web-client/src/lib/report.js';
 import type { QuoteRef, ReviewBasisDetail } from '../web-client/src/types.js';
 
 function basis(text: string): ReviewBasisDetail {
@@ -75,4 +75,35 @@ test('P1-3：前端折叠函数与服务端契约逐字等价（不再有第二�
   for (const sample of samples) {
     assert.equal(foldText(sample), contractFold(sample), `折叠结果必须一致：${sample}`);
   }
+});
+
+test('四环节报告：介绍单列，五维聚合只取经历题，旧报告明确未包含介绍', async () => {
+  const { reportProgress, experienceFeedbacks, historyProgress, questionLabel } = await import('../web-client/src/lib/report.js');
+  const intro = { questionId: 'q1', dimensions: { relevance: { level: '证据不足', quote: null, reason: '介绍待补' } } } as never;
+  const experience = { questionId: 'q2', dimensions: { relevance: { level: '充分清楚', quote: null, reason: '经历清楚' } } } as never;
+  const report: import('../web-client/src/types.js').SessionReport = { completedQuestions: 2, totalQuestions: 4, perQuestion: [
+    { questionId: 'q1', kind: 'introduction', status: 'reviewed', feedback: intro, rewriteDelta: null },
+    { questionId: 'q2', kind: 'experience', status: 'reviewed', feedback: experience, rewriteDelta: null },
+    { questionId: 'q3', kind: 'experience', status: 'skipped', feedback: null, rewriteDelta: null },
+    { questionId: 'q4', kind: 'experience', status: 'not_reached', feedback: null, rewriteDelta: null },
+  ] } as never;
+  assert.deepEqual(reportProgress(report), { introductionStatus: 'reviewed', introductionLabel: '已完成', completedExperienceQuestions: 1, totalExperienceQuestions: 3 });
+  assert.deepEqual(experienceFeedbacks(report), [experience]);
+  assert.equal(representativeDimension(experienceFeedbacks(report), 'relevance').level, '充分清楚', '介绍低档不能压低经历五维');
+  assert.equal(questionLabel(report.perQuestion, 'q2'), '经历题 1');
+  assert.equal(reportProgress({ ...report, perQuestion: report.perQuestion.slice(1).map((item: Record<string, unknown>) => ({ ...item, kind: undefined })), totalQuestions: 3 } as never).introductionLabel, '未包含介绍');
+  assert.deepEqual(historyProgress({ completedQuestions: 2 } as never), { introductionLabel: '未包含介绍', completedExperienceQuestions: 2, totalExperienceQuestions: undefined });
+});
+
+test('重答对照：按报告顺序展示所有介绍/经历重答，空重答不生成虚构对比', async () => {
+  const { rewriteComparisons } = await import('../web-client/src/lib/report.js');
+  const turn = (id: string, questionId: string, turnType: 'answer' | 'rewrite', text: string) => ({ id, questionId, speaker: 'user', turnType, seq: 1, rawTranscript: text, revisedText: null } as never);
+  const detail = {
+    turns: [turn('a1', 'q1', 'answer', '初答介绍'), turn('r1', 'q1', 'rewrite', '重答介绍'), turn('a2', 'q2', 'answer', '初答经历'), turn('r2', 'q2', 'rewrite', '重答经历')],
+    plan: { questions: [{ id: 'q1', kind: 'introduction' }, { id: 'q2', kind: 'experience' }] },
+    report: { perQuestion: [{ questionId: 'q1', kind: 'introduction' }, { questionId: 'q2', kind: 'experience' }, { questionId: 'q3', kind: 'experience' }] },
+    rewriteDeltas: { q2: { added: ['经历'], corrected: [], stillMissing: [] }, q1: { added: [], corrected: [], stillMissing: ['证明'] }, q3: { added: [], corrected: [], stillMissing: [] } },
+  } as never;
+  const comparisons = rewriteComparisons(detail);
+  assert.deepEqual(comparisons.map((item) => [item.label, item.initial, item.rewrite]), [['自我介绍', '初答介绍', '重答介绍'], ['经历题 1', '初答经历', '重答经历']]);
 });

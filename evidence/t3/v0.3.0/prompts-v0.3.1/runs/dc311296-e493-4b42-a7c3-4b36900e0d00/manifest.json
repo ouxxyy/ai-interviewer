@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-10-02T09:57:02.056Z",
+  "artifacts": [
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/console.log",
+      "kind": "txt",
+      "bytes": 660,
+      "sha256": "35a3b1d214fc693fdd7b54c58793f90d302d1443a9af725d013593abd737db0d",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/execution.json",
+      "kind": "json",
+      "bytes": 432,
+      "sha256": "7ebed392b7c11cc57fd49defc39b932e5a3d636cecdf8563d1d4edd83370ad13",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/final-acceptance.json",
+      "kind": "json",
+      "bytes": 839,
+      "sha256": "d8f9110af6bf051462118f564c653a03791ecd8749d26a713e5e12381931ab35",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/prompt/content-review.json",
+      "kind": "json",
+      "bytes": 949,
+      "sha256": "db4510700ba54934feda07db281890e902a6c9ac728facc4b4cdeb8c912cc89b",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/prompt/independent-verification.json",
+      "kind": "json",
+      "bytes": 5431,
+      "sha256": "5f077ba2461e466cbcf3dda6c2738d31db5aad04539c4f6ef623dd8a34912b81",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/prompt/smoke-requests.json",
+      "kind": "json",
+      "bytes": 2532,
+      "sha256": "df68c14f2358d52f20dc5cc142b8cc031dc3decdac80ca5f9d54d609cbb9a5c4",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/prompt/summary.json",
+      "kind": "json",
+      "bytes": 84061,
+      "sha256": "0967282579a19ad25673f7999ce71fb75cf4cf9220c17bffd7b42fc4355c6774",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/prompt/transcript.json",
+      "kind": "json",
+      "bytes": 96324,
+      "sha256": "644a1ea8d04fb2ea37191a57c29d2e33ea8bffb91f55891b3667d1f16aa7a32c",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/run-summary.json",
+      "kind": "json",
+      "bytes": 6323,
+      "sha256": "48f88ddae9ab29af52887ac63ba55616467bee7c06c544cf3a2fbb51840e28f1",
+      "committed": true
+    }
+  ]
+}

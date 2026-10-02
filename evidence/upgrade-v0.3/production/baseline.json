@@ -1,0 +1,59 @@
+{
+  "capturedAt": "2026-10-02T03:35:03.879135+00:00",
+  "origin": "https://interview.redboook.cn",
+  "localBaseCommit": "50e8055e3bb198b32bdb612c4077b5d56ccaa1c7",
+  "bundlePath": "/assets/index-8TxZNIpd.js",
+  "sourceMapUrl": "https://interview.redboook.cn/assets/index-8TxZNIpd.js.map",
+  "websiteId": "4897cfc4-d00f-47b5-b150-07db3748db54",
+  "files": [
+    {
+      "path": "web-client/src/components/ErrorState.tsx",
+      "sha256": "7d1b716d417c01794d928d6c8309f760e9d36ef5b1a677744ca8a940f528043b",
+      "localBeforeSha256": "0273808874c7baeab4f15928648f29153ff21fb0aa97902d2dea233039dce2ae",
+      "bytes": 3972
+    },
+    {
+      "path": "web-client/src/lib/analytics.ts",
+      "sha256": "39e74dc57f3d2165b504dd8b0589b5a733f77a7af4abd75dfdb032e54d09a7eb",
+      "localBeforeSha256": null,
+      "bytes": 1951
+    },
+    {
+      "path": "web-client/src/pages/HomePage.tsx",
+      "sha256": "8ef4d93dd3f5ad8bce6684977ead85b71283cc32c7bc96e13722542065efb183",
+      "localBeforeSha256": "df9a0a1156a61dbb5d0d0da66aecbeb6a704811a08b7fcc04bee92d3196beb83",
+      "bytes": 13587
+    },
+    {
+      "path": "web-client/src/audio.ts",
+      "sha256": "960ab728cd563440efe4e9c86307a687e83646a9eab97914f1bbdeb73b2bf47e",
+      "localBeforeSha256": "afe9bb1488c35d11992e0fcf083c4f921b906a6e8d0f29f0d0d88346951f667f",
+      "bytes": 11991
+    },
+    {
+      "path": "web-client/src/pages/SessionPage.tsx",
+      "sha256": "ec88895d3ae673a4ef1255dae05b3774d2ad31d487f044864e30062d5931de91",
+      "localBeforeSha256": "f7105439963e21ad25098e68cf3e284475ee47ce9eaaa5d2a420a4248a50cc6a",
+      "bytes": 22659
+    },
+    {
+      "path": "web-client/public/ouba-analytics.js",
+      "sha256": "f955bc4d47131d18694738631228614990f7dce48c9fbae147fb7fba243655c8",
+      "localBeforeSha256": null,
+      "bytes": 3571
+    },
+    {
+      "path": "web-client/public/pcm16-worklet.js",
+      "sha256": "1f384312afa10bfed1c1ab673ebeac2ac527018f02de675bc82fd0b34f9742ab",
+      "localBeforeSha256": null,
+      "bytes": 540
+    },
+    {
+      "path": "web-client/index.html",
+      "sha256": "63fded70552fd7eceb46f1b9f88862fb70e0416ffd90e2b06304bbb664605bf5",
+      "localBeforeSha256": "e59ef472e7f3e09123ceddd1dbc5247a9ad03061b22fb6e6d35f82202b39884e",
+      "bytes": 686
+    }
+  ],
+  "scope": "Public frontend resources only; server source and Nginx were not changed."
+}

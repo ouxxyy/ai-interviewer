@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { REPO_ROOT } from '../src/t1r/env.js';
-import { ENTRY_HINTS, t3Artifacts, skillMarkdown, simplePromptMarkdown, structureHintBlock, versionStamp } from '../src/t3/content.js';
+import { ENTRY_HINTS, t3Artifacts, skillMarkdown, simplePromptMarkdown, structureHintBlock, versionStamp, sessionReportJsonTemplate } from '../src/t3/content.js';
 import { RULES_VERSION, rulesDigest, rulesMarkdown } from '../src/rules/rules.js';
 import { reviewPrompt } from '../src/prompts/prompts.js';
 import { validateContract } from '../src/contracts/validate.js';
@@ -58,6 +58,19 @@ test('简版 Prompt 内嵌的 JSON 模板过 feedback Schema', () => {
   assert.equal(res.ok, true, `模板未过 Schema：${res.errors.join('; ')}`);
 });
 
+test('两个文字入口给出可校验的零完成报告形状，不把版本戳放进 JSON', () => {
+  const parsed = JSON.parse(sessionReportJsonTemplate());
+  assert.equal(validateContract('session-report', parsed).ok, true);
+  assert.deepEqual(parsed.priorityPractice, ['本次未完成任何题目，无有效反馈']);
+  assert.equal(parsed.completedQuestions, 0);
+  for (const text of [skillMarkdown(), simplePromptMarkdown()]) {
+    assert.ok(text.includes(sessionReportJsonTemplate()));
+    assert.match(text, /nextFacts 至少 1 项/);
+    assert.match(text, /禁止添加 summaryNote 或 versionStamp/);
+    assert.match(text, /not_reached.*从未进入/);
+  }
+});
+
 test('R6：入口级操作提示锁在单源常量上，两个入口逐字相同，且明确标注不在 rulesDigest 覆盖内', () => {
   const skill = skillMarkdown();
   const prompt = simplePromptMarkdown();
@@ -81,12 +94,12 @@ test('R6：入口级操作提示锁在单源常量上，两个入口逐字相同
   assert.match(label, /rulesDigest/, '标注里必须点名它不在摘要覆盖范围内');
 });
 
-test('控制实验的开关：默认渲染与 T2 定稿逐字相同，机械版只差 structure 那一条', () => {
+test('当前默认使用 prose；机械版只差 structure 操作提示，历史实验须重新预登记', () => {
   const input = { questionText: '说说你的关键动作', answerText: '我先做了调研，然后上线。', turnIds: ['t1'], textVersion: 'raw' as const, isRewrite: false };
   const dflt = reviewPrompt(input);
   const prose = reviewPrompt({ ...input, structureHint: 'prose' });
   const mech = reviewPrompt({ ...input, structureHint: 'mechanical' });
-  assert.equal(dflt, prose, '默认必须等于 prose——不许因为加了实验开关而改动已交付的提示词');
+  assert.equal(dflt, prose, '当前默认必须等于 prose，不把机械操作提示混进规则正文');
   assert.notEqual(prose, mech);
   assert.ok(mech.includes(ENTRY_HINTS.structureQuoteProcedure), '机械版必须渲染入口提示常量');
   assert.ok(!prose.includes(ENTRY_HINTS.structureHintLabel), '散文版不得混入入口提示');
@@ -118,4 +131,19 @@ test('版本戳同时含三个版本号', () => {
   assert.match(stamp, /rules@/);
   assert.match(stamp, /contract@/);
   assert.match(stamp, /prompts@/);
+});
+
+
+test('两个文字入口明确介绍必练、四项冻结计划和分开汇总', () => {
+  for (const text of [skillMarkdown(), simplePromptMarkdown()]) {
+    assert.match(text, /自我介绍/);
+    assert.match(text, /1[–—-]2 分钟/);
+    assert.match(text, /不强制限时/);
+    assert.match(text, /q1.*introduction/);
+    assert.match(text, /q2.*q3.*q4.*experience/);
+    assert.match(text, /不.*介绍.*修改.*后三题|后三题.*不.*介绍/);
+    assert.match(text, /介绍状态/);
+    assert.match(text, /经历题.*[xX]\/3/);
+    assert.match(text, /不要求完整项目反思/);
+  }
 });

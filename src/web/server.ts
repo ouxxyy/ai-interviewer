@@ -18,6 +18,7 @@ import path from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { validateContract } from '../contracts/validate.js';
 import { CONTRACT_VERSION } from '../contracts/version.js';
+import { WEB_PLAN_VERSION } from './plan-sources.js';
 import { RULES_VERSION, rulesDigest } from '../rules/rules.js';
 import { DASHSCOPE_DEFAULTS } from '../clients/dashscope.js';
 import { REALTIME_DEFAULTS } from '../clients/realtime-dashscope.js';
@@ -197,7 +198,7 @@ export function createServer(deps: ServerDeps): RunningServer {
           host: deps.host,
           port: deps.port,
           credential: { key: credentials.status().keyName, present: credentials.status().configured },
-          versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, rulesDigest: rulesDigest(), disclosure: disclosureVersion },
+          versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, rulesDigest: rulesDigest(), disclosure: disclosureVersion, webPlan: WEB_PLAN_VERSION },
           liveSessions: manager.listLive().length,
           dbVersion: store.dataPaths.dbFile === '' ? 0 : undefined,
         });
@@ -367,6 +368,9 @@ export function createServer(deps: ServerDeps): RunningServer {
         }
         if (req.method === 'POST' && rest === '/review') {
           return json(res, 200, { snapshot: await runner().submitReview() });
+        }
+        if (req.method === 'POST' && rest === '/review/retry') {
+          return json(res, 200, { snapshot: await runner().retryReview() });
         }
         if (req.method === 'POST' && rest === '/rewrite/start') {
           return json(res, 200, { snapshot: await runner().rewriteStart() });

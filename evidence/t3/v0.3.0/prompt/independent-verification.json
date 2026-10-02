@@ -1,0 +1,166 @@
+{
+  "verifiedAt": "2026-10-02T07:21:47.189Z",
+  "method": "独立复算原始模型JSON、冻结计划材料来源和回答原文引用；不采信CLI exit0或模型自报成功。",
+  "paidCalls": 8,
+  "maxCalls": 10,
+  "httpStatuses": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "model": "qwen3.8-flash",
+  "usage": {
+    "promptTokens": 38508,
+    "completionTokens": 3175,
+    "totalTokens": 41683
+  },
+  "totalRequestLatencyMs": 47011,
+  "planValid": true,
+  "planErrors": [],
+  "questions": [
+    {
+      "questionId": "q1",
+      "kind": "introduction",
+      "asked": true,
+      "schemaOk": false,
+      "schemaErrors": [
+        "/nextFacts: must NOT have fewer than 1 items"
+      ],
+      "identityOk": true,
+      "quoteAudit": [
+        {
+          "dimension": "relevance",
+          "textLocated": true,
+          "declaredStart": 0,
+          "declaredEnd": 24,
+          "computedStart": 0,
+          "computedEnd": 21,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "specificity",
+          "textLocated": true,
+          "declaredStart": 25,
+          "declaredEnd": 67,
+          "computedStart": 21,
+          "computedEnd": 62,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "contribution",
+          "textLocated": true,
+          "declaredStart": 109,
+          "declaredEnd": 152,
+          "computedStart": 105,
+          "computedEnd": 145,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "resultsReflection",
+          "textLocated": true,
+          "declaredStart": 206,
+          "declaredEnd": 253,
+          "computedStart": 225,
+          "computedEnd": 272,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "structure",
+          "textLocated": true,
+          "declaredStart": 68,
+          "declaredEnd": 205,
+          "computedStart": 62,
+          "computedEnd": 204,
+          "declaredCoordinatesMatch": false
+        }
+      ],
+      "feedbackUsable": false
+    },
+    {
+      "questionId": "q2",
+      "kind": "experience",
+      "asked": true,
+      "schemaOk": false,
+      "schemaErrors": [
+        "/nextFacts: must NOT have fewer than 1 items"
+      ],
+      "identityOk": true,
+      "quoteAudit": [
+        {
+          "dimension": "relevance",
+          "textLocated": true,
+          "declaredStart": 15,
+          "declaredEnd": 57,
+          "computedStart": 10,
+          "computedEnd": 51,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "specificity",
+          "textLocated": true,
+          "declaredStart": 109,
+          "declaredEnd": 156,
+          "computedStart": 112,
+          "computedEnd": 158,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "contribution",
+          "textLocated": true,
+          "declaredStart": 0,
+          "declaredEnd": 10,
+          "computedStart": 0,
+          "computedEnd": 10,
+          "declaredCoordinatesMatch": true
+        },
+        {
+          "dimension": "resultsReflection",
+          "textLocated": true,
+          "declaredStart": 206,
+          "declaredEnd": 273,
+          "computedStart": 214,
+          "computedEnd": 278,
+          "declaredCoordinatesMatch": false
+        },
+        {
+          "dimension": "structure",
+          "textLocated": true,
+          "declaredStart": 68,
+          "declaredEnd": 205,
+          "computedStart": 51,
+          "computedEnd": 193,
+          "declaredCoordinatesMatch": false
+        }
+      ],
+      "feedbackUsable": false
+    }
+  ],
+  "quotes": {
+    "total": 10,
+    "textLocated": 10,
+    "declaredCoordinatesMatch": 1
+  },
+  "report": {
+    "schemaOk": false,
+    "schemaErrors": [
+      "(root): must NOT have additional properties",
+      "(root): must NOT have additional properties",
+      "/priorityPractice: must NOT have fewer than 1 items"
+    ],
+    "unaskedQuestionsMislabelled": [
+      "q3",
+      "q4"
+    ],
+    "extraKeys": [
+      "summaryNote",
+      "versionStamp"
+    ]
+  },
+  "closedLoopPassed": false,
+  "scope": "一次合成材料文本Prompt API运行；未验证网页语音、真人麦克风、原生宿主或质量标定。"
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:ai-interviewer:feedback@0.2.0",
+  "title": "Feedback",
+  "description": "单题五维三档反馈。三档必须携带可定位引用；「无法判断」不带引用并在 reason 说明，不用低分猜测。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "questionId", "reviewBasis", "dimensions", "factGaps", "topImprovement", "nextFacts", "reviewVersion"],
+  "properties": {
+    "contractVersion": { "enum": ["0.2.0"] },
+    "questionId": { "type": "string", "pattern": "^q[1-9][0-9]*$" },
+    "reviewBasis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["turnIds", "textVersion"],
+      "properties": {
+        "turnIds": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^t[1-9][0-9]*$" } },
+        "textVersion": { "enum": ["raw", "revised"] }
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relevance", "specificity", "contribution", "resultsReflection", "structure"],
+      "properties": {
+        "relevance": { "$ref": "#/definitions/dimension" },
+        "specificity": { "$ref": "#/definitions/dimension" },
+        "contribution": { "$ref": "#/definitions/dimension" },
+        "resultsReflection": { "$ref": "#/definitions/dimension" },
+        "structure": { "$ref": "#/definitions/dimension" }
+      }
+    },
+    "factGaps": { "type": "array", "items": { "type": "string", "minLength": 2 } },
+    "topImprovement": { "type": "string", "minLength": 4 },
+    "nextFacts": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 2 } },
+    "reviewVersion": { "type": "string", "minLength": 1 }
+  },
+  "definitions": {
+    "dimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "quote", "reason"],
+      "properties": {
+        "level": { "enum": ["证据不足", "部分清楚", "充分清楚", "无法判断"] },
+        "quote": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["text", "start", "end", "turnId", "textVersion", "matchType"],
+              "properties": {
+                "text": { "type": "string", "minLength": 2 },
+                "start": { "type": "integer", "minimum": 0 },
+                "end": { "type": "integer", "minimum": 1 },
+                "turnId": { "type": "string", "pattern": "^t[1-9][0-9]*$" },
+                "textVersion": { "enum": ["raw", "revised"] },
+                "matchType": { "enum": ["exact", "normalized"] }
+              }
+            }
+          ]
+        },
+        "reason": { "type": "string", "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "level": { "enum": ["证据不足", "部分清楚", "充分清楚"] } }, "required": ["level"] },
+          "then": { "properties": { "quote": { "type": "object" } } }
+        },
+        {
+          "if": { "properties": { "level": { "enum": ["无法判断"] } }, "required": ["level"] },
+          "then": { "properties": { "quote": { "type": "null" } } }
+        }
+      ]
+    }
+  }
+}

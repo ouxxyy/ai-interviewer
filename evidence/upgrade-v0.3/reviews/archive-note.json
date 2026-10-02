@@ -1,0 +1,30 @@
+{
+  "note": "路径和临时任务标识脱敏，原始临时审查文件未修改。",
+  "files": [
+    {
+      "file": "core-review.md",
+      "originalSha256": "bacccbd576bdbf1217a6e793418ec067253a6f6fb55c9ffaa854d78e9cce14d4",
+      "redacted": true
+    },
+    {
+      "file": "production-review.md",
+      "originalSha256": "4c5c280f6cbf0f40c1d63e627c55d5469350aee56efedd48fcfda7a471f6136d",
+      "redacted": false
+    },
+    {
+      "file": "final-review.md",
+      "originalSha256": "90441b952317bb25cbd3ba05d469e82200a8faf3ff15a7b364e63765e8ff0b70",
+      "redacted": true
+    },
+    {
+      "file": "final-fixes-report.md",
+      "originalSha256": "7fb83116a173c195f2ae7082dcdb20a5c3e3d80f8f28deef4ed57729ba293163",
+      "redacted": false
+    },
+    {
+      "file": "content-review.md",
+      "originalSha256": "943be0743f83b7cb8f2e9893ea72f8ffa2eed699d4a2807ada443112bd14ecb2",
+      "redacted": true
+    }
+  ]
+}

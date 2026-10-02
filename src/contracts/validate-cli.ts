@@ -2,8 +2,8 @@
  * 独立运行的契约校验 CLI：
  *   node dist/src/contracts/validate-cli.js <file.json> <contract-name> [contract-version]
  *
- * 第三个参数省略时按**数据自报的 contractVersion** 校验（无法识别则回落当前版本）——
- * 这样 T1 期证据（0.1.0）与 T2 期对象（0.2.0）用同一条命令都能校验。
+ * 第三个参数省略时按**数据自报的 contractVersion** 校验（无法识别则明确拒绝）——
+ * 0.1.0 / 0.2.0 历史证据与 0.3.0 当前对象均可复核。
  */
 import { readFileSync } from 'node:fs';
 import { validateContract, validateContractAt, validateContractAuto } from './validate.js';

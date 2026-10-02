@@ -9,7 +9,7 @@ import { InterviewDb, MIGRATIONS } from '../src/web/db.js';
 import { Store } from '../src/web/store.js';
 import { webPaths, REPO_ROOT } from '../src/web/paths.js';
 import { SessionMachine } from '../src/state/machine.js';
-import type { Turn } from '../src/contracts/types.js';
+import type { Turn, Feedback } from '../src/contracts/types.js';
 
 function tmpRoot(label: string): string {
   const dir = path.join(REPO_ROOT, 'data', `web-test-${label}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`);
@@ -269,4 +269,86 @@ test('数据目录里不出现本机绝对路径（入库字段都是相对路�
   assert.equal(path.isAbsolute(turnRow.audioFile!), false);
   db.close();
   rmSync(root, { recursive: true, force: true });
+});
+
+
+test('旧轮次从会话所属契约恢复版本，不静默标成当前版', () => {
+  const root = tmpRoot('legacy-version');
+  const db = new InterviewDb(path.join(root, 'x.sqlite'));
+  db.migrate();
+  try {
+    const store = new Store(db, webPaths(root));
+    for (const version of ['0.1.0', '0.2.0', '0.3.0']) {
+      const sid = `legacy-${version}`;
+      store.createSession({ id: sid, ruleVersion: `rules@${version}`, realtimeModel: null, textModel: null, synthetic: false, saveHistory: true, saveAudio: false });
+      store.addTurn(sid, { ...turn('t1', 'q1', 'user', 1, '已确认回答'), contractVersion: version });
+      db.raw.prepare('UPDATE sessions SET materials_json = ? WHERE id = ?').run(JSON.stringify({ contractVersion: version }), sid);
+    }
+    const reloaded = new Store(db, webPaths(root));
+    for (const version of ['0.1.0', '0.2.0', '0.3.0']) {
+      assert.equal(reloaded.listTurns(`legacy-${version}`)[0]?.contractVersion, version);
+    }
+  } finally {
+    db.close();
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+
+test('历史摘要：区分介绍与经历题；旧JSON保持原样且无新增SQL迁移', () => {
+  const root = tmpRoot('history-summary');
+  const db = new InterviewDb(path.join(root, 'x.sqlite'));
+  db.migrate();
+  try {
+    const store = new Store(db, webPaths(root));
+    const versions = [
+      { id: 'new-reviewed', contractVersion: '0.3.0', completedQuestions: 2, intro: 'reviewed' },
+      { id: 'new-skipped', contractVersion: '0.3.0', completedQuestions: 1, intro: 'skipped' },
+      { id: 'new-not-reached', contractVersion: '0.3.0', completedQuestions: 0, intro: 'not_reached' },
+      { id: 'old-v02', contractVersion: '0.2.0', completedQuestions: 2, intro: null },
+      { id: 'old-v01', contractVersion: '0.1.0', completedQuestions: 1, intro: null },
+    ];
+    const rawRecords = new Map<string, string>();
+    const makeFeedback = (questionId: string, contractVersion: string): Feedback => ({
+      contractVersion, questionId, reviewBasis: { turnIds: ['t1'], textVersion: 'raw' },
+      dimensions: Object.fromEntries(['relevance', 'specificity', 'contribution', 'resultsReflection', 'structure'].map((dimension) => [dimension, { level: '无法判断', quote: null, reason: '已确认回答中信息不足' }])) as Feedback['dimensions'],
+      factGaps: [], topImprovement: '补充相关事实', nextFacts: ['补充相关事实'], reviewVersion: 'prompts@0.3.0',
+    });
+    for (const v of versions) {
+      store.createSession({ id: v.id, ruleVersion: `rules@${v.contractVersion}`, realtimeModel: null, textModel: null, synthetic: false, saveHistory: true, saveAudio: false });
+      const report = {
+        contractVersion: v.contractVersion, sessionStatus: 'ended_early', completedQuestions: v.completedQuestions,
+        totalQuestions: v.intro === null ? 3 : 4,
+        perQuestion: Array.from({ length: v.intro === null ? 3 : 4 }, (_, i) => ({
+          questionId: `q${i + 1}`,
+          ...(v.intro === null ? {} : { kind: i === 0 ? 'introduction' : 'experience' }),
+          status: v.intro === null ? (i < v.completedQuestions ? 'reviewed' : 'not_reached') : i === 0 ? v.intro : i === 1 && v.completedQuestions > 0 ? 'reviewed' : 'not_reached',
+          feedback: v.intro === null ? null : (i === 0 && v.intro === 'reviewed') || (i === 1 && v.completedQuestions > 0) ? makeFeedback(`q${i + 1}`, v.contractVersion) : null, rewriteDelta: null,
+        })),
+        priorityPractice: ['本次未完成任何题目，无有效反馈'], versions: { ruleVersion: `rules@${v.contractVersion}`, realtimeModel: null, textModel: null },
+      };
+      const raw = JSON.stringify(report);
+      rawRecords.set(v.id, raw);
+      db.raw.prepare('UPDATE sessions SET report_json = ?, completed_questions = ? WHERE id = ?').run(raw, v.completedQuestions, v.id);
+    }
+    const reloaded = new Store(db, webPaths(root));
+    const items = new Map(reloaded.listSessions().items.map((q) => [q.id, q]));
+    assert.equal(items.get('new-reviewed')?.introductionStatus, 'reviewed');
+    assert.equal(items.get('new-reviewed')?.completedExperienceQuestions, 1);
+    assert.equal(items.get('new-reviewed')?.totalExperienceQuestions, 3);
+    assert.equal(items.get('new-skipped')?.introductionStatus, 'skipped');
+    assert.equal(items.get('new-skipped')?.completedExperienceQuestions, 1);
+    assert.equal(items.get('new-not-reached')?.introductionStatus, 'not_reached');
+    for (const id of ['old-v01', 'old-v02']) {
+      assert.equal(items.get(id)?.introductionStatus, 'not_included');
+      assert.equal(items.get(id)?.completedExperienceQuestions, id === 'old-v01' ? 1 : 2);
+      assert.equal(items.get(id)?.totalExperienceQuestions, 3);
+      const raw = db.raw.prepare('SELECT report_json FROM sessions WHERE id = ?').get(id) as { report_json: string };
+      assert.equal(raw.report_json, rawRecords.get(id), '读取历史不得回写增加kind');
+    }
+    assert.equal(db.migrate().version, 2, '不为历史摘要增加SQL迁移');
+  } finally {
+    db.close();
+    rmSync(root, { recursive: true, force: true });
+  }
 });

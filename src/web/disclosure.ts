@@ -1,18 +1,18 @@
 /**
- * 使用告知（冻结文案，版本 `disclosure@0.2.0`）。
+ * 使用告知（版本 `disclosure@0.3.0`）。
  *
  * 必须说清四件事（PM §5 / MYW-85）：哪些内容留本机、哪些发给云模型、保存位置与删除方式、费用怎么结算。
  * 这里写成**结构化字段**而不是一段散文：接口返回它，前端直接渲染；
  * 改文案要升 `DISCLOSURE_VERSION`，用户需重新确认（`SettingsStore.needsDisclosure()`）。
  */
 
-export const DISCLOSURE_VERSION = 'disclosure@0.2.0';
+export const DISCLOSURE_VERSION = 'disclosure@0.3.0';
 
 export const DISCLOSURE = {
   version: DISCLOSURE_VERSION,
   /** 留在本机（不上传）。 */
   staysLocal: [
-    '你粘贴或上传的 JD 与经历原文（只在本地服务与浏览器之间传输）',
+    '你粘贴或上传的 JD 与经历在本机保存的副本（出题所需文本会发送给云模型）',
     '每轮回答的原始转写与你的修订文本',
     '五维反馈、重答对比与全场报告',
     '用户轨与面试官轨的录音文件（仅当「保存录音」开启）',
@@ -20,8 +20,8 @@ export const DISCLOSURE = {
   ],
   /** 发送给云模型（阿里百炼）的内容。 */
   sentToCloud: [
-    'JD 与经历文本 → 用于生成 3 道主问题（文本模型）',
-    '每轮回答的确认文本 → 用于追问判定与五维评审（文本模型）',
+    'JD 与经历文本 → 用于生成自我介绍环节与 3 道经历题（文本模型）',
+    '每轮回答的确认文本，以及题型、岗位 JD、求职阶段和问题意图 → 用于追问判定与五维评审（文本模型）；材料不替代回答证据',
     '面试官要朗读的问题文本 → 实时语音模型据此合成语音（实时模型）',
     '你的回答音频 → 实时语音模型做转写（实时模型）',
     '配置时密钥只经浏览器到 127.0.0.1 本地服务的一次同源请求，随后仅保存在项目根 .env；不会写入浏览器存储、日志、报告或录屏',
@@ -50,10 +50,10 @@ export const DISCLOSURE = {
 
 export type Disclosure = typeof DISCLOSURE;
 
-/** Public hosting has a separate consent version; local consent stays unchanged. */
+/** 公网保存与匿名统计采用独立告知版本；变更后需要重新确认。 */
 export const PUBLIC_DISCLOSURE = {
   ...DISCLOSURE,
-  version: 'disclosure@public-1',
+  version: 'disclosure@public-2',
   staysLocal: [
     '开启保存后，材料、转写、反馈、报告与可选录音保存在本站服务器，按访客隔离；并非只留在你的电脑。',
     '浏览器保存 HttpOnly 访客 Cookie，它是访问历史与配置的唯一凭证；请勿共享浏览器个人资料。',
@@ -62,6 +62,7 @@ export const PUBLIC_DISCLOSURE = {
   sentToCloud: [
     ...DISCLOSURE.sentToCloud.slice(0, 4),
     'API Key 经本站同源 HTTPS 提交，在服务器加密保存；不回显、不写浏览器存储或日志。本站以你的 Key 调用百炼。',
+    '归一后的页面路径、访问来源，以及练习请求、开始、结束、完成事件与环节数量 → 本站匿名统计服务；不发送材料、回答、录音或 API Key。',
   ],
   storage: {
     root: '本站服务器的访客独立目录', database: '每位访客独立的 SQLite 历史库',

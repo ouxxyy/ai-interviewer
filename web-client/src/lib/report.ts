@@ -6,7 +6,7 @@
  * 否则在需要 NFC 归一的文本上会拒绝服务端给出的合法锚点（P1-3）。
  */
 import { foldText, sliceByLocation } from '../../../src/contracts/quote-locator.js';
-import type { DimensionFeedback, DimensionKey, Feedback, QuoteRef, ReviewBasisDetail, RewriteDelta, Turn } from '../types.js';
+import type { DimensionFeedback, DimensionKey, Feedback, QuoteRef, ReviewBasisDetail, RewriteDelta, Turn, IntroductionStatus, SessionListItem, SessionReport, SessionDetail, PlannedQuestion } from '../types.js';
 
 export { foldText };
 
@@ -48,4 +48,59 @@ export function highlightAdded(text: string, delta: RewriteDelta | undefined): A
     { text: first, marked: true },
     ...(index + first.length < text.length ? [{ text: text.slice(index + first.length), marked: false }] : []),
   ];
+}
+
+
+/** 缺失题型仅用于兼容历史三题记录，不从正文猜测。 */
+export function questionLabel(questions: Array<{ id?: string; questionId?: string; kind?: PlannedQuestion['kind'] }>, id: string): string {
+  const index = questions.findIndex((question) => (question.id ?? question.questionId) === id);
+  if (index < 0) return '题目';
+  if (questions[index]?.kind === 'introduction') return '自我介绍';
+  if (!questions.some((question) => question.kind === 'introduction')) return `第 ${index + 1} 题`;
+  const number = questions.slice(0, index + 1).filter((question) => question.kind !== 'introduction').length;
+  return `经历题 ${number}`;
+}
+
+export function introductionStatusLabel(status: IntroductionStatus): string {
+  return { reviewed: '已完成', skipped: '已跳过', not_reached: '未练到', not_included: '未包含介绍' }[status];
+}
+
+export function reportProgress(report: SessionReport) {
+  const introduction = report.perQuestion.find((question) => question.kind === 'introduction');
+  const introductionStatus: IntroductionStatus = introduction?.status ?? 'not_included';
+  const experience = report.perQuestion.filter((question) => question.kind !== 'introduction');
+  return {
+    introductionStatus,
+    introductionLabel: introductionStatusLabel(introductionStatus),
+    completedExperienceQuestions: experience.filter((question) => question.status === 'reviewed').length,
+    totalExperienceQuestions: experience.length,
+  };
+}
+
+export function historyProgress(item: SessionListItem) {
+  return {
+    introductionLabel: introductionStatusLabel(item.introductionStatus ?? 'not_included'),
+    completedExperienceQuestions: item.completedExperienceQuestions ?? item.completedQuestions,
+    totalExperienceQuestions: item.totalExperienceQuestions,
+  };
+}
+
+export function experienceFeedbacks(report: SessionReport | null | undefined): Feedback[] {
+  return report?.perQuestion.filter((question) => question.kind !== 'introduction' && question.status === 'reviewed')
+    .map((question) => question.feedback).filter((feedback): feedback is Feedback => feedback !== null) ?? [];
+}
+
+export function rewriteComparisons(detail: SessionDetail) {
+  const questions = detail.report?.perQuestion ?? detail.plan?.questions.map((question) => ({ questionId: question.id, kind: question.kind })) ?? [];
+  return questions.flatMap((question) => {
+    const rewrite = questionAnswer(detail.turns, question.questionId, 'rewrite');
+    if (rewrite === '') return [];
+    return [{
+      questionId: question.questionId,
+      label: questionLabel(questions, question.questionId),
+      initial: questionAnswer(detail.turns, question.questionId, 'initial'),
+      rewrite,
+      delta: detail.rewriteDeltas[question.questionId],
+    }];
+  });
 }

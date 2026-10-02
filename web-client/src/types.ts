@@ -1,3 +1,5 @@
+export type QuestionKind = 'introduction' | 'experience';
+export type IntroductionStatus = 'reviewed' | 'skipped' | 'not_reached' | 'not_included';
 export type Stage = '应届' | '社招';
 export type SessionState = 'materials_review' | 'question' | 'answer' | 'followup' | 'review' | 'rewrite' | 'report' | 'ended';
 export type DimensionLevel = '证据不足' | '部分清楚' | '充分清楚' | '无法判断';
@@ -53,6 +55,8 @@ export interface Disclosure {
 }
 
 export interface PlannedQuestion {
+  /** 旧记录缺省时按经历题显示。 */
+  kind?: QuestionKind;
   id: string;
   text: string;
   intent: string;
@@ -111,6 +115,7 @@ export interface SessionReport {
   totalQuestions: number;
   perQuestion: Array<{
     questionId: string;
+    kind?: QuestionKind;
     status: 'reviewed' | 'skipped' | 'not_reached';
     feedback: Feedback | null;
     rewriteDelta: RewriteDelta | null;
@@ -134,6 +139,7 @@ export interface ReviewMeta {
   quotesTotal: number;
   quotesLocated: number;
   firstAttemptOk: boolean;
+  attemptLog?: Array<{ attempt: number; ok: boolean; cause?: string; issues?: Array<{ path: string; rule: string }> }>;
 }
 
 export interface Snapshot {
@@ -145,7 +151,7 @@ export interface Snapshot {
   toggles: { saveHistory: boolean; saveAudio: boolean };
   materials: { jd: string; experience: string; stage: Stage; targetRole: string } | null;
   plan: { questions: PlannedQuestion[]; askedTopics: string[] } | null;
-  currentQuestion: { id: string; index: number; text: string; intent: string } | null;
+  currentQuestion: { id: string; kind?: QuestionKind; index: number; text: string; intent: string } | null;
   pending: string;
   lastError: AppErrorBody | null;
   halted: boolean;
@@ -214,6 +220,9 @@ export interface SessionListItem {
   state: SessionState;
   synthetic: boolean;
   completedQuestions: number;
+  introductionStatus?: IntroductionStatus;
+  completedExperienceQuestions?: number;
+  totalExperienceQuestions?: number;
   turns: number;
   hasReport: boolean;
   audioFiles: number;

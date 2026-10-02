@@ -106,7 +106,7 @@ export default function App() {
   } else if (path.startsWith('/report/')) {
     content = <ReportPage sid={decodeURIComponent(path.slice('/report/'.length))} onNavigate={navigate} />;
   } else {
-    content = <HomePage settings={settings} onNavigate={navigate} onSessionReady={onSessionReady} />;
+    content = <HomePage preview={previewKind === 'home'} settings={settings} onNavigate={navigate} onSessionReady={onSessionReady} />;
   }
 
   return <div ref={shellRef} id="app-shell">{content}</div>;

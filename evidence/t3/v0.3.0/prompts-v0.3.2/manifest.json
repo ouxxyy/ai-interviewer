@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-10-02T09:57:52.367Z",
+  "artifacts": [
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.2/code-review.json",
+      "kind": "json",
+      "bytes": 765,
+      "sha256": "8138a88fe623b99b867084a37f5f57406be523ffb656de0941d371bbae09615e",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.2/free-verification.json",
+      "kind": "json",
+      "bytes": 1028,
+      "sha256": "536b0851c84cbe1f105f073e4167439b3014c7a406bcc96b860d9bba79995591",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.2/logs/final-tests.log",
+      "kind": "txt",
+      "bytes": 65194,
+      "sha256": "c1ad12e8d6a2ee7a7f63cd71087eb3d69042d300adce551d30208941c66938bc",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.2/offline-replay.json",
+      "kind": "json",
+      "bytes": 6792,
+      "sha256": "9a86b94cc8eb8a388351f43deac3b92021e64efdd3624f17d75acaf4b80c0393",
+      "committed": true
+    },
+    {
+      "path": "evidence/t3/v0.3.0/prompts-v0.3.2/run-summary.json",
+      "kind": "json",
+      "bytes": 815,
+      "sha256": "793879956662705c42090764bd997ba8e277e851fe96472597ca0b9672eab625",
+      "committed": true
+    }
+  ]
+}

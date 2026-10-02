@@ -52,7 +52,7 @@ test('四个提示词都携带共同红线（素材非指令／原话引用／�
     questionPlanPrompt(mat),
     followupDecisionPrompt({ questionText: '说说你的关键动作', answerText: basis, followupCount: 0, remainingFollowups: 2 }),
     reviewPrompt({ questionText: '说说你的关键动作', answerText: basis, turnIds: ['t1'], textVersion: 'raw', isRewrite: false }),
-    reportPrompt({ completedQuestions: 3, endedEarly: false, perQuestionSummary: 'q1：五维反馈…' }),
+    reportPrompt({ completedQuestions: 4, endedEarly: false, perQuestionSummary: 'q1：五维反馈…' }),
   ];
   for (const p of all) {
     assert.ok(p.includes('素材'), '必须有“素材”红线');
@@ -65,15 +65,16 @@ test('四个提示词都携带共同红线（素材非指令／原话引用／�
   assert.ok(all[3]!.includes('不打分数'));
 });
 
-test('问题计划提示词：内嵌 JSON 模板抽出后通过 QuestionPlan Schema（3 题）', () => {
+test('问题计划提示词：内嵌 JSON 模板抽出后通过 QuestionPlan Schema（介绍 + 三道经历题）', () => {
   const p = questionPlanPrompt(mat);
-  for (const field of ['contractVersion', 'questions', 'askedTopics', 'id', 'text', 'sourceExcerpt', 'intent', 'topics', 'q1', 'q2', 'q3', '0.2.0']) {
+  for (const field of ['contractVersion', 'questions', 'askedTopics', 'id', 'text', 'sourceExcerpt', 'intent', 'topics', 'q1', 'q2', 'q3', 'q4', 'kind', 'introduction', 'experience', '0.3.0']) {
     assert.ok(p.includes(field), `缺少字段 ${field}`);
   }
-  assert.ok(p.includes('3 道'), '必须声明 3 道主问题');
+  assert.ok(p.includes('三道经历题'), '必须声明介绍 + 三道经历题');
   const parsed = assertTemplatePassesSchema(p, 'question-plan');
-  const questions = parsed.questions as Array<{ id: string }>;
-  assert.deepEqual(questions.map((q) => q.id), ['q1', 'q2', 'q3'], '模板 id 必须依次为 q1/q2/q3');
+  const questions = parsed.questions as Array<{ id: string; kind: string }>;
+  assert.deepEqual(questions.map((q) => q.kind), ['introduction', 'experience', 'experience', 'experience']);
+  assert.deepEqual(questions.map((q) => q.id), ['q1', 'q2', 'q3', 'q4'], '模板 id 必须依次为 q1/q2/q3/q4');
 });
 
 test('追问判定提示词：输出契约字段与上限约束（轻量契约，无独立 Schema）', () => {
@@ -134,8 +135,33 @@ test('报告生成提示词：内嵌 JSON 模板抽出后通过 SessionReport Sc
   assert.equal(zero.sessionStatus, 'ended_early');
   assert.equal(zero.completedQuestions, 0);
   // 正常完成分支
-  const done = assertTemplatePassesSchema(reportPrompt({ completedQuestions: 3, endedEarly: false, perQuestionSummary: 'q1…' }), 'session-report');
+  const done = assertTemplatePassesSchema(reportPrompt({ completedQuestions: 4, endedEarly: false, perQuestionSummary: 'q1…' }), 'session-report');
   assert.equal(done.sessionStatus, 'completed');
-  assert.equal(done.completedQuestions, 3);
+  assert.equal(done.completedQuestions, 4);
 });
 
+
+
+test('介绍评审与追问使用岗位语境，但材料不得成为回答事实；介绍不要求完整项目反思', () => {
+  const context = { kind: 'introduction' as const, jd: '独特岗位要求：评估支付转化', stage: '应届' as const, targetRole: '增长产品', intent: '招聘疑点：个人贡献是否清楚' };
+  const input = { questionText: '请介绍自己', answerText: '我组织过校内征稿活动。', context };
+  const review = reviewPrompt({ ...input, turnIds: ['t-intro'], textVersion: 'raw', isRewrite: false });
+  const followup = followupDecisionPrompt({ ...input, followupCount: 0, remainingFollowups: 2 });
+  for (const p of [review, followup]) {
+    assert.ok(p.includes(context.jd));
+    assert.ok(p.includes(context.targetRole));
+    assert.ok(p.includes(context.intent));
+    assert.match(p, /唯一.*证据|证据.*唯一/);
+    assert.match(p, /自我介绍/);
+  }
+  assert.match(review, /不要求完整项目反思/);
+  assert.match(review, /不.*关键词.*判档|关键词.*不.*判档/);
+});
+
+
+test('报告模板部分完成与最后一项已点评均遵守四项完成状态', () => {
+  const partial = assertTemplatePassesSchema(reportPrompt({ completedQuestions: 2, endedEarly: true, perQuestionSummary: '已校验 q1/q2' }), 'session-report');
+  assert.equal(partial.sessionStatus, 'ended_early');
+  const finalReviewed = assertTemplatePassesSchema(reportPrompt({ completedQuestions: 4, endedEarly: true, perQuestionSummary: '最后一题点评后结束' }), 'session-report');
+  assert.equal(finalReviewed.sessionStatus, 'completed');
+});

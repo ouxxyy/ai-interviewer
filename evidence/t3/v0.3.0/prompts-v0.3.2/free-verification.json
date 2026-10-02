@@ -1,0 +1,29 @@
+{
+  "at": "2026-10-02T09:57:02.051Z",
+  "versions": {
+    "contract": "0.3.0",
+    "rules": "rules@0.3.0",
+    "prompts": "prompts@0.3.2"
+  },
+  "sourceChange": "所有反馈字段的材料事实边界、局部示范句与nextFacts事实要求，不改变评价标尺",
+  "commands": [
+    "npm run build",
+    "node dist/src/t2/run.js rules:write",
+    "node dist/src/t3/cli.js skill:build",
+    "npm test"
+  ],
+  "test": {
+    "tests": 275,
+    "pass": 275,
+    "fail": 0,
+    "skipped": 0,
+    "sourceLog": "/private/tmp/ai-interviewer-p032-final-tests.log",
+    "sourceSha256": "c1ad12e8d6a2ee7a7f63cd71087eb3d69042d300adce551d30208941c66938bc",
+    "archivedLog": "logs/final-tests.log"
+  },
+  "modelCalls": 0,
+  "realTrial": "unverified",
+  "predecessorTrial": "evidence/t3/v0.3.0/prompts-v0.3.1/runs/dc311296-e493-4b42-a7c3-4b36900e0d00/final-acceptance.json",
+  "note": "0.3.1结构通过但内容红线未通过；此处免费检查不证明0.3.2真实模型遵守修订约束。",
+  "codeReview": "code-review.json"
+}

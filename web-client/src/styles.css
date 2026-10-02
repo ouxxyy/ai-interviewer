@@ -500,3 +500,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
+/* 四环节反馈沿用报告页的纸张与描边样式。 */
+.question-feedback { margin-top: 10px; }
+.question-feedback h3 { margin: 0; font-size: 13px; }
+.question-feedback-body { padding: 11px 13px; background: var(--paper); border: 2px solid var(--cocoa); border-radius: 10px; box-shadow: var(--press); }
+.question-feedback-body p { margin: 0 0 8px; font-size: 12px; line-height: 1.6; }
+.question-feedback-body p:last-child { margin-bottom: 0; }
+.question-feedback-body dl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+.question-feedback-body dt { font-size: 10px; font-weight: 800; }
+.question-feedback-body dd { margin: 5px 0 0; color: var(--cocoa-2); font-size: 11px; line-height: 1.5; }
+.compare-grid + .compare-grid { margin-top: 10px; }
+@media (max-width: 760px) { .question-feedback-body dl { grid-template-columns: 1fr; } }

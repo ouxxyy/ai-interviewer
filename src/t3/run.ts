@@ -3,28 +3,31 @@
  *
  * - `skill:run`：按 Skill 包的流程（材料 → 计划 → 提问 → 追问 → 反馈 → 重答 → 报告）真跑一场，
  *   产出 markdown 报告文件——就是 D8 要求 Skill 在用户工作目录留下的那个文件。
- * - `prompt:run`：把简版 Prompt **整段粘贴**进一次多轮对话（API 层的聊天宿主等价物），
- *   走完「要材料 → 确认 → 出题 → 作答 → 反馈」的一题完整闭环。
+ * - `prompt:run`：把简版 Prompt **整段粘贴**进一次多轮对话（应用辅助文本试验），
+ *   走完材料确认、介绍与至少一经历题的两环节闭环，再提前结束生成四项报告。
  *
- * 两者都不产生音频、不声称语音能力；规则正文都来自 `rules@0.2.0` 单源。
+ * 两者都不产生音频、不声称语音能力；规则正文都来自 `rules@0.3.0` 单源。
  */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { DashscopeTextClient } from '../clients/dashscope.js';
 import { runReview } from '../review/reviewer.js';
-import { validateContractAuto } from '../contracts/validate.js';
+import { hasFeedbackSource } from '../review/feedback-source.js';
+import { validateQuestionPlan } from '../contracts/question-plan.js';
+import { SessionMachine, type SessionEvent } from '../state/machine.js';
+import { validateContract } from '../contracts/validate.js';
 import { locateQuote } from '../contracts/quote-locator.js';
 import { questionPlanPrompt, followupDecisionPrompt, reviewPrompt, reportPrompt, PROMPT_VERSION } from '../prompts/prompts.js';
 import { RULES_VERSION, rulesDigest } from '../rules/rules.js';
 import { CONTRACT_VERSION } from '../contracts/version.js';
-import type { Feedback, QuestionPlan } from '../contracts/types.js';
+import type { Feedback, InterviewContext, QuestionKind, QuestionPlan, SessionReport, Stage } from '../contracts/types.js';
 import { REPO_ROOT, assertNoSecret } from '../t1r/env.js';
-import { EVIDENCE_T2_DIR, EvidenceWriter } from '../t1r/evidence.js';
+import { EvidenceWriter } from '../t1r/evidence.js';
 import { DashscopeReviewChannel, loadCases, type CallRecord } from '../t1r/chain-a.js';
 import { extractJson } from '../t1r/json.js';
-import { simplePromptMarkdown, skillMarkdown, versionStamp } from './content.js';
+import { simplePromptMarkdown, versionStamp } from './content.js';
+import { validatePromptFeedback, validatePromptReport, type PromptQuoteCheck } from './prompt-validation.js';
 
-const EVIDENCE_T3 = path.join(REPO_ROOT, 'evidence', 't3');
 
 export interface TurnLog {
   turn: number;
@@ -40,10 +43,12 @@ export interface TurnLog {
 async function reviewAnswer(
   client: DashscopeTextClient,
   evidence: EvidenceWriter,
-  args: { tag: string; questionText: string; answerText: string; turnIds: string[]; isRewrite?: boolean; firstAnswerText?: string },
+  args: { tag: string; questionId: string; context: InterviewContext; questionText: string; answerText: string; turnIds: string[]; isRewrite?: boolean; firstAnswerText?: string },
 ): Promise<{ feedback: Feedback; kind: string; attempts: number; calls: CallRecord[]; quoteCheck: { total: number; located: number; failures: string[] }; emittedVersion: string | null }> {
   const prompt = reviewPrompt({
     questionText: args.questionText,
+    questionId: args.questionId,
+    context: args.context,
     answerText: args.answerText,
     turnIds: args.turnIds,
     textVersion: 'raw',
@@ -55,7 +60,7 @@ async function reviewAnswer(
     enableThinking: false,
     rawSink: (attempt, raw) => evidence.writeText(`skill/raw/${args.tag}.attempt${attempt}.txt`, raw, false),
   });
-  const outcome = await runReview({ channel, basisText: args.answerText, turnIds: args.turnIds, textVersion: 'raw', questionId: 'q1', maxRetries: 2 });
+  const outcome = await runReview({ channel, basisText: args.answerText, turnIds: args.turnIds, textVersion: 'raw', questionId: args.questionId, maxRetries: 2 });
   const fb = outcome.feedback as Feedback;
   const failures: string[] = [];
   let total = 0;
@@ -92,17 +97,19 @@ export interface SkillRunResult {
   planCalls: CallRecord[];
   questions: Array<{
     questionId: string;
+    kind: QuestionKind;
     questionText: string;
     firstAnswer: string;
     followup: { need: boolean; question: string | null; reason: string; gap: string } | null;
     followupAnswer: string | null;
+    followups: Array<{ question: string; answer: string; reason: string; gap: string }>;
     feedback: Feedback;
     feedbackKind: string;
     attempts: number;
     quoteCheck: { total: number; located: number; failures: string[] };
-    rewrite: { answer: string; feedback: Feedback; delta: { added: string[]; corrected: string[]; stillMissing: string[] } } | null;
+    rewrite: { answer: string; feedback: Feedback; feedbackKind: string; quoteCheck: { total: number; located: number; failures: string[] }; delta: { added: string[]; corrected: string[]; stillMissing: string[] } } | null;
   }>;
-  report: { markdown: string; path: string; raw: unknown };
+  report: { markdown: string; path: string; raw: SessionReport; source: 'model_priority_practice' | 'derived_from_validated_feedback' | 'fixed_zero_completion' };
   endedEarly: boolean;
   turns: TurnLog[];
   versions: { contract: string; rules: string; prompts: string; rulesDigest: string };
@@ -137,18 +144,21 @@ function renderReport(args: {
   lines.push(`- JD（节选）：${material.jd.slice(0, 80)}…`);
   lines.push(`- 经历（节选）：${material.experience.slice(0, 80)}…`);
   lines.push('');
-  lines.push('## 二、逐题反馈');
+  lines.push('## 二、逐题反馈（介绍单列；经历题汇总只取 experience）');
   lines.push('');
   for (const q of questions) {
-    lines.push(`### ${q.questionId}　${q.questionText}`);
+    lines.push(`### ${q.questionId}（${q.kind === 'introduction' ? '自我介绍' : '经历题'}）　${q.questionText}`);
     lines.push('');
     lines.push(`**作答**：${q.firstAnswer}`);
     lines.push('');
-    if (q.followup) {
-      lines.push(`**追问**（${q.followup.need ? '已发出' : '未发出'}）：${q.followup.question ?? '—'}　理由：${q.followup.reason}`);
-      if (q.followupAnswer) lines.push(`**追问作答**：${q.followupAnswer}`);
+    for (const [index, followup] of q.followups.entries()) {
+      lines.push(`**追问 ${index + 1}**：${followup.question}　理由：${followup.reason}`);
+      lines.push(`**追问作答**：${followup.answer}`);
       lines.push('');
     }
+    if (!q.followups.length && q.followup) lines.push(`**追问**：未发出，${q.followup.reason}`);
+    lines.push(`**初答反馈状态**：${q.feedbackKind === 'ok' ? '正式通过' : '暂无法评价，不计正式完成'}`);
+    lines.push('');
     lines.push('| 维度 | 档位 | 引用（连续逐字原话） | 区间 | 判断依据 |');
     lines.push('| --- | --- | --- | --- | --- |');
     for (const [dim, d] of Object.entries(q.feedback.dimensions)) {
@@ -169,7 +179,14 @@ function renderReport(args: {
       lines.push(`- 新增：${q.rewrite.delta.added.join('；') || '无'}`);
       lines.push(`- 纠正：${q.rewrite.delta.corrected.join('；') || '无'}`);
       lines.push(`- 仍缺失：${q.rewrite.delta.stillMissing.join('；') || '无'}`);
+      lines.push(`- 最终重答反馈状态：${q.rewrite.feedbackKind === 'ok' ? '正式通过' : '暂无法评价，不计正式完成'}`);
       lines.push('');
+      if (q.rewrite.feedbackKind === 'ok') {
+        lines.push('| 重答维度 | 档位 | 最终版引用 | 区间 | 判断依据 |');
+        lines.push('| --- | --- | --- | --- | --- |');
+        for (const [dim, d] of Object.entries(q.rewrite.feedback.dimensions)) lines.push(`| ${dim} | ${d.level} | ${d.quote ? `「${d.quote.text}」` : '—'} | ${d.quote ? `[${d.quote.start}, ${d.quote.end})` : '—'} | ${d.reason} |`);
+        lines.push('');
+      }
     } else {
       lines.push('**重答对比**：未重答');
       lines.push('');
@@ -182,7 +199,11 @@ function renderReport(args: {
   lines.push('');
   lines.push('## 四、完成情况');
   lines.push('');
-  lines.push(`- 完成 ${completed} 题 / 未完成 ${3 - completed} 题${endedEarly ? '（用户提前结束）' : ''}`);
+  const introduction = (reportJson.perQuestion as SessionReport['perQuestion']).find((q) => q.kind === 'introduction');
+  const experienceCompleted = (reportJson.perQuestion as SessionReport['perQuestion']).filter((q) => q.kind === 'experience' && q.status === 'reviewed').length;
+  lines.push(`- 介绍状态：${introduction?.status ?? 'not_reached'}`);
+  lines.push(`- 经历题 ${experienceCompleted}/3`);
+  lines.push(`- 完成 ${completed} 项 / 未完成 ${4 - completed} 项${endedEarly ? '（用户提前结束）' : ''}`);
   if (completed === 0) lines.push('- 本次未完成任何题目，无有效反馈');
   lines.push('');
   lines.push('## 五、能力边界');
@@ -193,107 +214,120 @@ function renderReport(args: {
 }
 
 export async function runSkillFlow(client: DashscopeTextClient, evidence: EvidenceWriter, opts: { caseId?: string; endEarly?: boolean } = {}): Promise<SkillRunResult> {
-  const all = loadCases();
-  const c = all.find((x) => x.id === (opts.caseId ?? 'C13'));
+  const c = loadCases().find((x) => x.id === (opts.caseId ?? 'C13'));
   if (!c) throw new Error(`找不到案例 ${opts.caseId ?? 'C13'}`);
+  if (c.stage !== '应届' && c.stage !== '社招') throw new Error('案例阶段无效');
   const turns: TurnLog[] = [];
   const material = { jd: c.materials.jd, experience: c.materials.experience, stage: c.stage, targetRole: c.targetRole };
-
-  // 1. 问题计划
+  const machine = new SessionMachine();
+  const fire = (event: SessionEvent, reviewValid?: boolean) => {
+    const out = machine.fire(event, reviewValid === undefined ? {} : { reviewValid });
+    if (!out.accepted) throw new Error(`文字入口状态机拒绝 ${event}：${out.error}`);
+  };
+  const log = (step: string, prompt: string, calls: CallRecord[], note?: string) => turns.push({ turn: turns.length + 1, step, promptChars: prompt.length, latencyMs: calls.reduce((a, x) => a + x.latencyMs, 0), tokens: calls.reduce((a, x) => a + x.totalTokens, 0), ...(note === undefined ? {} : { note }) });
   const planPrompt = questionPlanPrompt(material);
   const planChannel = new DashscopeReviewChannel(client, planPrompt, { jsonMode: true, enableThinking: false, rawSink: (a, raw) => evidence.writeText(`skill/raw/plan.attempt${a}.txt`, raw, false) });
-  const planRaw = await planChannel.call(1, null);
-  const plan = parseJsonOrThrow(planRaw, 'QuestionPlan') as QuestionPlan;
-  turns.push({ turn: turns.length + 1, step: '问题计划', promptChars: planPrompt.length, latencyMs: planChannel.calls[0]?.latencyMs ?? 0, tokens: planChannel.calls[0]?.totalTokens ?? 0 });
-
-  // 用户提前结束 → 只完成前 2 题（顺带验证「提前结束报告显示实际完成范围」）
-  const planQuestions = opts.endEarly === false ? plan.questions : plan.questions.slice(0, 2);
-  const questions: SkillRunResult['questions'] = [];
-
-  for (const [i, q] of planQuestions.entries()) {
-    const firstAnswer = i === 0 ? c.firstAnswer : `${c.firstAnswer}（第二题作答：我在这个项目里主要跟进数据侧的口径核对与复盘。）`;
-
-    // 2. 追问判定（真实调用，产出候选；是否发出由应用层裁决，这里遵循契约：有缺口才问）
-    const fuPrompt = followupDecisionPrompt({ questionText: q.text, answerText: firstAnswer, followupCount: 0, remainingFollowups: 2 });
-    const fuChannel = new DashscopeReviewChannel(client, fuPrompt, { jsonMode: true, enableThinking: false, rawSink: (a, raw) => evidence.writeText(`skill/raw/${q.id}-followup.attempt${a}.txt`, raw, false) });
-    const fuRaw = await fuChannel.call(1, null);
-    const fu = parseJsonOrThrow(fuRaw, 'FollowupDecision') as { need: boolean; question: string | null; reason: string; gap: string };
-    turns.push({ turn: turns.length + 1, step: `追问判定 ${q.id}`, promptChars: fuPrompt.length, latencyMs: fuChannel.calls[0]?.latencyMs ?? 0, tokens: fuChannel.calls[0]?.totalTokens ?? 0, note: fu.need ? 'need=true' : 'need=false' });
-    // 每题最多 2 次追问；这里按契约「没有值得追问的缺口就不追问」，只处理 need=true 的一轮
-    // 追问作答：与具体案例无关的「口径补充」，避免伪造与题目无关的事实（合成证据要自洽）。
-    const followupAnswer = fu.need
-      ? '补充一下口径：这个数字是当期全量数据的统计结果，样本就是这段时间内进入该流程的全部用户，没有额外做显著性检验。'
-      : null;
-
-    // 3. 逐题反馈
-    const basis = followupAnswer ? `${firstAnswer}\n${followupAnswer}` : firstAnswer;
-    const rev = await reviewAnswer(client, evidence, { tag: `${q.id}-first`, questionText: q.text, answerText: basis, turnIds: [`t${i * 2 + 1}`] });
-    turns.push({ turn: turns.length + 1, step: `五维反馈 ${q.id}`, promptChars: reviewPrompt({ questionText: q.text, answerText: basis, turnIds: ['t1'], textVersion: 'raw', isRewrite: false }).length, latencyMs: rev.calls.reduce((a, x) => a + x.latencyMs, 0), tokens: rev.calls.reduce((a, x) => a + x.totalTokens, 0), note: `${rev.kind}／尝试 ${rev.attempts}` });
-
-    // 4. 重答（每题最多一次；重答轮不追问）
-    let rewrite: SkillRunResult['questions'][number]['rewrite'] = null;
-    if (i === 0) {
-      const rewriteAnswer = `${basis}另外我补充一个可核对的边界：这些数字都是当期结束当天的口径，没有算后续长尾，所以是个保守说法。`;
-      const rw = await reviewAnswer(client, evidence, { tag: `${q.id}-rewrite`, questionText: q.text, answerText: rewriteAnswer, turnIds: ['t3'], isRewrite: true, firstAnswerText: basis });
-      turns.push({ turn: turns.length + 1, step: `重答对比评审 ${q.id}`, promptChars: 0, latencyMs: rw.calls.reduce((a, x) => a + x.latencyMs, 0), tokens: rw.calls.reduce((a, x) => a + x.totalTokens, 0) });
-      const added = rw.feedback.factGaps.filter((g) => !rev.feedback.factGaps.includes(g));
-      rewrite = {
-        answer: rewriteAnswer,
-        feedback: rw.feedback,
-        delta: {
-          added: ['补充了数据口径边界（当期结束当天口径，未含长尾）'],
-          corrected: ['把结果数字明确为保守说法'],
-          stillMissing: added.length > 0 ? added : rw.feedback.nextFacts,
-        },
-      };
-    }
-
-    questions.push({
-      questionId: q.id,
-      questionText: q.text,
-      firstAnswer,
-      followup: fu.need ? fu : { need: false, question: null, reason: fu.reason, gap: fu.gap },
-      followupAnswer,
-      feedback: rev.feedback,
-      feedbackKind: rev.kind,
-      attempts: rev.attempts,
-      quoteCheck: rev.quoteCheck,
-      rewrite,
-    });
+  let plan: QuestionPlan | null = null;
+  let remediation: string | null = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const raw = await planChannel.call(attempt, remediation);
+    const parsed = extractJson(raw);
+    const result = parsed.ok ? validateQuestionPlan(parsed.value, material) : { ok: false, errors: [parsed.error] };
+    if (result.ok) { plan = parsed.ok ? parsed.value as QuestionPlan : null; break; }
+    remediation = result.errors.join('；');
   }
-
-  // 5. 全场报告（真实调用）
-  const completed = questions.length;
-  const summaryText = questions
-    .map((q) => `${q.questionId}：${Object.entries(q.feedback.dimensions).map(([k, v]) => `${k}=${v.level}`).join('、')}；缺口=${q.feedback.factGaps.join('；') || '无'}`)
-    .join('\n');
-  const rpPrompt = reportPrompt({ completedQuestions: completed, endedEarly: true, perQuestionSummary: summaryText });
-  const rpChannel = new DashscopeReviewChannel(client, rpPrompt, { jsonMode: true, enableThinking: false, rawSink: (a, raw) => evidence.writeText(`skill/raw/report.attempt${a}.txt`, raw, false) });
-  const rpRaw = await rpChannel.call(1, null);
-  const reportJson = parseJsonOrThrow(rpRaw, 'SessionReport') as Record<string, unknown>;
-  turns.push({ turn: turns.length + 1, step: '全场报告', promptChars: rpPrompt.length, latencyMs: rpChannel.calls[0]?.latencyMs ?? 0, tokens: rpChannel.calls[0]?.totalTokens ?? 0 });
-
-  const markdown = renderReport({ material, caseId: c.id, questions, reportJson, endedEarly: true, completed });
-  const outDir = path.join(REPO_ROOT, 'data', 't3');
-  mkdirSync(outDir, { recursive: true });
-  const reportPath = path.join(outDir, '面试训练报告-sample.md');
+  if (!plan) throw new Error(`QuestionPlan 计划或来源无效：${remediation}`);
+  log('问题计划', planPrompt, planChannel.calls);
+  fire('MATERIALS_CONFIRMED');
+  const questions: SkillRunResult['questions'] = [];
+  const active = opts.endEarly === true ? plan.questions.slice(0, 2) : plan.questions;
+  let nextTurn = 0;
+  for (const q of active) {
+    fire('QUESTION_SENT');
+    fire('ANSWER_START');
+    const context: InterviewContext = { kind: q.kind, jd: material.jd, stage: material.stage as Stage, targetRole: material.targetRole, intent: q.intent };
+    // 明确的合成作答：复用既有样例事实，不添加未核实数字或材料之外的成就。
+    const firstAnswer = q.kind === 'introduction' ? `我希望应聘${material.targetRole}。我用一段相关经历说明自己的动作和收获：${c.firstAnswer}` : c.firstAnswer;
+    const answerTurnId = `t${++nextTurn}`;
+    let basis = firstAnswer;
+    let lastFollowup: SkillRunResult['questions'][number]['followup'] = null;
+    const followupAnswers: string[] = [];
+    const followups: SkillRunResult['questions'][number]['followups'] = [];
+    for (let count = 0; count < 2; count++) {
+      const fuPrompt = followupDecisionPrompt({ questionText: q.text, answerText: basis, followupCount: count, remainingFollowups: 2 - count, context });
+      const channel = new DashscopeReviewChannel(client, fuPrompt, { jsonMode: true, enableThinking: false, rawSink: (a, raw) => evidence.writeText(`skill/raw/${q.id}-followup${count + 1}.attempt${a}.txt`, raw, false) });
+      const fu: NonNullable<SkillRunResult['questions'][number]['followup']> = parseJsonOrThrow(await channel.call(1, null), 'FollowupDecision') as NonNullable<SkillRunResult['questions'][number]['followup']>;
+      if (typeof fu.need !== 'boolean' || typeof fu.reason !== 'string' || typeof fu.gap !== 'string' || (fu.need ? typeof fu.question !== 'string' || fu.question.trim().length === 0 || fu.question.length > 40 : fu.question !== null)) throw new Error('追问候选未通过轻量契约');
+      lastFollowup = fu;
+      log(`追问判定 ${q.id}.${count + 1}`, fuPrompt, channel.calls);
+      if (!fu.need) { fire('NO_FOLLOWUP'); break; }
+      fire('FOLLOWUP_NEEDED');
+      const answer = '这个事实我暂时没有更多可核对的信息，不能补造数字或个人动作。';
+      followupAnswers.push(answer);
+      followups.push({ question: fu.question!, answer, reason: fu.reason, gap: fu.gap });
+      basis += `\n${answer}`;
+      fire('FOLLOWUP_DONE');
+    }
+    // 同一合成回答文本作为一个确认轮次；追问追加到该轮的冻结文本，引用不会跨虚构轮次。
+    fire('ANSWER_DONE');
+    const reviewArgs = { tag: `${q.id}-first`, questionId: q.id, context, questionText: q.text, answerText: basis, turnIds: [answerTurnId] };
+    const rev = await reviewAnswer(client, evidence, reviewArgs);
+    fire('REVIEW_DONE', rev.kind === 'ok');
+    log(`五维反馈 ${q.id}`, reviewPrompt({ ...reviewArgs, textVersion: 'raw', isRewrite: false }), rev.calls, rev.kind);
+    let rewrite: SkillRunResult['questions'][number]['rewrite'] = null;
+    if (q.kind === 'introduction') {
+      fire('REWRITE_START');
+      const addition = '以上是我能说明的相关经历；没有在这段回答里交代的事实，仍需要进一步核实。';
+      const answer = `${basis}\n${addition}`;
+      fire('REWRITE_DONE');
+      const rewriteArgs = { tag: `${q.id}-rewrite`, questionId: q.id, context, questionText: q.text, answerText: answer, turnIds: [`t${++nextTurn}`], isRewrite: true, firstAnswerText: basis };
+      const rw = await reviewAnswer(client, evidence, rewriteArgs);
+      fire('REVIEW_DONE', rw.kind === 'ok');
+      rewrite = { answer, feedback: rw.feedback, feedbackKind: rw.kind, quoteCheck: rw.quoteCheck, delta: { added: [addition], corrected: [], stillMissing: rw.feedback.factGaps } };
+      log(`重答对比评审 ${q.id}`, reviewPrompt({ ...rewriteArgs, textVersion: 'raw' }), rw.calls, rw.kind);
+    }
+    questions.push({ questionId: q.id, kind: q.kind, questionText: q.text, firstAnswer, followup: lastFollowup, followups, followupAnswer: followupAnswers.length ? followupAnswers.join('\n') : null, feedback: rev.feedback, feedbackKind: rev.kind, attempts: rev.attempts, quoteCheck: rev.quoteCheck, rewrite });
+    if (opts.endEarly === true && questions.length === active.length) fire('END_SESSION');
+    else fire('SKIP_REWRITE');
+  }
+  const perQuestion: SessionReport['perQuestion'] = plan.questions.map((q) => {
+    const result = questions.find((x) => x.questionId === q.id);
+    const final = result?.rewrite ? { feedback: result.rewrite.feedback, kind: result.rewrite.feedbackKind } : result ? { feedback: result.feedback, kind: result.feedbackKind } : null;
+    const feedback = final?.kind === 'ok' ? final.feedback : null;
+    return { questionId: q.id, kind: q.kind, status: feedback ? 'reviewed' : result ? 'skipped' : 'not_reached', feedback, rewriteDelta: feedback ? result?.rewrite?.delta ?? null : null };
+  });
+  const completed = perQuestion.filter((q) => q.status === 'reviewed').length;
+  if (completed !== machine.snapshot().completed) throw new Error('文字入口报告与状态机完成数不一致');
+  const endedEarly = opts.endEarly === true || completed < 4;
+  const reviewed = perQuestion.filter((q) => q.feedback !== null);
+  const summaryText = JSON.stringify(reviewed);
+  const sourceFeedbacks = reviewed.map((q) => q.feedback!);
+  let priorityPractice = ['本次未完成任何题目，无有效反馈'];
+  let source: SkillRunResult['report']['source'] = 'fixed_zero_completion';
+  if (completed > 0) {
+    const rpPrompt = reportPrompt({ completedQuestions: completed, endedEarly, perQuestionSummary: summaryText, totalQuestions: 4 });
+    const channel = new DashscopeReviewChannel(client, rpPrompt, { jsonMode: true, enableThinking: false, rawSink: (a, raw) => evidence.writeText(`skill/raw/report.attempt${a}.txt`, raw, false) });
+    let candidates: unknown;
+    try { candidates = (parseJsonOrThrow(await channel.call(1, null), 'SessionReport') as { priorityPractice?: unknown }).priorityPractice; } catch { candidates = null; }
+    log('全场报告', rpPrompt, channel.calls);
+    const picked = Array.isArray(candidates) ? candidates.filter((s): s is string => typeof s === 'string' && s.trim().length >= 4 && hasFeedbackSource(s.trim(), sourceFeedbacks)).map((s) => s.trim()).slice(0, 2) : [];
+    if (picked.length) { priorityPractice = picked; source = 'model_priority_practice'; }
+    else { priorityPractice = [...new Set(reviewed.flatMap((q) => [q.feedback!.topImprovement, ...q.feedback!.factGaps]).filter((s) => s.length >= 4))].slice(0, 2); source = 'derived_from_validated_feedback'; }
+    if (!priorityPractice.length) throw new Error('已评审反馈无法派生优先练习点');
+  }
+  const report: SessionReport = { contractVersion: CONTRACT_VERSION, sessionStatus: endedEarly ? 'ended_early' : 'completed', completedQuestions: completed, totalQuestions: 4, perQuestion, priorityPractice, versions: { ruleVersion: RULES_VERSION, realtimeModel: null, textModel: client.model } };
+  const validation = validateContract('session-report', report);
+  if (!validation.ok) throw new Error(`文字入口报告未通过契约：${validation.errors.join('；')}`);
+  fire('REPORT_GENERATED');
+  const markdown = renderReport({ material, caseId: c.id, questions, reportJson: report as unknown as Record<string, unknown>, endedEarly, completed });
+  mkdirSync(evidence.dataDir, { recursive: true });
+  const reportPath = path.join(evidence.dataDir, '面试训练报告-sample.md');
   assertNoSecret(markdown);
   writeFileSync(reportPath, markdown);
-
-  return {
-    caseId: c.id,
-    material,
-    plan,
-    planCalls: planChannel.calls,
-    questions,
-    report: { markdown, path: path.relative(REPO_ROOT, reportPath), raw: reportJson },
-    endedEarly: true,
-    turns,
-    versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, prompts: PROMPT_VERSION, rulesDigest: rulesDigest() },
-  };
+  return { caseId: c.id, material, plan, planCalls: planChannel.calls, questions, report: { markdown, path: path.relative(REPO_ROOT, reportPath), raw: report, source }, endedEarly, turns, versions: { contract: CONTRACT_VERSION, rules: RULES_VERSION, prompts: PROMPT_VERSION, rulesDigest: rulesDigest() } };
 }
 
-// ---------------- 简版 Prompt：粘贴进聊天宿主的等价实测 ----------------
+// ---------------- 简版 Prompt：应用辅助文本试验，不替代普通聊天或原生宿主验收 ----------------
 
 export interface PromptTurn {
   role: 'user' | 'assistant';
@@ -304,105 +338,89 @@ export interface PromptTurn {
 
 export interface PromptRunResult {
   host: string;
+  verificationMode: 'application_assisted';
   transcript: PromptTurn[];
-  /** 一题闭环是否走完：要材料 → 确认 → 出题 → 作答 → 反馈。 */
-  closedLoop: { askedMaterials: boolean; askedQuestion: boolean; gaveFeedback: boolean; feedbackHasAllFiveDims: boolean; quotedVerbatim: boolean };
-  /**
-   * 逐维引用自检（R1：按契约口径，不是子串包含）。
-   * 区间由 `locateQuote` **权威回写**——模型自报的 start/end 一律不信、不记。
-   */
-  quoteChecks: Array<{
-    dim: string;
-    level: string | null;
-    /** locateQuote 是否定位成功（这才是「逐字」的判据）。 */
-    located: boolean;
-    text: string;
-    /** 定位器算出的区间；未定位到时为 null。模型自报区间不采信。 */
-    start: number | null;
-    end: number | null;
-    matchType: string | null;
-  }>;
+  /** 应用辅助闭环：内容与身份严格校验，只允许应用权威重定位引用坐标。 */
+  closedLoop: { askedMaterials: boolean; askedQuestion: boolean; gaveFeedback: boolean; feedbackHasAllFiveDims: boolean; quotedVerbatim: boolean; introductionReviewed: boolean; experienceReviewed: boolean; reportValid: boolean };
+  /** 不修坐标时的原始输出判定，不能用应用闭环替代普通聊天宿主通过。 */
+  rawClosedLoop: PromptRunResult['closedLoop'];
+  questions?: Array<{ questionId: string; kind: QuestionKind; asked: boolean; feedbackValid: boolean; rawFeedbackValid: boolean; feedback: Feedback | null; validationErrors: string[]; rawValidationErrors: string[]; answerText: string; rawFeedback: string }>;
+  quoteChecks: PromptQuoteCheck[];
+  report: { raw: string; valid: boolean; validationErrors: string[] };
   versions: { rules: string; contract: string; prompts: string };
 }
 
-const DIMS = ['relevance', 'specificity', 'contribution', 'resultsReflection', 'structure'];
+export function promptRunPassed(result: Pick<PromptRunResult, 'closedLoop'>): boolean {
+  return ['askedMaterials', 'askedQuestion', 'gaveFeedback', 'feedbackHasAllFiveDims', 'quotedVerbatim', 'introductionReviewed', 'experienceReviewed', 'reportValid'].every((key) => result.closedLoop[key as keyof PromptRunResult['closedLoop']] === true);
+}
 
 export async function runPromptFlow(client: DashscopeTextClient, evidence: EvidenceWriter, opts: { caseId?: string } = {}): Promise<PromptRunResult> {
-  const all = loadCases();
-  const c = all.find((x) => x.id === (opts.caseId ?? 'C01'))!;
+  const c = loadCases().find((x) => x.id === (opts.caseId ?? 'C13'));
+  if (!c) throw new Error(`找不到案例 ${opts.caseId ?? 'C13'}`);
+  if (c.stage !== '应届' && c.stage !== '社招') throw new Error('案例阶段无效');
   const pasted = simplePromptMarkdown();
   const transcript: PromptTurn[] = [];
-
-  // 「粘贴」这一步：整段 Prompt 作为第一条 user 消息（自包含，不喂任何仓库内容）。
-  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-    { role: 'user', content: pasted },
-  ];
-  // 作答要能对上模型**实际**问出的 Q1：它可能问主项目，也可能问实习那段，
-  // 所以作答同时覆盖两边（材料里两段都有）。实测第一次没覆盖时，模型正确地
-  // 指出「你答的是 Q2，我在问 Q1」并要求重答——那是期望行为，但会让闭环跑不完。
-  const answerText = `${c.firstAnswer}\n（另外补充实习那段：我在教育公司实习时负责公众号排版和选题会记录，每周整理一份选题会纪要，把结论拆成待办选题清单交给编辑跟进。）`;
-  const scripted = [
-    `我的目标岗位 JD：${c.materials.jd}\n\n我的个人经历：${c.materials.experience}\n\n求职阶段：${c.stage}`,
-    '确认，材料没问题，请开始提问。',
-    answerText,
-  ];
-
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+  const persistPartial = () => evidence.writeJson('prompt/transcript.json', { host: 'dashscope-chat-completions（应用辅助，多轮 messages）', verificationMode: 'application_assisted', phase: 'in_progress', caseId: c.id, pastedChars: pasted.length, versions: { rules: RULES_VERSION, contract: CONTRACT_VERSION, prompts: PROMPT_VERSION }, transcript });
   const ask = async (userText: string): Promise<string> => {
     messages.push({ role: 'user', content: userText });
     transcript.push({ role: 'user', content: userText });
-    const res = await client.completeChat(messages, { temperature: 0.2, maxTokens: 2048, enableThinking: false });
+    persistPartial();
+    let res: Awaited<ReturnType<DashscopeTextClient['completeChat']>>;
+    try { res = await client.completeChat(messages, { temperature: 0.2, maxTokens: 4096, enableThinking: false }); }
+    catch (error) {
+      evidence.writeJson('prompt/failure.json', { code: 'model_request_failed', completedCalls: transcript.filter((t) => t.role === 'assistant').length, note: '提供方请求中断；保留之前对话和本次待请求文本，不填充伪反馈。' });
+      throw error;
+    }
     messages.push({ role: 'assistant', content: res.text });
     transcript.push({ role: 'assistant', content: res.text, latencyMs: res.latencyMs ?? 0, tokens: res.usage?.totalTokens ?? 0 });
+    persistPartial();
     return res.text;
   };
-
-  let lastText = '';
-  for (const userText of scripted) lastText = await ask(userText);
-
-  // 安全网：如果模型还没给出五维反馈（例如它先要求补充材料），追一次；
-  // 这只补足「闭环走完」这个前提，不代替模型自己的判断。
-  if (!DIMS.every((d) => lastText.includes(d))) {
-    lastText = await ask('请现在直接给出这一题的五维反馈（relevance / specificity / contribution / resultsReflection / structure），按 Prompt 里的 JSON 结构输出。');
+  const opening = await ask(pasted);
+  const askedMaterials = /JD/.test(opening) && /经历/.test(opening);
+  await ask(`目标岗位：${c.targetRole}\n求职阶段：${c.stage}\nJD：${c.materials.jd}\n个人经历：${c.materials.experience}`);
+  let raw = await ask('确认，材料没问题。请一次输出冻结四项计划 JSON：contractVersion、questions（id、kind、text、sourceExcerpt、intent、topics）、askedTopics；q1 introduction，q2–q4 experience，不根据介绍修改后三题。只输出 JSON。');
+  let plan: QuestionPlan | null = null;
+  let planErrors: string[] = [];
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const parsed = extractJson(raw);
+    const v = parsed.ok ? validateQuestionPlan(parsed.value, c.materials) : { ok: false, errors: [parsed.error] };
+    if (v.ok) { plan = parsed.ok ? parsed.value as QuestionPlan : null; break; }
+    planErrors = [...v.errors].filter((s): s is string => typeof s === 'string');
+    if (attempt < 2) raw = await ask(`计划未通过契约或来源校验，请只修正计划并输出完整 JSON：${v.errors.join('；')}`);
   }
-
-  const assistantTexts = transcript.filter((t) => t.role === 'assistant').map((t) => t.content);
-  const askedMaterials = /JD|经历/.test(assistantTexts[0] ?? '');
-  const askedQuestion = assistantTexts.some((t) => /[？?]/.test(t));
-  const last = assistantTexts[assistantTexts.length - 1] ?? '';
-  const feedbackHasAllFiveDims = DIMS.every((d) => last.includes(d));
-  // 引用是否逐字：从最后一条里抽出 JSON 的 quote.text，回回答原文里做字符串查找。
+  if (!plan) {
+    evidence.writeJson('prompt/failure.json', { code: 'plan_invalid', errors: planErrors, attempts: 3 });
+    throw new Error('简版 Prompt 未生成可校验的四项计划，停止作答');
+  }
   const quoteChecks: PromptRunResult['quoteChecks'] = [];
-  const parsed = extractJson(last);
-  if (parsed.ok) {
-    const fb = parsed.value as { dimensions?: Record<string, { level?: string; quote?: { text?: string; start?: number; end?: number; matchType?: string } | null }> };
-    for (const [dim, d] of Object.entries(fb.dimensions ?? {})) {
-      const text = typeof d?.quote?.text === 'string' ? d.quote.text : '';
-      // R1：判据是契约口径（locateQuote），不是 `String.includes`。
-      // 区间用定位器回写；模型自报的 start/end 不采信、不记入证据。
-      const loc = text === '' ? null : locateQuote(c.firstAnswer, text);
-      quoteChecks.push({
-        dim,
-        level: d?.level ?? null,
-        located: loc?.located === true,
-        text,
-        start: loc?.located === true ? loc.start : null,
-        end: loc?.located === true ? loc.end : null,
-        matchType: loc?.located === true ? loc.matchType : null,
-      });
-    }
+  const questionResults: NonNullable<PromptRunResult['questions']> = [];
+  const validFeedbacks: Feedback[] = [];
+  for (const [i, q] of plan.questions.slice(0, 2).entries()) {
+    const context: InterviewContext = { kind: q.kind, jd: c.materials.jd, stage: c.stage, targetRole: c.targetRole, intent: q.intent };
+    // 语境仅用来判断岗位与题型，不得变成回答证据；当前环节原话单独列出。
+    const asked = await ask(`${i ? '跳过上一题重答，进入下一题。' : ''}请按已冻结计划原文提问 ${q.id}：${q.text}\n【判断语境】${JSON.stringify(context)}\n岗位和意图仅作语境；本题已确认回答为唯一事实证据。`);
+    const questionAsked = asked.includes(q.text);
+    const answer = q.kind === 'introduction' ? `我用相关经历说明自己：${c.firstAnswer}\n我的应聘方向是${c.targetRole}。` : c.firstAnswer;
+    const turnId = `t${i + 1}`;
+    const feedbackRaw = await ask(`【本题已确认回答】\n${answer}\n【回答结束】\n我回答完毕，本环节选择零追问。请按简版 Prompt 的五维 JSON 契约反馈，questionId=${q.id}，reviewBasis.turnIds=["${turnId}"]，textVersion=raw；引用只能来自上方本题回答，不引用材料或上一题。`);
+    const checked = validatePromptFeedback(feedbackRaw, { questionId: q.id, turnId, answerText: answer });
+    if (checked.feedback) validFeedbacks.push(checked.feedback);
+    quoteChecks.push(...checked.quoteChecks);
+    questionResults.push({ questionId: q.id, kind: q.kind, asked: questionAsked, feedbackValid: checked.valid, rawFeedbackValid: checked.rawValid, feedback: checked.feedback, validationErrors: checked.errors, rawValidationErrors: checked.rawErrors, answerText: answer, rawFeedback: feedbackRaw });
   }
-  const quotedVerbatim = quoteChecks.length > 0 && quoteChecks.every((q) => q.located);
-
-  evidence.writeJson('prompt/transcript.json', { host: 'dashscope-chat-completions（多轮 messages）', caseId: c.id, pastedChars: pasted.length, quoteChecks, transcript });
-  return {
-    host: 'dashscope-chat-completions',
-    transcript,
-    closedLoop: { askedMaterials, askedQuestion, gaveFeedback: last.length > 0, feedbackHasAllFiveDims, quotedVerbatim },
-    quoteChecks,
-    versions: { rules: RULES_VERSION, contract: CONTRACT_VERSION, prompts: PROMPT_VERSION },
-  };
+  const summary = plan.questions.map((q) => ({ questionId: q.id, kind: q.kind, status: validFeedbacks.some((f) => f.questionId === q.id) ? 'reviewed' : questionResults.some((r) => r.questionId === q.id) ? 'skipped' : 'not_reached', feedback: validFeedbacks.find((f) => f.questionId === q.id) ?? null, rewriteDelta: null }));
+  const reportRaw = await ask(`结束训练。请只输出本场 SessionReport JSON；contractVersion=${CONTRACT_VERSION}，sessionStatus=ended_early，completedQuestions=${validFeedbacks.length}，totalQuestions=4，perQuestion 必须按以下四项原样回填，未进入的 not_reached 不得改为 skipped。priorityPractice ${validFeedbacks.length ? '只来自其中反馈（共享至少四字连续片段）' : '固定为 ["本次未完成任何题目，无有效反馈"]'}。versions 含 ruleVersion=${RULES_VERSION}、realtimeModel=null、textModel=${client.model}。不得添加 summaryNote/versionStamp；版本说明只能在 JSON 外，当前仅输出 JSON。\n${JSON.stringify(summary)}`);
+  const reportCheck = validatePromptReport(reportRaw, { perQuestion: summary as SessionReport['perQuestion'], textModel: client.model });
+  const reportValid = reportCheck.valid;
+  const askedQuestion = questionResults.every((r) => r.asked);
+  const feedbackHasAllFiveDims = questionResults.length === 2 && questionResults.every((r) => r.feedbackValid);
+  const quotedVerbatim = feedbackHasAllFiveDims && quoteChecks.length > 0 && quoteChecks.every((q) => q.located);
+  const closedLoop = { askedMaterials, askedQuestion, gaveFeedback: validFeedbacks.length === 2, feedbackHasAllFiveDims, quotedVerbatim, introductionReviewed: questionResults.some((r) => r.kind === 'introduction' && r.feedbackValid), experienceReviewed: questionResults.some((r) => r.kind === 'experience' && r.feedbackValid), reportValid };
+  const rawFeedbackValid = questionResults.length === 2 && questionResults.every((r) => r.rawFeedbackValid);
+  const rawClosedLoop = { ...closedLoop, gaveFeedback: rawFeedbackValid, feedbackHasAllFiveDims: rawFeedbackValid, quotedVerbatim: rawFeedbackValid && quoteChecks.length > 0 && quoteChecks.every((q) => q.modelMetadataValid), introductionReviewed: questionResults.some((r) => r.kind === 'introduction' && r.rawFeedbackValid), experienceReviewed: questionResults.some((r) => r.kind === 'experience' && r.rawFeedbackValid) };
+  const report = { raw: reportRaw, valid: reportValid, validationErrors: reportCheck.errors };
+  evidence.writeJson('prompt/transcript.json', { host: 'dashscope-chat-completions（应用辅助，多轮 messages）', verificationMode: 'application_assisted', caseId: c.id, pastedChars: pasted.length, plan, questions: questionResults, closedLoop, rawClosedLoop, quoteChecks, reportRaw, report, transcript });
+  return { host: 'dashscope-chat-completions', verificationMode: 'application_assisted', transcript, closedLoop, rawClosedLoop, quoteChecks, questions: questionResults, report, versions: { rules: RULES_VERSION, contract: CONTRACT_VERSION, prompts: PROMPT_VERSION } };
 }
-
-void skillMarkdown;
-void EVIDENCE_T2_DIR;
-void readFileSync;
