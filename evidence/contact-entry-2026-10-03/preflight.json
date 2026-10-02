@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-03",
+  "sourceCommit": "68dbc224e57907ab066e3c5f1cea15716660c5e2",
+  "npmTest": {
+    "tests": 294,
+    "pass": 294,
+    "fail": 0,
+    "skipped": 0
+  },
+  "browserSmoke": {
+    "pass": true,
+    "checks": 28,
+    "paidCalls": 0,
+    "summary": "browser-smoke/summary.json"
+  },
+  "staticSha256": {
+    "index.html": "6e881fc486b2c9e9b62ceebccce147987c450dbcf1f35e3aa945f768564d7ed2",
+    "/assets/index-iG9b-LNv.js": "8db9fabee20c9f429908b537a3375d3fd4de366f0ac7b94a63fe387612173344",
+    "/assets/index-B50kyzIk.css": "0c7fc2c5f0e9a6b7f07ac8ef0324a7b5ef4a173bc362ead9c41d5dbf998c6bc3"
+  }
+}

@@ -1,0 +1,562 @@
+{
+  "ranAt": "2026-10-02T22:46:32.463Z",
+  "browserVersion": "Chrome/154.0.8037.58",
+  "scope": "正式生产构建网页；真实Chrome与fake音频设备；模型/ASR均为本地替身；真实本地HTTP/WS反代施加原生产CSP，浏览器安全检查保持开启；事件只收集在本地内存，未发往统计服务。",
+  "testDataNote": "材料和转写均为合成案例；临时场次仅为测试本地事件观察器而使用非演示标记，测试结束删除隔离临时数据，不代表真实用户或线上转化。",
+  "paidCalls": 0,
+  "realMicrophoneVerified": false,
+  "realModelVerified": false,
+  "pass": true,
+  "failure": null,
+  "failureDetails": null,
+  "modelRequests": {
+    "plan": 2,
+    "followup": 4,
+    "review": 8,
+    "rewrite_delta": 2,
+    "report": 1
+  },
+  "checks": [
+    {
+      "name": "首页展示自我介绍与三经历题",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "首页联系入口使用新标签页与安全外链",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "计划固定四环节且题型正确",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "来源编号出题只调用一次且全部回填原文",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "暂停恢复不会显示无采集的说完了",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "q1 点评引文过契约",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "降级明确显示失败且不显示占位建议或点评就绪",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "两次失败保存具体字段诊断且未计完成",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "重新评审不重录、不加轮次、不消耗重答",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "坐标漏填经应用回填一次成功且完成数只加一",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "点评后尚未下一环节也计为完成",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "q1 点评引文过契约",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "介绍重答不重复计数",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "q2 点评引文过契约",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "q2 点评引文过契约",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "q3 点评引文过契约",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "q4 点评引文过契约",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "最后点评后完成四环节",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "恢复成功后报告不再标记部分题降级",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "报告通过当前契约且四环节完成",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "报告介绍与经历计数分开",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "介绍和经历两份重答都保留",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "四个业务事件各发送一次",
+      "pass": true,
+      "detail": "[{\"name\":\"practice_requested\",\"data\":{\"schema_version\":2}},{\"name\":\"practice_started\",\"data\":{\"schema_version\":2,\"total_questions\":4}},{\"name\":\"practice_ended\",\"data\":{\"schema_version\":2,\"completed_questions\":4,\"total_questions\":4}},{\"name\":\"practice_completed\",\"data\":{\"schema_version\":2,\"completed_questions\":4,\"total_questions\":4}}]"
+    },
+    {
+      "name": "新统计为版本2、四环节口径且无业务正文",
+      "pass": true,
+      "detail": "[{\"name\":\"practice_requested\",\"data\":{\"schema_version\":2}},{\"name\":\"practice_started\",\"data\":{\"schema_version\":2,\"total_questions\":4}},{\"name\":\"practice_ended\",\"data\":{\"schema_version\":2,\"completed_questions\":4,\"total_questions\":4}},{\"name\":\"practice_completed\",\"data\":{\"schema_version\":2,\"completed_questions\":4,\"total_questions\":4}}]"
+    },
+    {
+      "name": "介绍阶段提前结束保留合法零完成报告",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "提前结束只计结束、不会计全部完成",
+      "pass": true,
+      "detail": "[{\"name\":\"practice_started\",\"data\":{\"schema_version\":2,\"total_questions\":4}},{\"name\":\"practice_ended\",\"data\":{\"schema_version\":2,\"completed_questions\":0,\"total_questions\":4}}]"
+    },
+    {
+      "name": "直接重新打开旧报告不补报转化",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "正式页面没有运行时异常",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "analytics": [
+    {
+      "name": "practice_requested",
+      "data": {
+        "schema_version": 2
+      }
+    },
+    {
+      "name": "practice_started",
+      "data": {
+        "schema_version": 2,
+        "total_questions": 4
+      }
+    },
+    {
+      "name": "practice_ended",
+      "data": {
+        "schema_version": 2,
+        "completed_questions": 4,
+        "total_questions": 4
+      }
+    },
+    {
+      "name": "practice_completed",
+      "data": {
+        "schema_version": 2,
+        "completed_questions": 4,
+        "total_questions": 4
+      }
+    }
+  ],
+  "runtimeErrors": [],
+  "browserLogs": [
+    {
+      "source": "network",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "source": "network",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "report": {
+    "contractVersion": "0.3.0",
+    "sessionStatus": "completed",
+    "completedQuestions": 4,
+    "totalQuestions": 4,
+    "perQuestion": [
+      {
+        "questionId": "q1",
+        "kind": "introduction",
+        "status": "reviewed",
+        "feedback": {
+          "contractVersion": "0.3.0",
+          "questionId": "q1",
+          "reviewBasis": {
+            "turnIds": [
+              "t3"
+            ],
+            "textVersion": "raw"
+          },
+          "dimensions": {
+            "relevance": {
+              "level": "充分清楚",
+              "quote": {
+                "text": "我是一名应届生，希望",
+                "turnId": "t3",
+                "textVersion": "raw",
+                "start": 0,
+                "end": 10,
+                "matchType": "exact"
+              },
+              "reason": "直接回应当前问题"
+            },
+            "specificity": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "容运营。我在毕业季征",
+                "turnId": "t3",
+                "textVersion": "raw",
+                "start": 12,
+                "end": 22,
+                "matchType": "exact"
+              },
+              "reason": "有动作但缺细节"
+            },
+            "contribution": {
+              "level": "证据不足",
+              "quote": {
+                "text": "先收集同学偏好，",
+                "turnId": "t3",
+                "textVersion": "raw",
+                "start": 24,
+                "end": 32,
+                "matchType": "exact"
+              },
+              "reason": "个人分工未说明"
+            },
+            "resultsReflection": {
+              "level": "无法判断",
+              "quote": null,
+              "reason": "回答里没有结果信息"
+            },
+            "structure": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "应届生，希望做内",
+                "turnId": "t3",
+                "textVersion": "raw",
+                "start": 4,
+                "end": 12,
+                "matchType": "exact"
+              },
+              "reason": "有顺序但跳跃"
+            }
+          },
+          "factGaps": [
+            "个人分工的具体动作",
+            "活动结果数据"
+          ],
+          "topImprovement": "补充你个人负责的具体动作",
+          "nextFacts": [
+            "你个人负责的具体动作",
+            "活动结果数据"
+          ],
+          "reviewVersion": "prompts@0.3.2"
+        },
+        "rewriteDelta": {
+          "added": [
+            "补充了个人分工"
+          ],
+          "corrected": [],
+          "stillMissing": [
+            "仍缺结果数据"
+          ]
+        }
+      },
+      {
+        "questionId": "q2",
+        "kind": "experience",
+        "status": "reviewed",
+        "feedback": {
+          "contractVersion": "0.3.0",
+          "questionId": "q2",
+          "reviewBasis": {
+            "turnIds": [
+              "t6"
+            ],
+            "textVersion": "raw"
+          },
+          "dimensions": {
+            "relevance": {
+              "level": "充分清楚",
+              "quote": {
+                "text": "我个人的动作是设计问",
+                "turnId": "t6",
+                "textVersion": "raw",
+                "start": 0,
+                "end": 10,
+                "matchType": "exact"
+              },
+              "reason": "直接回应当前问题"
+            },
+            "specificity": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "谈院系渠道并写两篇范",
+                "turnId": "t6",
+                "textVersion": "raw",
+                "start": 12,
+                "end": 22,
+                "matchType": "exact"
+              },
+              "reason": "有动作但缺细节"
+            },
+            "contribution": {
+              "level": "证据不足",
+              "quote": {
+                "text": "审核由其他同学承",
+                "turnId": "t6",
+                "textVersion": "raw",
+                "start": 24,
+                "end": 32,
+                "matchType": "exact"
+              },
+              "reason": "个人分工未说明"
+            },
+            "resultsReflection": {
+              "level": "无法判断",
+              "quote": null,
+              "reason": "回答里没有结果信息"
+            },
+            "structure": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "动作是设计问卷、",
+                "turnId": "t6",
+                "textVersion": "raw",
+                "start": 4,
+                "end": 12,
+                "matchType": "exact"
+              },
+              "reason": "有顺序但跳跃"
+            }
+          },
+          "factGaps": [
+            "个人分工的具体动作",
+            "活动结果数据"
+          ],
+          "topImprovement": "补充你个人负责的具体动作",
+          "nextFacts": [
+            "你个人负责的具体动作",
+            "活动结果数据"
+          ],
+          "reviewVersion": "prompts@0.3.2"
+        },
+        "rewriteDelta": {
+          "added": [
+            "补充了个人分工"
+          ],
+          "corrected": [],
+          "stillMissing": [
+            "仍缺结果数据"
+          ]
+        }
+      },
+      {
+        "questionId": "q3",
+        "kind": "experience",
+        "status": "reviewed",
+        "feedback": {
+          "contractVersion": "0.3.0",
+          "questionId": "q3",
+          "reviewBasis": {
+            "turnIds": [
+              "t8"
+            ],
+            "textVersion": "raw"
+          },
+          "dimensions": {
+            "relevance": {
+              "level": "充分清楚",
+              "quote": {
+                "text": "渠道扩散的困难是宣传",
+                "turnId": "t8",
+                "textVersion": "raw",
+                "start": 0,
+                "end": 10,
+                "matchType": "exact"
+              },
+              "reason": "直接回应当前问题"
+            },
+            "specificity": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "只发一次通知。我先了",
+                "turnId": "t8",
+                "textVersion": "raw",
+                "start": 12,
+                "end": 22,
+                "matchType": "exact"
+              },
+              "reason": "有动作但缺细节"
+            },
+            "contribution": {
+              "level": "证据不足",
+              "quote": {
+                "text": "们的顾虑，再为各",
+                "turnId": "t8",
+                "textVersion": "raw",
+                "start": 24,
+                "end": 32,
+                "matchType": "exact"
+              },
+              "reason": "个人分工未说明"
+            },
+            "resultsReflection": {
+              "level": "无法判断",
+              "quote": null,
+              "reason": "回答里没有结果信息"
+            },
+            "structure": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "的困难是宣传委员",
+                "turnId": "t8",
+                "textVersion": "raw",
+                "start": 4,
+                "end": 12,
+                "matchType": "exact"
+              },
+              "reason": "有顺序但跳跃"
+            }
+          },
+          "factGaps": [
+            "个人分工的具体动作",
+            "活动结果数据"
+          ],
+          "topImprovement": "补充你个人负责的具体动作",
+          "nextFacts": [
+            "你个人负责的具体动作",
+            "活动结果数据"
+          ],
+          "reviewVersion": "prompts@0.3.2"
+        },
+        "rewriteDelta": null
+      },
+      {
+        "questionId": "q4",
+        "kind": "experience",
+        "status": "reviewed",
+        "feedback": {
+          "contractVersion": "0.3.0",
+          "questionId": "q4",
+          "reviewBasis": {
+            "turnIds": [
+              "t10"
+            ],
+            "textVersion": "raw"
+          },
+          "dimensions": {
+            "relevance": {
+              "level": "充分清楚",
+              "quote": {
+                "text": "我用有效投稿数与参与",
+                "turnId": "t10",
+                "textVersion": "raw",
+                "start": 0,
+                "end": 10,
+                "matchType": "exact"
+              },
+              "reason": "直接回应当前问题"
+            },
+            "specificity": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "数观察结果，先统一投",
+                "turnId": "t10",
+                "textVersion": "raw",
+                "start": 12,
+                "end": 22,
+                "matchType": "exact"
+              },
+              "reason": "有动作但缺细节"
+            },
+            "contribution": {
+              "level": "证据不足",
+              "quote": {
+                "text": "准和统计时点。复",
+                "turnId": "t10",
+                "textVersion": "raw",
+                "start": 24,
+                "end": 32,
+                "matchType": "exact"
+              },
+              "reason": "个人分工未说明"
+            },
+            "resultsReflection": {
+              "level": "无法判断",
+              "quote": null,
+              "reason": "回答里没有结果信息"
+            },
+            "structure": {
+              "level": "部分清楚",
+              "quote": {
+                "text": "投稿数与参与院系",
+                "turnId": "t10",
+                "textVersion": "raw",
+                "start": 4,
+                "end": 12,
+                "matchType": "exact"
+              },
+              "reason": "有顺序但跳跃"
+            }
+          },
+          "factGaps": [
+            "个人分工的具体动作",
+            "活动结果数据"
+          ],
+          "topImprovement": "补充你个人负责的具体动作",
+          "nextFacts": [
+            "你个人负责的具体动作",
+            "活动结果数据"
+          ],
+          "reviewVersion": "prompts@0.3.2"
+        },
+        "rewriteDelta": null
+      }
+    ],
+    "priorityPractice": [
+      "个人分工的具体动作",
+      "补充你个人负责的具体动作"
+    ],
+    "versions": {
+      "ruleVersion": "rules@0.3.0",
+      "realtimeModel": "qwen3.8-omni-flash-realtime",
+      "textModel": "scripted-text"
+    }
+  }
+}

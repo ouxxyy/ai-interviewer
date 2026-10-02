@@ -1,0 +1,26 @@
+{
+  "checks": [
+    {
+      "url": "https://interview.redboook.cn/index.html",
+      "status": 200,
+      "bytes": 784,
+      "sha256": "6e881fc486b2c9e9b62ceebccce147987c450dbcf1f35e3aa945f768564d7ed2",
+      "matchesLocal": true
+    },
+    {
+      "url": "https://interview.redboook.cn/assets/index-iG9b-LNv.js",
+      "status": 200,
+      "bytes": 408793,
+      "sha256": "8db9fabee20c9f429908b537a3375d3fd4de366f0ac7b94a63fe387612173344",
+      "matchesLocal": true
+    },
+    {
+      "url": "https://interview.redboook.cn/assets/index-B50kyzIk.css",
+      "status": 200,
+      "bytes": 41375,
+      "sha256": "0c7fc2c5f0e9a6b7f07ac8ef0324a7b5ef4a173bc362ead9c41d5dbf998c6bc3",
+      "matchesLocal": true
+    }
+  ],
+  "pass": true
+}

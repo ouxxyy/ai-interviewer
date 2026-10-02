@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-03",
+  "sourceCommit": "68dbc224e57907ab066e3c5f1cea15716660c5e2",
+  "previousProductionCommit": "bec191741464654499bba7bd679e3def744a880d",
+  "method": "Tabbit computer use / 宝塔页面终端",
+  "deploymentMarker": "CONTACT_DEPLOY_OK",
+  "backup": "/www/ai-interviewer/backups/contact-20261003-68dbc22",
+  "mainPidBefore": 3693732,
+  "mainPidAfter": 3693732,
+  "paidCalls": 0,
+  "productionContact": {
+    "url": "https://interview.redboook.cn/",
+    "href": "https://albertou.redboook.cn/",
+    "target": "_blank",
+    "rel": "noopener noreferrer",
+    "popupUrl": "https://albertou.redboook.cn/",
+    "popupTitle": "欧八同学｜AI 转型与跳槽涨薪咨询",
+    "openerIsNull": true,
+    "originalPageRetained": true,
+    "runtimeErrors": []
+  },
+  "mobile": {
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "text": "联系我",
+    "fontSize": "13px",
+    "bounds": {
+      "x": 292,
+      "y": 60,
+      "width": 80,
+      "height": 44
+    },
+    "runtimeErrors": []
+  }
+}
