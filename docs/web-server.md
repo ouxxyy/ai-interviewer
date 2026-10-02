@@ -2,7 +2,7 @@
 
 当前交付包含 `web-client/` 的 React + Vite 正式产品端，以及仅绑 `127.0.0.1` 的本地 Node 服务、实时语音代理、状态机、材料解析、SQLite 历史与录音、显式删除、两个保存开关、可切换的开麦方式和常驻隐私说明。首页不再弹首次告知；用户点击“开始这一场”时随建会话请求确认当前告知版本，完整内容始终可从“隐私说明”查看。`/harness` 仍保留为真实 Chrome + 真实模型证据驱动器，不是产品界面。
 
-2026-10-02：本地升级为自我介绍＋三道经历题，contract/rules/prompts@0.3.0。生产前端的埋点与同源麦克风修复已合回构建源；本轮尚未发布生产。来源见 `docs/production-source-sync.md`，新版本验收与未验证项见 `docs/upgrade-v0.3-acceptance.md`。历史 `docs/web-acceptance.md` 仍对应旧版真实模型记录，不据此宣称四环节实调通过。
+2026-10-02：已升级并发布自我介绍＋三道经历题，contract@0.3.0、rules@0.3.0、prompts@0.3.2、web-plan@0.3.3。生产前端的埋点与同源麦克风修复已合回构建源。当前发布验证见 `docs/production-release-v0.3.md`；完整真实模型语音与质量标定未验证。来源见 `docs/production-source-sync.md`，新版本验收与未验证项见 `docs/upgrade-v0.3-acceptance.md`。历史 `docs/web-acceptance.md` 仍对应旧版真实模型记录，不据此宣称四环节实调通过。
 
 ---
 

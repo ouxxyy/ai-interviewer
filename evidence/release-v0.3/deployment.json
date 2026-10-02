@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-02",
+  "featureCommit": "32d984115cc3dd6c7791271083ca0753c9a4aa55",
+  "method": "Tabbit computer use; 宝塔页面终端",
+  "previousServerCommit": "e1959843f9c6c224d9a50fb36a73849c8b92dc19",
+  "backup": "/www/ai-interviewer/backups/release-20261002-v03-32d9841",
+  "dataBackupBytes": 1487995,
+  "dataBackupMode": "600",
+  "backupDirectoryMode": "700",
+  "configChecks": "systemd unit and Nginx sha256 unchanged",
+  "masterKeyCheck": "sha256 unchanged; no value logged",
+  "service": {
+    "active": true,
+    "user": "ai-interviewer",
+    "binding": "127.0.0.1:8918"
+  },
+  "versions": {
+    "contract": "0.3.0",
+    "rules": "rules@0.3.0",
+    "webPlan": "web-plan@0.3.3",
+    "disclosure": "disclosure@public-2",
+    "rulesDigest": "705810975eedae29edbc9bb6006e5d0c43588c4e87abb69a4c79dcae4334a7a8"
+  },
+  "models": {
+    "text": "qwen3.8-flash",
+    "realtime": "qwen3.8-omni-flash-realtime",
+    "voice": "Maia"
+  },
+  "secureContext": true,
+  "browserRuntimeErrors": [],
+  "existingKeyConfiguredAfterRestart": true,
+  "paidCalls": 0,
+  "realModelVerified": false,
+  "realMicrophoneVerified": false,
+  "qualityCalibrated": false
+}

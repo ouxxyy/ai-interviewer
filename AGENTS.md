@@ -21,6 +21,8 @@
 
 - **2026-10-02 评审恢复优化**：应用可计算的引用坐标先回填再过完整契约；JSON根类型检查、安全attemptLog与原回答显式重试已落地，降级不伪装正常点评。294/294 单测、27/27 正式Chrome替身检查通过，付费调用0。原失败字段不可追溯，真实模型复测仍未验证；生效状态见 `docs/review-recovery-2026-10-02.md`。
 
+- **2026-10-02 生产更新**：用户明确授权 GitHub 发布与 Tabbit computer use 宝塔部署。功能提交 `32d9841` 已进入 GitHub main 并部署；294/294 单测、27/27 正式 Chrome 替身与音频原型全部通过，生产后端版本和静态资源摘要已验证。配置、数据与凭证主密钥保留，备份位于 `/www/ai-interviewer/backups/release-20261002-v03-32d9841/`。此次付费调用0；真实整场语音、质量标定、原生宿主仍未验证，详见 `docs/production-release-v0.3.md`。此次发布授权已完成，后续费用/远程操作按新请求边界执行。
+
 ## Working rules
 
 - 动手前先读 `MULTICA_EXECUTION_PLAN.md`、`docs/reference-audit.md`、`docs/contracts.md`：参考仓库只借鉴思路，不复制代码或整段提示词；若确需复制，保留 MIT 版权与许可文本并更新审计文件。

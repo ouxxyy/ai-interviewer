@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-02",
+  "resources": [
+    {
+      "path": "/",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'"
+    },
+    {
+      "path": "/assets/index-DAa8d26T.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "sha256": "963e06230f91f656898d60b641e43f3d2c245f6f1a0458418f8c7700fd0163a6",
+      "matchesLocal": true
+    },
+    {
+      "path": "/assets/index-ZY4MimG_.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "sha256": "0ddf05afbe6a6828818e0e4bb73ef7318df2691de1d974c5f0ab588bd1edc8b5",
+      "matchesLocal": true
+    },
+    {
+      "path": "/pcm16-worklet.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "sha256": "1f384312afa10bfed1c1ab673ebeac2ac527018f02de675bc82fd0b34f9742ab",
+      "matchesLocal": true
+    },
+    {
+      "path": "/ouba-analytics.js?v=2",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "sha256": "f955bc4d47131d18694738631228614990f7dce48c9fbae147fb7fba243655c8",
+      "matchesLocal": true
+    },
+    {
+      "path": "/ouba-tracker.js",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8"
+    },
+    {
+      "path": "/api/health",
+      "status": 401,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/harness",
+      "status": 404,
+      "contentType": "application/json; charset=utf-8"
+    }
+  ],
+  "httpRedirect": {
+    "status": 301,
+    "location": "https://interview.redboook.cn/"
+  },
+  "paidCalls": 0
+}

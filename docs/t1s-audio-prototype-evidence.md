@@ -42,8 +42,9 @@
 - PASS 数据目录剩余文件为 0（服务端扫描）｜证据：[]
 - PASS 会话记录清空（sessionCount=0）｜证据：sessionCount=0
 - PASS API 会话列表为空｜证据：{"sessions":[]}
-- PASS OS 级 fs 扫描数据目录为空（无残留）｜证据：/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/prototype 下残留: []
+- PASS OS 级 fs 扫描数据目录为空（无残留）｜证据：data/prototype 下残留: []
 
 ## 结论：静态通过（浏览器音频链路与文件链路全部断言通过）
 
-总耗时 8492ms。本次数据目录：`/Users/apple/Desktop/wechatpost/每日痛点收集/AI面试官/data/prototype`；删除后 OS 级扫描为空（见最后两步断言）。
+总耗时 8492ms。本次数据目录：`data/prototype`；删除后 OS 级扫描为空（见最后两步断言）。
+公开发布时仅将本机数据目录改为相对仓库根的路径；断言、时间与原始测量数值保持。
