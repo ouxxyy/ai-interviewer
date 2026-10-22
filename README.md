@@ -1,10 +1,8 @@
-# 欧八面试陪练（AI 面试官）
+# 欧八面试陪练｜中文语音 AI 面试官与模拟面试
 
 把目标岗位 JD 和你的经历喂给它，在网页里和 AI 面试官「小八」语音过招：它按你的经历出题、逐题追问，你答完每一题都拿到五维点评——每条评语都引用你实际说过的原话，同一题还能重答对比。
 
 它只训练「经历面试」这一件事：把问题答准、把个人贡献讲清楚、看清自己的证据缺口，并通过重答改进。它不预测录用结果，也不复刻招聘方的评分体系。
-
-**当前版本 0.3 已发布：** 先练自我介绍，再练三道经历题；介绍与经历分别反馈、计数，支持逐题追问、一次重答和失败后的原回答重新评审。生产埋点与同源麦克风修复已保留。真实语音、质量标定与新宿主流程仍待验收，见 [发布记录](docs/production-release-v0.3.md)。
 
 **在线版已上线：** <https://interview.redboook.cn/> —— 已更新为自我介绍＋三道经历题。免安装，填入自己的阿里百炼 API Key 即可练习。希望历史和录音保存在本机，可选择本地运行；模型所需材料与音频仍会发送到百炼。
 
@@ -22,6 +20,18 @@ https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 
 <p align="center"><sub>左：开练前先讲清数据去哪；中：语音作答，下方虚线卡片是评审引用的你的原话；右：五维反馈与重点改进建议。截图为方案 C 实现评审素材，内容全是虚构演示数据。</sub></p>
 
+[使用示例](#quick-example) · [开始使用](#quick-start) · [English](#english-overview)
+
+<a id="quick-example"></a>
+
+## 一次使用示例
+
+**虚构输入：** JD 要求跨团队推进项目；经历材料写着「我协调采购和财务，梳理了审批流程」。先练自我介绍，再回答相关经历题。
+
+**输出：** 面试官围绕材料出题、按回答追问；逐题给出五维点评，引用你实际说过的原话，并把初答与一次重答并排展示。材料没有的数字、职责和成绩不会作为事实补进回答。
+
+[直接查看使用方式](#quick-start)。在线版需要自己的百炼 API Key，模型按 token 计费；上方视频与截图使用虚构演示数据。
+
 ## 它怎么工作
 
 1. **给材料**：粘贴 JD 与经历，或上传 `.pdf`／`.docx`／`.txt`／`.md` 附件（本地解析；确认后的文本用于云模型出题；扫描件 PDF 明确报错）。
@@ -29,6 +39,8 @@ https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 3. **逐题点评**：五维为切题、事例具体性、个人贡献、结果与反思、表达结构；需要证据的判断附可定位原话。介绍重点看定位和真实亮点，不强制完整项目复盘；材料不能替代回答证据。
 4. **重答**：同一题可以再答一次，复盘报告里初答／重答并排对比。
 5. **复盘**：分别显示介绍状态和经历题完成数，经历五维汇总排除介绍，逐题展示全部重答对比。历史与录音按保存设置记录，删除有回执。
+
+<a id="quick-start"></a>
 
 ## 快速开始
 
@@ -107,6 +119,43 @@ npm run validate -- <file.json> <contract-name>       # 独立契约校验 CLI
 ```
 
 涉及真实模型调用的验收命令（会产生 API 费用）与维护纪律见 [AGENTS.md](AGENTS.md) 和 `docs/` 下各验收记录。
+
+## 版本与验证状态
+
+**当前版本 0.3 已发布：** 先练自我介绍，再练三道经历题；介绍与经历分别反馈、计数，支持逐题追问、一次重答和失败后的原回答重新评审。生产埋点与同源麦克风修复已保留。真实语音、质量标定与新宿主流程仍待验收，见 [发布记录](docs/production-release-v0.3.md)。
+
+## 常见问题
+
+### 这是招聘考试或录用预测吗？
+
+用于练习自我介绍与经历面试，不复刻招聘方评分，也不预测录用结果。
+
+### 可以免安装使用吗？
+
+README 提供在线版入口；需要你自己的阿里百炼 API Key，费用由自己的账号承担。也可以按 [快速开始](#quick-start) 在本地运行。
+
+### 本地运行意味着语音不会发往云端吗？
+
+不是。本地模式可把历史与录音留在本机，但模型所需的文本和音频仍发送到百炼；在线模式的数据保存方式见 [隐私设计](#隐私设计)。
+
+### 当前语音效果是否已经完整验收？
+
+真实整场语音、质量标定和新宿主流程仍有未验证项。版本状态与历史记录见 [发布记录](docs/production-release-v0.3.md)。
+
+<a id="english-overview"></a>
+
+## English overview
+
+A Chinese voice AI mock interview app for practicing a self-introduction and experience questions from a job description and your work history. It asks follow-up questions, quotes answer evidence in feedback and compares one retry.
+
+See [Quick start](#quick-start). You need your own Alibaba Cloud DashScope API key and pay the provider's token charges. Local mode still sends required text and audio to the cloud model. It does not predict hiring outcomes; full-session real-voice validation and quality calibration remain incomplete.
+
+## 相关项目
+
+[欧八同学的 AI Skills 与跳槽涨薪工具合集](https://github.com/ouxxyy/ouba-classmate)，还可以接着使用：
+
+- [先对照 JD 检查简历证据](https://github.com/ouxxyy/jd-resume-match)
+- [接受 Offer 前核查公司](https://github.com/ouxxyy/sherlock-company)
 
 ## 作者
 
