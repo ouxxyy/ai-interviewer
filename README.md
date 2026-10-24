@@ -20,6 +20,9 @@ https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 
 <p align="center"><sub>左：开练前先讲清数据去哪；中：语音作答，下方虚线卡片是评审引用的你的原话；右：五维反馈与重点改进建议。截图为方案 C 实现评审素材，内容全是虚构演示数据。</sub></p>
 
+> [!TIP]
+> 🎁 扫码关注公众号「欧八同学」，免费领取 AI 案例与 Skill《大厂产品AI经验编程 200 套》→ [去扫码](#author)
+
 [使用示例](#quick-example) · [开始使用](#quick-start) · [English](#english-overview)
 
 <a id="quick-example"></a>
@@ -156,13 +159,16 @@ See [Quick start](#quick-start). You need your own Alibaba Cloud DashScope API k
 
 - [先对照 JD 检查简历证据](https://github.com/ouxxyy/jd-resume-match)
 - [接受 Offer 前核查公司](https://github.com/ouxxyy/sherlock-company)
+- 全部项目与作者主页：[github.com/ouxxyy](https://github.com/ouxxyy)
+
+<a id="author"></a>
 
 ## 作者
 
 作者全平台同名：**欧八同学**。
 
 - 个人主页 / 联系我：[albertou.redboook.cn](https://albertou.redboook.cn/)
-- 微信公众号：扫码关注
+- 微信公众号：扫码关注，免费领取 AI 案例与 Skill《大厂产品AI经验编程 200 套》，免费领取 AI 案例与 Skill《大厂产品AI经验编程 200 套》
 - 抖音：[搜索“欧八同学”](https://www.douyin.com/search/%E6%AC%A7%E5%85%AB%E5%90%8C%E5%AD%A6)
 - 小红书：[搜索“欧八同学”](https://www.xiaohongshu.com/search_result?keyword=%E6%AC%A7%E5%85%AB%E5%90%8C%E5%AD%A6)
 - X：[搜索“欧八同学”](https://x.com/search?q=%E6%AC%A7%E5%85%AB%E5%90%8C%E5%AD%A6&src=typed_query)
@@ -170,6 +176,8 @@ See [Quick start](#quick-start). You need your own Alibaba Cloud DashScope API k
 <p align="center">
   <img src="assets/wechat-qr.jpg" alt="欧八同学微信公众号二维码" width="260">
 </p>
+
+<p align="center"><sub>扫码关注「欧八同学」，免费领取《大厂产品AI经验编程 200 套》</sub></p>
 
 如果这个项目对你有用，欢迎点个 Star。遇到问题时，提交命令、报错和最小复现步骤就够了；请不要上传真实私人照片。
 
