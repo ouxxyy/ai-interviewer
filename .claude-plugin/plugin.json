@@ -1,0 +1,21 @@
+{
+  "name": "ai-interviewer",
+  "version": "1.0.0",
+  "description": "AI面试大师：中文经历面试训练，基于目标 JD 与个人经历追问、引用原话五维点评与重答对比",
+  "author": {
+    "name": "欧八同学 (ouxxyy)",
+    "url": "https://github.com/ouxxyy/ouba-classmate"
+  },
+  "repository": "https://github.com/ouxxyy/ai-interviewer",
+  "homepage": "https://github.com/ouxxyy/ouba-classmate",
+  "license": "MIT",
+  "skills": "./skills/ai-interviewer",
+  "keywords": [
+    "mock-interview",
+    "ai-interviewer",
+    "career",
+    "chinese",
+    "claude-skill",
+    "ouba-classmate"
+  ]
+}
