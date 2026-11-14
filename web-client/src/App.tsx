@@ -7,6 +7,7 @@ import { PrivacyPage } from './pages/PrivacyPage';
 import { ReportPage } from './pages/ReportPage';
 import { SessionPage } from './pages/SessionPage';
 import { ModelSettingsPage } from './pages/ModelSettingsPage';
+import { PublicResources } from './components/PublicResources';
 import type { AppErrorBody, MaterialsDraft, PreviewData, WebSettings } from './types';
 
 /** 预览只在开发构建里通过查询参数开启；生产构建里这个分支会被整体消除（P2-1）。 */
@@ -22,6 +23,7 @@ export default function App() {
   /** 错误画廊也只是开发预览页，同样走 DEV-only 动态载入，不进生产包。 */
   const [errorGallery, setErrorGallery] = useState<React.ComponentType<{ onNavigate(path: string): void }> | null>(null);
   const [settings, setSettings] = useState<WebSettings | null>(null);
+  const [modelConfigured, setModelConfigured] = useState<boolean | null>(null);
   const [bootError, setBootError] = useState<AppErrorBody | null>(null);
   const [pendingSetup, setPendingSetup] = useState<{ sid: string; materials: MaterialsDraft } | null>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -43,12 +45,13 @@ export default function App() {
   useEffect(() => {
     if (preview !== null) return;
     let active = true;
-    void api.bootstrap().then(() => api.settings())
-      .then((settingsResult) => {
+    void api.bootstrap().then(() => Promise.all([api.settings(), api.modelConfig()]))
+      .then(([settingsResult, modelConfig]) => {
         if (!active) return;
         setSettings(settingsResult.settings);
+        setModelConfigured(modelConfig.configured);
       })
-      .catch((caught) => active && setBootError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: '本地服务未连接', hint: '请先启动 npm run web:serve' }));
+      .catch((caught) => active && setBootError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: '暂时无法读取应用设置', hint: '请检查网络连接后刷新重试' }));
     return () => { active = false; };
   }, [preview]);
 
@@ -85,7 +88,7 @@ export default function App() {
 
   const previewKind = previewData?.kind ?? null;
   let content: React.ReactNode;
-  if (settings === null) {
+  if (settings === null || (preview === null && modelConfigured === null)) {
     content = bootError !== null ? <main className="standalone-state"><ErrorState error={bootError} onAction={() => location.reload()} /></main> : <main className="app-loading" aria-live="polite"><div className="loading-logo">8</div><p>正在打开欧八面试陪练…</p></main>;
   } else if (previewKind === 'session' && previewData?.snapshot != null) {
     content = <SessionPage sid={previewData.snapshot.sid} preview={previewData.snapshot} previewTranscript={previewData.transcript ?? undefined} answerStartMode={settings.answerStartMode} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
@@ -99,7 +102,9 @@ export default function App() {
   } else if (path === '/privacy') {
     content = <PrivacyPage settings={settings} onUpdate={updateSettings} onNavigate={navigate} />;
   } else if (path === '/settings') {
-    content = <ModelSettingsPage settings={settings} onUpdate={updateSettings} onNavigate={navigate} />;
+    content = <ModelSettingsPage settings={settings} setupRequired={modelConfigured === false} onConfigured={setModelConfigured} onUpdate={updateSettings} onNavigate={navigate} />;
+  } else if (preview === null && !modelConfigured && !path.startsWith('/report/')) {
+    content = <ModelSettingsPage settings={settings} setupRequired onConfigured={setModelConfigured} onUpdate={updateSettings} onNavigate={navigate} />;
   } else if (path.startsWith('/session/')) {
     const sid = decodeURIComponent(path.slice('/session/'.length));
     content = <SessionPage sid={sid} setup={pendingSetup?.sid === sid ? pendingSetup.materials : undefined} answerStartMode={settings.answerStartMode} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
@@ -109,5 +114,5 @@ export default function App() {
     content = <HomePage preview={previewKind === 'home'} settings={settings} onNavigate={navigate} onSessionReady={onSessionReady} />;
   }
 
-  return <div ref={shellRef} id="app-shell">{content}</div>;
+  return <div ref={shellRef} id="app-shell">{content}{path === '/' && preview === null ? <PublicResources /> : null}</div>;
 }

@@ -516,3 +516,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .question-feedback-body dd { margin: 5px 0 0; color: var(--cocoa-2); font-size: 11px; line-height: 1.5; }
 .compare-grid + .compare-grid { margin-top: 10px; }
 @media (max-width: 760px) { .question-feedback-body dl { grid-template-columns: 1fr; } }
+/* Public learning resources follow the existing training/settings page. */
+.public-resources { max-width: 1040px; margin: 32px auto; padding: 24px; border-top: 1px solid #c9c3b8; line-height: 1.75; overflow-wrap: anywhere; }
+.public-resources h2 { margin: 20px 0 12px; font-size: 1.25rem; }
+.public-resources p { margin: 10px 0 16px; }
+.public-resources .quotable-summary { margin: 12px 0 18px; padding: 12px 14px; background: #fbf4f1; border-left: 4px solid #964414; border-radius: 0 8px 8px 0; font-size: 0.94rem; line-height: 1.65; }
+.public-resources ul { padding-left: 22px; }
+.public-resources li { margin: 8px 0; }
+.public-resources a { color: #964414; text-decoration: underline; }
+.public-resources details { padding: 12px 0; border-bottom: 1px solid #d4d0c8; }
+.public-resources summary { font-weight: 600; cursor: pointer; }

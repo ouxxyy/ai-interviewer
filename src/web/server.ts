@@ -12,7 +12,7 @@
  */
 import http from 'node:http';
 import { isIP } from 'node:net';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, realpathSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { WebSocketServer, type WebSocket } from 'ws';
@@ -77,12 +77,14 @@ const STATIC_CONTENT_TYPES: Record<string, string> = {
   '.map': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.svg': 'image/svg+xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
   '.webp': 'image/webp',
   '.woff2': 'font/woff2',
+  '.xml': 'application/xml; charset=utf-8',
 };
 
-/** 同源托管 Vite 构建产物；无扩展名路由回退 index.html，API 与 harness 不走这里。 */
-function serveStatic(staticDir: string, pathname: string, res: http.ServerResponse): boolean {
+/** 同源托管 Vite 构建产物；子目录优先匹配其下 index.html，无扩展名路由回退根 index.html，API 与 harness 不走这里。 */
+function serveStatic(staticDir: string, pathname: string, res: http.ServerResponse, headOnly = false): boolean {
   const root = path.resolve(staticDir);
   const index = path.join(root, 'index.html');
   if (!existsSync(index)) return false;
@@ -93,20 +95,28 @@ function serveStatic(staticDir: string, pathname: string, res: http.ServerRespon
     return false;
   }
   if (decoded.includes('\0') || decoded.includes('\\')) return false;
-  const relative = decoded.replace(/^\/+/, '');
+  const relative = decoded.replace(/^\/+|\/+$/g, '');
+  if (relative.split('/').some(segment => segment.startsWith('.'))) return false;
   const candidate = path.resolve(root, relative === '' ? 'index.html' : relative);
   const relativeToRoot = path.relative(root, candidate);
   if (relativeToRoot.startsWith('..') || path.isAbsolute(relativeToRoot)) return false;
   const candidateIsFile = existsSync(candidate) && statSync(candidate).isFile();
-  const file = candidateIsFile ? candidate : path.extname(relative) === '' ? index : null;
+  const dirIndex = path.join(candidate, 'index.html');
+  const candidateHasDirIndex = !candidateIsFile && existsSync(dirIndex) && statSync(dirIndex).isFile();
+  const appRoute = relative === '' || /^(settings|history|privacy)$/.test(relative) || /^(session|report|reports)\/[^/]+$/.test(relative);
+  const file = candidateIsFile ? candidate : candidateHasDirIndex ? dirIndex : appRoute ? index : null;
   if (file === null) return false;
+  const realRelative = path.relative(realpathSync(root), realpathSync(file));
+  if (realRelative.startsWith('..') || path.isAbsolute(realRelative)) return false;
+  const contentType = STATIC_CONTENT_TYPES[path.extname(file).toLowerCase()];
+  if (contentType === undefined) return false;
   const body = readFileSync(file);
   res.writeHead(200, {
-    'Content-Type': STATIC_CONTENT_TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream',
+    'Content-Type': contentType,
     'Content-Length': String(body.length),
     'Cache-Control': path.extname(file) === '.html' ? 'no-cache' : 'public, max-age=3600',
   });
-  res.end(body);
+  res.end(headOnly ? undefined : body);
   return true;
 }
 
@@ -174,6 +184,9 @@ export function createServer(deps: ServerDeps): RunningServer {
   async function handle(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', `http://${deps.host}:${deps.port}`);
     const route = `${req.method ?? 'GET'} ${url.pathname}`;
+    if (/^\/(api|session|report|reports|settings|history|privacy|harness)(\/|$)/.test(url.pathname)) {
+      res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
     try {
       if (deps.visitors) {
         const ip = req.headers['x-real-ip'];
@@ -406,8 +419,8 @@ export function createServer(deps: ServerDeps): RunningServer {
         res.end(readFileSync(HARNESS_FILE));
         return;
       }
-      if (req.method === 'GET' && url.pathname !== '/api' && !url.pathname.startsWith('/api/') && serveStatic(deps.staticDir, url.pathname, res)) return;
-      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
+      if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname !== '/api' && !url.pathname.startsWith('/api/') && serveStatic(deps.staticDir, url.pathname, res, req.method === 'HEAD')) return;
+      if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/index.html')) {
         return json(res, 200, {
           service: 'ai-interviewer-web',
           note: '方案 C 已选定但正式产品前端尚未构建；本包交付服务端与数据层，并提供同源静态托管，验收用最小客户端在 /harness',

@@ -1,13 +1,15 @@
 # 依赖
+node_modules
 node_modules/
 .venv/
 vendor/
 
-# 构建产物
+# 构建与打包产物
 dist/
 build/
 target/
 coverage/
+release/
 
 # 本地数据（SQLite、录音、会话记录）
 data/
@@ -36,3 +38,4 @@ Thumbs.db
 
 # 任务临时下载（附件等）
 .scratch/
+.backups/

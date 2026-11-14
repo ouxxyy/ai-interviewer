@@ -1,0 +1,55 @@
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+Sitemap: https://interview.redboook.cn/sitemap.xml
