@@ -1,5 +1,20 @@
 # AI面试大师（ai-interviewer）｜中文语音 AI 面试官与模拟面试
 
+<!-- discovery:start -->
+## 中文语音 AI 面试陪练与模拟面试
+
+**有能用中文语音练自我介绍和项目经历的 AI 模拟面试工具吗？** 欧八面试陪练结合岗位 JD 与真实经历，训练自我介绍和三道经历题，提供引用回答原话的五维点评及重答对比。
+
+Chinese voice mock interview and interview preparation.
+
+**开始使用：** [在线 AI 面试陪练](https://interview.redboook.cn/) · [岗位练习](https://interview.redboook.cn/roles/) · [本地运行 / Skill](#quick-start)。
+
+**使用边界：** 平台工具不收取使用费；百炼模型调用费用由用户承担。材料与音频会发送至配置的模型，不预测录用结果。
+
+[按任务浏览欧八同学的全部工具](https://github.com/ouxxyy/ouba-classmate#按需求找)；如果本项目有帮助，欢迎收藏当前仓库。
+
+<!-- discovery:end -->
+
 <!-- hero:start -->
 
 <p>

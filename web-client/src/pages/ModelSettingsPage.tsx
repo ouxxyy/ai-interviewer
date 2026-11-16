@@ -1,3 +1,4 @@
+import content from '../public-content.json';
 import { CheckCircle, Cpu, CursorClick, Key, Microphone, ShieldCheck, Waveform } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 import { ApiError, api } from '../api';
@@ -78,7 +79,7 @@ export function ModelSettingsPage({ settings, setupRequired = false, onConfigure
       <BrandHeader onNavigate={onNavigate} />
       <main className="model-settings-main">
         <header className="list-heading">
-          <div><h1>{setupRequired ? '先配置百炼，再开始面试' : '面试与模型设置'}</h1><p>{setupRequired ? '首次使用需要填入你自己的百炼 API Key。保存后即可填写岗位和经历，开始训练。' : '设置开麦节奏，并管理题目、评审与实时语音使用的百炼 API Key。'}</p></div>
+          <div><h1>{setupRequired ? content.headline : '面试与模型设置'}</h1><p>{setupRequired ? '首次使用需要填入你自己的百炼 API Key。保存后即可填写岗位和经历，开始训练。' : '设置开麦节奏，并管理题目、评审与实时语音使用的百炼 API Key。'}</p></div>
           <span className={`config-status${config?.configured ? ' is-ready' : ''}`}><CheckCircle size={19} weight="fill" aria-hidden="true" />{config === null ? '读取中…' : config.configured ? '已配置' : '未配置'}</span>
         </header>
 

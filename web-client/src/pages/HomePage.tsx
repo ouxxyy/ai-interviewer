@@ -131,7 +131,7 @@ export function HomePage({ settings, preview = false, onNavigate, onSessionReady
         </section>
         <section className="home-content">
           <div className="home-copy">
-            <h1>别背标准答案。<br /><mark>把自己的经历讲清楚。</mark></h1>
+            <h1>中文语音 AI 模拟面试<br /><mark>把自己的经历讲清楚。</mark></h1>
             <p>给我岗位 JD 和你的真实经历，先练自我介绍，再用 3 道经历题陪你追问、重答和复盘。自我介绍建议 1–2 分钟，不强制限时；整场约 15–25 分钟，可提前结束。</p>
           </div>
           <div className="materials-sheet">
