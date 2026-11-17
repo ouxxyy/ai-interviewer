@@ -9,7 +9,7 @@ Chinese voice mock interview and interview preparation.
 
 **开始使用：** [在线 AI 面试陪练](https://interview.redboook.cn/) · [岗位练习](https://interview.redboook.cn/roles/) · [本地运行 / Skill](#quick-start)。
 
-**使用边界：** 平台工具不收取使用费；百炼模型调用费用由用户承担。材料与音频会发送至配置的模型，不预测录用结果。
+**使用边界：** 在线版默认免费，无需注册或自备 API Key；每访客每天 3 场，另有共享额度与繁忙保护。默认模型费用由本站承担；自备百炼时由自己的账号承担。材料与音频会发送至当前模型服务，不预测录用结果。
 
 [按任务浏览欧八同学的全部工具](https://github.com/ouxxyy/ouba-classmate#按需求找)；如果本项目有帮助，欢迎收藏当前仓库。
 
@@ -21,8 +21,8 @@ Chinese voice mock interview and interview preparation.
   <a href="https://github.com/ouxxyy/ouba-classmate"><img src="assets/hero-card.svg" width="100%" alt="ai-interviewer — 原话深度追问 + 结构化大厂复盘报告"></a>
 </p>
 
-**贴上简历与 JD，AI 面试官全程基于你的原话深挖项目细节，支持中文语音实时连麦与五维复盘对比（免装可用在线版，需自备阿里百炼 Key；不预测录用结果）。**  
-<sub>Real-time Chinese voice mock interviewer anchored to your resume claims, delivering 5-dimension quote-cited debriefs and retry comparisons.</sub>
+**贴上简历与 JD，AI 面试官全程基于你的原话深挖项目细节，支持中文语音练习与五维复盘对比（在线版免安装、默认免费、无需 API Key；可选自备百炼；不预测录用结果）。**
+<sub>Chinese voice mock interviewer with free hosted access, quote-cited feedback and retry comparisons.</sub>
 
 <p>
   <a href="https://github.com/ouxxyy/ouba-classmate"><img src="https://img.shields.io/badge/SUITE-ouba--classmate-1f6feb?style=for-the-badge" alt="ouba-classmate Suite"></a>
@@ -41,7 +41,7 @@ Chinese voice mock interview and interview preparation.
 
 它只训练「经历面试」这一件事：把问题答准、把个人贡献讲清楚、看清自己的证据缺口，并通过重答改进。它不预测录用结果，也不复刻招聘方的评分体系。
 
-**在线版已上线：** <https://interview.redboook.cn/> —— 已更新为自我介绍＋三道经历题。免安装，填入自己的阿里百炼 API Key 即可练习。希望历史和录音保存在本机，可选择本地运行；模型所需材料与音频仍会发送到百炼。
+**在线版可免费使用：** [打开欧八面试陪练](https://interview.redboook.cn/) —— 无需 API Key，确认使用告知后，填写 JD 与真实经历即可开始“自我介绍＋三道经历题”。免费模式支持文字与语音，语音回答在点击“说完了”后转写。可选自备百炼 Key，新建场次优先使用自己的百炼；希望历史和录音保存在本机，可选择本地运行。
 
 **44 秒宣传片：**
 
@@ -70,7 +70,7 @@ https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 
 **输出：** 面试官围绕材料出题、按回答追问；逐题给出五维点评，引用你实际说过的原话，并把初答与一次重答并排展示。材料没有的数字、职责和成绩不会作为事实补进回答。
 
-[直接查看使用方式](#quick-start)。在线版需要自己的百炼 API Key，模型按 token 计费；上方视频与截图使用虚构演示数据。
+[直接查看使用方式](#quick-start)。在线版默认免费，无需 API Key；自备百炼为可选项，其模型费用由自己的账号承担。上方视频与截图使用虚构演示数据。
 
 ## 它怎么工作
 
@@ -84,9 +84,14 @@ https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 
 ## 快速开始
 
-### 方式一：在线版（免安装）
+### 方式一：在线版（免费、免安装、无需 API Key）
 
-打开 <https://interview.redboook.cn/>，在「模型配置」页填入你自己的阿里百炼 API Key（北京地域），然后开始第一场。语音实时模型按 token 计费，费用由你自己的账号承担——服务器不内置任何部署者的 Key。
+打开 [欧八面试陪练](https://interview.redboook.cn/)，确认使用告知，填写岗位 JD、真实经历和求职阶段，即可开始练习。默认使用本站提供的 OpenAI 服务，Key 仅保存在服务端，不发送给浏览器。
+
+- **免费额度：** 每访客每天 3 场、每 IP 每天 10 场；全站每天最多 100 场、1000 次上游调用，同时最多 4 次调用，每场最多 80 次。日额度在北京时间 08:00 重置；额度不足或繁忙时会提示稍后再试，不向访客收费。
+- **语音方式：** 问题由 AI 合成朗读；免费模式在点击“说完了”后转写回答，不是边说边转写，也可使用文字回答。
+- **可选自备百炼：** 在「模型配置」中保存自己的阿里百炼 Key（北京地域）后，新建场次优先使用百炼，费用由自己的阿里云账号承担。已开始的场次保持原提供方；百炼失败不会自动改用共享 Key。
+- **费用边界：** 免费指本站在线版对访客免费，模型消耗由本站账户承担；不代表 OpenAI API、云服务器或自行部署免费，也不承诺永久或无限额度。
 
 数据按访客隔离保存在服务器（含加密后的 Key）；访客身份就是浏览器 Cookie，没有账号体系，清掉 Cookie 就找不回数据（服务器上的记录也不会因此删除）。小规模试用配置，容量边界见 [docs/deploy-baota.md](docs/deploy-baota.md)。
 
@@ -122,7 +127,7 @@ npm run web:serve        # 构建并启动本地服务
 
 **在线版：**
 
-- 访客之间数据互相隔离（公网冒烟验证过：跨访客读取／删除一律 404），但你的历史、录音与加密后的 Key 确实存在服务器上；服务器不内置部署者的 Key。
+- 访客之间数据互相隔离（公网冒烟验证过：跨访客读取／删除一律 404），但你的历史、录音与自备百炼 Key 的加密副本确实存在服务器上。本站的默认 OpenAI Key 仅存服务端；必要材料、回答与音频发送到 OpenAI，或你选择的百炼。
 - 访客身份只是浏览器 Cookie：没有登录、跨设备同步或身份找回，清 Cookie 即失联，且不会删除服务器上的记录。
 - 部署与访客隔离的公网验收记录见 [docs/public-deployment-acceptance.md](docs/public-deployment-acceptance.md)。
 
@@ -133,6 +138,8 @@ npm run web:serve        # 构建并启动本地服务
 - 开始时确认当前数据告知；“隐私说明”始终可查看本机／服务器保存、云服务处理与匿名统计边界。
 
 ## 已验证与未验证（如实标注）
+
+**2026-11-17 在线免费入口：** 生产服务器经 HTTPS 代理完成真实 OpenAI 出题、语音合成、转写、一次自我介绍有效点评和提前结束报告；测试材料与回答音频均为合成。免费入口的 22 项浏览器替身检查通过。候选版本测试为 301/304，另外 3 项因历史参考检出、证据文件及冻结 Git 基线缺失而失败；不据此宣称全量测试通过。完整四环节真人语音、手机真机与模型质量标定仍未验证。
 
 以下是此前三题版本的历史记录（真实 Chrome ＋ 真实百炼调用，证据在 `docs/` 与 `evidence/`）：材料解析 → 出题 → 语音问答 → 转写 → 逐题反馈 → 报告落库；评审引用 23/23 逐字可定位。它们不代表新增介绍与岗位语境已经实调通过。
 
@@ -172,7 +179,7 @@ npm run validate -- <file.json> <contract-name>       # 独立契约校验 CLI
 
 ### 可以免安装使用吗？
 
-README 提供在线版入口；需要你自己的阿里百炼 API Key，费用由自己的账号承担。也可以按 [快速开始](#quick-start) 在本地运行。
+可以。[在线版](https://interview.redboook.cn/) 默认免费，无需 API Key，每访客每天 3 场，另有共享额度限制；自备百炼是可选项。也可以按 [快速开始](#quick-start) 在本地运行，自行承担模型费用。
 
 ### 本地运行意味着语音不会发往云端吗？
 
@@ -188,7 +195,7 @@ README 提供在线版入口；需要你自己的阿里百炼 API Key，费用�
 
 A Chinese voice AI mock interview app for practicing a self-introduction and experience questions from a job description and your work history. It asks follow-up questions, quotes answer evidence in feedback and compares one retry.
 
-See [Quick start](#quick-start). You need your own Alibaba Cloud DashScope API key and pay the provider's token charges. Local mode still sends required text and audio to the cloud model. It does not predict hiring outcomes; full-session real-voice validation and quality calibration remain incomplete.
+See [Quick start](#quick-start). The hosted website is free to try without an API key: 3 sessions per visitor per day, subject to shared limits. The site operator pays for the default OpenAI service; optional DashScope BYOK uses your own account and billing. Free voice mode transcribes after you submit an answer. Self-hosting still requires your own model credentials and costs. Required text and audio are sent to the selected cloud model. Full-session human-microphone validation and quality calibration remain incomplete.
 
 <!-- suite-matrix:start -->
 
