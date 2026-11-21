@@ -9,7 +9,7 @@
   <link rel="canonical" href="https://interview.redboook.cn/roles/backend-dev.html">
   <link rel="stylesheet" href="/roles/styles.css">
   <script defer src="/ouba-analytics.js?v=2" data-proxy="same-origin" data-website-id="4897cfc4-d00f-47b5-b150-07db3748db54" data-domain="interview.redboook.cn" data-title="后端开发工程师社招面试：高并发与架构经历防追问实战｜欧八面试陪练"></script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"后端开发工程师模拟面试｜架构与故障复盘追问｜欧八面试陪练","description":"后端开发工程师模拟面试从真实架构调整、性能优化或故障处理经历出发，练习说明约束、备选方案、指标基线与个人决策。这里提供中文项目追问和复盘示例，帮助把技术名词讲成具体行动；可进入语音 AI 陪练重答对比，不提供算法白板自动判题。","url":"https://interview.redboook.cn/roles/backend-dev.html","author":{"@type":"Person","name":"欧八同学","url":"https://albertou.redboook.cn"},"datePublished":"2026-11-06","dateModified":"2026-11-16"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","headline":"后端开发工程师模拟面试｜架构与故障复盘追问｜欧八面试陪练","description":"后端开发工程师模拟面试从真实架构调整、性能优化或故障处理经历出发，练习说明约束、备选方案、指标基线与个人决策。这里提供中文项目追问和复盘示例，帮助把技术名词讲成具体行动；可进入语音 AI 陪练重答对比，不提供算法白板自动判题。","url":"https://interview.redboook.cn/roles/backend-dev.html","author":{"@type":"Person","name":"欧八同学","url":"https://albertou.redboook.cn"},"datePublished":"2026-11-06","dateModified":"2026-11-21"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"欧八面试陪练首页","item":"https://interview.redboook.cn/"},{"@type":"ListItem","position":2,"name":"岗位面试练习库","item":"https://interview.redboook.cn/roles/"},{"@type":"ListItem","position":3,"name":"后端开发工程师模拟面试","item":"https://interview.redboook.cn/roles/backend-dev.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"后端开发模拟面试会考手写算法白板题吗？","acceptedAnswer":{"@type":"Answer","text":"不提供算法白板自动判题。本工具聚焦社招项目经历与系统故障深挖，例如慢查询排查依据、缓存穿透/雪崩压测基线、分布式事务与 MQ 削峰取舍，以及故障复盘中你个人的定位动作。"}},{"@type":"Question","name":"技术栈写得很满但总被问“为什么不用更简单的方案”，怎么练？","acceptedAnswer":{"@type":"Answer","text":"先把你的压测基线、QPS 峰值与引入中间件的维护代价填进经历材料，在语音陪练中选择重答对比，训练自己先交代约束条件与备选方案，再讲最终架构选型。"}}]}]}</script>
   <style>
     body { background-color: #f7f5f0; color: #1F1E1C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
     .container { max-width: 820px; margin: 0 auto; }
@@ -38,8 +38,9 @@
 
     <main>
       <article class="card">
-        <div style="font-size:0.8125rem;color:#6E6B64;margin-bottom:8px;">最后更新：2026-11-16 ｜ 题型：1道自我介绍 + 3道经历连环深挖追问</div>
+        <div style="font-size:0.8125rem;color:#6E6B64;margin-bottom:8px;">最后更新：2026-11-21 ｜ 题型：1道自我介绍 + 3道经历连环深挖追问</div>
         <h1 style="font-size:1.5rem;margin:0 0 14px;color:#1F1E1C;">后端开发工程师模拟面试：架构取舍与故障复盘</h1><!-- role-intent:start --><p>后端开发工程师模拟面试从真实架构调整、性能优化或故障处理经历出发，练习说明约束、备选方案、指标基线与个人决策。这里提供中文项目追问和复盘示例，帮助把技术名词讲成具体行动；可进入语音 AI 陪练重答对比，不提供算法白板自动判题。</p><!-- role-intent:end --><p class="example-note">以下岗位要求、问题、回答及数字是教学示例，不是真实企业题目或候选人实录。请仅使用自己可核实的经历；参考表达不保证录用或涨薪。</p>
+        <!-- role-top-tip:start --><p style="font-size:0.875rem;color:#524F48;margin:0 0 12px;">开练前建议先用 <a href="https://albertou.redboook.cn/tools/resume-jd-check.html" target="_blank" rel="noopener">简历与 JD 匹配在线自检</a> 对齐证据，或阅读 <a href="https://albertou.redboook.cn/tools/company-check.html" target="_blank" rel="noopener">接 Offer 前查公司外包与加班预警</a>；也可直接进入 <a href="/">欧八面试陪练首页免费开练</a>。</p><!-- role-top-tip:end -->
         <div class="tldr"><strong>核心突破点：</strong>面试官追问高并发，问的绝不是“背诵 Redis 常见数据结构”，而是「线上真实压测指标、事故现场排查路径、容量预估与架构取舍 Trade-off」。</div>
 
         <h2 style="font-size:1.15rem;margin:20px 0 10px;">典型岗位 JD 要求与考察重点拆解</h2>
@@ -89,9 +90,19 @@
           </div>
         
 
+        <!-- role-faq:start -->
+<section class="card" aria-label="常见问答与站内延伸" style="margin-top:20px;">
+<h2 style="font-size:1.15rem;margin:0 0 12px;">常见问答与延伸练习</h2>
+<details class="faq-item" style="margin-bottom:10px;border:1px solid #ece8df;border-radius:8px;padding:10px 14px;background:#faf8f5;"><summary style="cursor:pointer;font-weight:600;color:#1F1E1C;">后端开发模拟面试会考手写算法白板题吗？</summary><p style="margin:8px 0 0;font-size:0.9rem;color:#524F48;">不提供算法白板自动判题。本工具聚焦社招项目经历与系统故障深挖，例如慢查询排查依据、缓存穿透/雪崩压测基线、分布式事务与 MQ 削峰取舍，以及故障复盘中你个人的定位动作。</p></details>
+<details class="faq-item" style="margin-bottom:10px;border:1px solid #ece8df;border-radius:8px;padding:10px 14px;background:#faf8f5;"><summary style="cursor:pointer;font-weight:600;color:#1F1E1C;">技术栈写得很满但总被问“为什么不用更简单的方案”，怎么练？</summary><p style="margin:8px 0 0;font-size:0.9rem;color:#524F48;">先把你的压测基线、QPS 峰值与引入中间件的维护代价填进经历材料，在语音陪练中选择重答对比，训练自己先交代约束条件与备选方案，再讲最终架构选型。</p></details>
+<p style="font-size:0.875rem;color:#524F48;margin:14px 0 0;"><strong>延伸参考：</strong><a href="/roles/data-analyst.html">数据分析指标追问</a> · <a href="/roles/b2b-pm.html">B 端系统流程追问</a> · <a href="/roles/ai-pm.html">AI 产品经理追问</a> · <a href="/roles/">全部岗位练习库</a> · <a href="https://albertou.redboook.cn/tools/company-check.html" target="_blank" rel="noopener">接 Offer 前查公司外包与加班预警 ↗</a></p>
+<p style="font-size:0.8125rem;color:#6E6B64;margin:8px 0 0;">页面更新：2026-11-21</p>
+</section>
+<!-- role-faq:end -->
+
         <div class="cta-box">
           <h2 style="font-size:1.2rem;margin:0 0 8px;">嘴上会说才是真功夫。立即带入你的经历练一遍！</h2>
-          <p style="font-size:0.9rem;color:#524F48;margin:0;">在欧八面试陪练首页粘贴这段 JD 与你的经历，配置自己的百炼 API Key 后，可进行中文语音面试练习。模型调用费用由你的百炼账号承担；基于通过定位校验的原话生成点评并支持当场重答。</p>
+          <p style="font-size:0.9rem;color:#524F48;margin:0;">在欧八面试陪练首页粘贴这段 JD 与你的经历即可免费开始中文语音面试练习（无需 API Key，每访客每天 3 场，受共享额度限制）；也可在设置中自备百炼 Key（模型调用费用由你的阿里云账号承担）。基于通过定位校验的原话生成五维点评并支持当场重答。</p>
           <a href="/" class="btn">前往首页开启 AI 模拟面试</a>
           <a href="https://albertou.redboook.cn/tools/resume-jd-check.html" target="_blank" rel="noopener" class="btn btn-outline">自测简历与JD匹配度 ↗</a>
         </div>

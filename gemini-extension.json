@@ -1,0 +1,5 @@
+{
+  "name": "ai-interviewer",
+  "version": "0.1.0",
+  "description": "Chinese voice & text AI mock interviewer anchored to your resume claims with quote-cited 5-dimension feedback and retry comparisons."
+}

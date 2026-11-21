@@ -28,6 +28,12 @@ Disallow: /api/
 Disallow: /harness
 Disallow: /realtime
 
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
 User-agent: Google-Extended
 Allow: /
 Disallow: /api/
@@ -41,6 +47,30 @@ Disallow: /harness
 Disallow: /realtime
 
 User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Sogou web spider
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: YisouSpider
+Allow: /
+Disallow: /api/
+Disallow: /harness
+Disallow: /realtime
+
+User-agent: Bytespider
 Allow: /
 Disallow: /api/
 Disallow: /harness

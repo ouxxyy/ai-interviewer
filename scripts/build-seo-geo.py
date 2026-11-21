@@ -8,7 +8,7 @@ from html import escape
 import json,re
 ROOT=Path(__file__).resolve().parents[1];WEB=ROOT/'web-client';PUBLIC=WEB/'public'
 DOMAIN='https://interview.redboook.cn';AUTHOR='https://albertou.redboook.cn/';DATE='2026-11-16'
-AI_BOTS=('OAI-SearchBot','ChatGPT-User','PerplexityBot','Claude-SearchBot','ClaudeBot','Google-Extended','Bingbot','Applebot-Extended')
+AI_BOTS=('OAI-SearchBot','ChatGPT-User','PerplexityBot','Claude-SearchBot','ClaudeBot','Googlebot','Google-Extended','Bingbot','Applebot-Extended','Baiduspider','Sogou web spider','YisouSpider','Bytespider')
 class Text(HTMLParser):
  def __init__(self):super().__init__();self.skip=0;self.parts=[]
  def handle_starttag(self,tag,attrs):
