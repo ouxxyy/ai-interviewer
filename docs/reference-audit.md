@@ -2,7 +2,7 @@
 
 审计日期：2026-09-26。审计人：developer（Multica 开发小队，MYW-84 T0）。
 审计对象：两个 MIT 参考仓库，按固定 commit 浅克隆到 `reference/`（该目录被 `.gitignore` 排除，只读设计参考）。
-复现命令：`bash scripts/checkout-references.sh`（经本机 Clash 代理 127.0.0.1:7890 克隆并 checkout 到固定 commit）。
+复现命令：`bash scripts/checkout-references.sh`（沿用 Git 网络配置；需要代理时设置 GIT_PROXY）。
 
 本次为对 2026-09-23 首次检查的**重新独立验证**：原浅克隆已不在本机，本次重新克隆后所有结论均基于本地文件逐行核对，非仅附 GitHub 链接。
 

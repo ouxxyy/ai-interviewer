@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 # 按固定 commit 检出两个 MIT 参考仓库到 reference/（只读设计参考，不进入产品仓库）。
 # 用法：bash scripts/checkout-references.sh
-# 依赖：git、可访问 GitHub（本机经 Clash 代理 127.0.0.1:7890）。
+# 依赖：git、可访问 GitHub（默认沿用 Git 网络配置，可选 GIT_PROXY）。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REF_DIR="$ROOT/reference"
-PROXY="${GIT_PROXY:-http://127.0.0.1:7890}"
+network_git() {
+  if [[ -n "${GIT_PROXY:-}" ]]; then
+    git -c "http.proxy=$GIT_PROXY" "$@"
+  else
+    git "$@"
+  fi
+}
 
 clone_pinned() {
   local url="$1" sha="$2" dest="$3"
@@ -14,10 +20,21 @@ clone_pinned() {
     echo "[skip] $dest 已在目标 commit"
     return 0
   fi
-  rm -rf "$dest"
-  git -c http.proxy="$PROXY" clone "$url" "$dest"
-  git -C "$dest" -c http.proxy="$PROXY" fetch --depth 1 origin "$sha"
-  git -C "$dest" checkout --detach "$sha"
+  if [[ -e "$dest" || -L "$dest" ]]; then
+    echo "已有参考目录与期望提交不符，请先检查 $dest（目标 $sha）。" >&2
+    return 1
+  fi
+  mkdir -p "$REF_DIR"
+  (
+    mkdir "$dest" || exit 1
+    # Only clean up the directory this invocation created if its checkout fails.
+    trap 'rm -rf -- "$dest"' EXIT
+    git -C "$dest" init --quiet
+    git -C "$dest" remote add origin "$url"
+    network_git -C "$dest" fetch --depth 1 origin "$sha"
+    git -C "$dest" checkout --quiet --detach "$sha"
+    trap - EXIT
+  )
   echo "[ok] $dest @ $(git -C "$dest" rev-parse HEAD)"
 }
 

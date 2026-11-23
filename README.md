@@ -159,8 +159,10 @@ npm run web:serve        # 构建并启动本地服务
 
 ## 开发与维护
 
+全量测试会校验冻结提示词的 Git 历史、参考仓的固定提交，以及历史验收文件的字节数和 SHA-256。首次运行请使用完整 Git 克隆（浅克隆可先运行 `git fetch --unshallow origin`），再运行 `bash scripts/checkout-references.sh`。参考仓只下载到本地的 `reference/`。部分历史原始响应及日志未随公开仓分发；缺少原件时，完整性检查会报告缺项。
+
 ```bash
-npm test                                              # 构建并跑全部单测（node --test，196 项）
+npm test                                              # 构建并跑全部测试（node --test）
 npm run build                                         # 编译 Node 端并构建 React 前端到 dist/web-client/
 npm run web:dev                                       # 启动 Vite 开发服务，代理 API 与 WS 到 8918
 npm run web:info                                      # 查看数据目录、迁移版本、凭证存在性与设置
