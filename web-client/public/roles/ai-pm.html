@@ -9,7 +9,7 @@
   <link rel="canonical" href="https://interview.redboook.cn/roles/ai-pm.html">
   <link rel="stylesheet" href="/roles/styles.css">
   <script defer src="/ouba-analytics.js?v=2" data-proxy="same-origin" data-website-id="4897cfc4-d00f-47b5-b150-07db3748db54" data-domain="interview.redboook.cn" data-title="2026 AI 产品经理面试连环追问练习题与回答技巧｜欧八面试陪练"></script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","headline":"AI 产品经理模拟面试｜Agent、RAG 与评测追问｜欧八面试陪练","description":"准备 AI 产品经理面试时，可以从一个真实的 Agent 或 RAG 项目开始：为什么选这个业务场景，怎样定义成功，如何建立评测集，遇到不确定输出怎样兜底。本页提供中文追问和虚构回答对照；先补齐自己的事实，再进入语音 AI 模拟面试练习，不必背标准答案。","url":"https://interview.redboook.cn/roles/ai-pm.html","author":{"@type":"Person","name":"欧八同学","url":"https://albertou.redboook.cn"},"datePublished":"2026-11-06","dateModified":"2026-11-21"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"欧八面试陪练首页","item":"https://interview.redboook.cn/"},{"@type":"ListItem","position":2,"name":"岗位面试练习库","item":"https://interview.redboook.cn/roles/"},{"@type":"ListItem","position":3,"name":"AI 产品经理模拟面试","item":"https://interview.redboook.cn/roles/ai-pm.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"非算法背景转 AI 产品经理，面试最容易被哪三个问题卡住？","acceptedAnswer":{"@type":"Answer","text":"最常被深挖的不是底层模型参数，而是：1）为什么这个场景非要用 LLM 而不用确定性规则或小模型；2）发生幻觉与 Badcase 时的工程兜底阈值是什么；3）如何建立 Golden Dataset 评测集并算清 Token 成本与人工节省 ROI。"}},{"@type":"Question","name":"没有上线过大模型产品的候选人，练这个岗位合适吗？","acceptedAnswer":{"@type":"Answer","text":"适合。你可以先用工作流工具或脚本改造手头最耗时的一项业务流程，跑出 50–100 条真实样本的前后准确率对比，再把这段真实过程填入欧八面试陪练进行三轮连环追问。"}}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","headline":"AI 产品经理模拟面试｜Agent、RAG 与评测追问｜欧八面试陪练","description":"准备 AI 产品经理面试时，可以从一个真实的 Agent 或 RAG 项目开始：为什么选这个业务场景，怎样定义成功，如何建立评测集，遇到不确定输出怎样兜底。本页提供中文追问和虚构回答对照；先补齐自己的事实，再进入语音 AI 模拟面试练习，不必背标准答案。","url":"https://interview.redboook.cn/roles/ai-pm.html","author":{"@type":"Person","name":"欧八同学","url":"https://albertou.redboook.cn"},"datePublished":"2026-11-06","dateModified":"2026-11-23"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"欧八面试陪练首页","item":"https://interview.redboook.cn/"},{"@type":"ListItem","position":2,"name":"岗位面试练习库","item":"https://interview.redboook.cn/roles/"},{"@type":"ListItem","position":3,"name":"AI 产品经理模拟面试","item":"https://interview.redboook.cn/roles/ai-pm.html"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"非算法背景转 AI 产品经理，面试最容易被哪三个问题卡住？","acceptedAnswer":{"@type":"Answer","text":"最常被深挖的不是底层模型参数，而是：1）为什么这个场景非要用 LLM 而不用确定性规则或小模型；2）发生幻觉与 Badcase 时的工程兜底阈值是什么；3）如何建立 Golden Dataset 评测集并算清 Token 成本与人工节省 ROI。"}},{"@type":"Question","name":"没有上线过大模型产品的候选人，练这个岗位合适吗？","acceptedAnswer":{"@type":"Answer","text":"适合。你可以先用工作流工具或脚本改造手头最耗时的一项业务流程，跑出 50–100 条真实样本的前后准确率对比，再把这段真实过程填入欧八面试陪练进行三轮连环追问。"}}]}]}</script>
   <style>
     body { background-color: #f7f5f0; color: #1F1E1C; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
     .container { max-width: 820px; margin: 0 auto; }
@@ -38,7 +38,7 @@
 
     <main>
       <article class="card">
-        <div style="font-size:0.8125rem;color:#6E6B64;margin-bottom:8px;">最后更新：2026-11-21 ｜ 题型：1道自我介绍 + 3道经历连环深挖追问</div>
+        <div style="font-size:0.8125rem;color:#6E6B64;margin-bottom:8px;">最后更新：2026-11-23 ｜ 题型：1道自我介绍 + 3道经历连环深挖追问</div>
         <h1 style="font-size:1.5rem;margin:0 0 14px;color:#1F1E1C;">AI 产品经理模拟面试：把场景、评测和成本讲清楚</h1><!-- role-intent:start --><p>准备 AI 产品经理面试时，可以从一个真实的 Agent 或 RAG 项目开始：为什么选这个业务场景，怎样定义成功，如何建立评测集，遇到不确定输出怎样兜底。本页提供中文追问和虚构回答对照；先补齐自己的事实，再进入语音 AI 模拟面试练习，不必背标准答案。</p><!-- role-intent:end --><p class="example-note">以下岗位要求、问题、回答及数字是教学示例，不是真实企业题目或候选人实录。请仅使用自己可核实的经历；参考表达不保证录用或涨薪。</p>
         <!-- role-top-tip:start --><p style="font-size:0.875rem;color:#524F48;margin:0 0 12px;">开练前建议先用 <a href="https://albertou.redboook.cn/tools/resume-jd-check.html" target="_blank" rel="noopener">简历与 JD 匹配在线自检</a> 对齐证据，或阅读 <a href="https://albertou.redboook.cn/guides/pm-to-ai-pm.html" target="_blank" rel="noopener">传统产品经理怎么转 AI 产品经理</a>；也可直接进入 <a href="/">欧八面试陪练首页免费开练</a>。</p><!-- role-top-tip:end -->
         <div class="tldr"><strong>核心突破点：</strong>面试官最常追问的不是大模型算法原理，而是「为什么不用确定性代码？」「幻觉怎么兜底？」「如何用评测集衡量业务 ROI？」。回答核心在于展现可控工程思维与业务闭环。</div>
@@ -64,14 +64,14 @@
           </div>
         
           <div style="background:#fff;border:1px solid #dcd7cc;border-radius:10px;padding:16px;margin-bottom:14px;">
-            <h3 style="margin:0 0 8px;font-size:1.05rem;color:#1F1E1C;">追问 2：“你怎么向业务部门或老板证明这个 AI 功能上线是划算的？Token 成本与 ROI 怎么算？”</h3>
+            <h3 id="cost-practice" style="margin:0 0 8px;font-size:1.05rem;color:#1F1E1C;">追问 2：“你怎么向业务部门或老板证明这个 AI 功能上线是划算的？Token 成本与 ROI 怎么算？”</h3>
             <p style="font-size:0.875rem;color:#6E6B64;margin-bottom:8px;"><strong>面试官考察意图：</strong>考察商业意识与投入产出比思维，避免沉迷技术玩具。</p>
             <div style="display:grid;grid-template-columns:1fr;gap:10px;">
               <div style="background:#faf8f5;border-left:3px solid #d9534f;padding:10px 12px;font-size:0.875rem;">
                 <span style="font-weight:700;color:#d9534f;">笼统回答（示例）：</span><br>“大家反馈用着挺方便的，老板也很看好 AI 战略，每次调用也就几分钱，成本基本可控。”
               </div>
               <div style="background:#f4f9f4;border-left:3px solid #4cae4c;padding:10px 12px;font-size:0.875rem;">
-                <span style="font-weight:700;color:#4cae4c;">具体回答（虚构示例，请替换为真实证据）：</span><br>“我们算过单次任务综合账：原人工处理单均耗时 12 分钟（折合人力成本约 8.5 元）；接入 Agent 自动化初审后，80% 的常规单无需人工介入，单次调用消耗约 3500 Token（模型费用 0.04 元），剩余 20% 复杂单转人工复核。单月为业务线节省工时 420 小时，首月即收回了评测集构建与研发投入。”
+                <span style="font-weight:700;color:#4cae4c;">具体回答（虚构示例，请替换为真实证据）：</span><br>“在这个虚构的客服初审试点里，我取了同一批 100 单。原流程每单人工处理 12 分钟，共 1,200 分钟。试点中，80 单自动通过，20 单转人工、每单复核 5 分钟，共用 100 分钟。按每小时 60 元计算，本批次节省人工 1,100 元；100 次模型调用共 4 元，扣除后是 1,096 元。开发维护和后续返工还没计入，所以目前只能报告这批试点的差额。”<p>再追问一步：如果自动通过的订单还要抽检，抽检时间算在哪里？先用自己的样本量、复核比例和工时重算，再说明缺少哪项成本。</p>
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@
 <details class="faq-item" style="margin-bottom:10px;border:1px solid #ece8df;border-radius:8px;padding:10px 14px;background:#faf8f5;"><summary style="cursor:pointer;font-weight:600;color:#1F1E1C;">非算法背景转 AI 产品经理，面试最容易被哪三个问题卡住？</summary><p style="margin:8px 0 0;font-size:0.9rem;color:#524F48;">最常被深挖的不是底层模型参数，而是：1）为什么这个场景非要用 LLM 而不用确定性规则或小模型；2）发生幻觉与 Badcase 时的工程兜底阈值是什么；3）如何建立 Golden Dataset 评测集并算清 Token 成本与人工节省 ROI。</p></details>
 <details class="faq-item" style="margin-bottom:10px;border:1px solid #ece8df;border-radius:8px;padding:10px 14px;background:#faf8f5;"><summary style="cursor:pointer;font-weight:600;color:#1F1E1C;">没有上线过大模型产品的候选人，练这个岗位合适吗？</summary><p style="margin:8px 0 0;font-size:0.9rem;color:#524F48;">适合。你可以先用工作流工具或脚本改造手头最耗时的一项业务流程，跑出 50–100 条真实样本的前后准确率对比，再把这段真实过程填入欧八面试陪练进行三轮连环追问。</p></details>
 <p style="font-size:0.875rem;color:#524F48;margin:14px 0 0;"><strong>延伸参考：</strong><a href="/roles/b2b-pm.html">B 端产品经理追问</a> · <a href="/roles/growth-pm.html">增长产品经理追问</a> · <a href="/roles/backend-dev.html">后端研发架构追问</a> · <a href="/roles/">全部岗位练习库</a> · <a href="https://albertou.redboook.cn/guides/pm-to-ai-pm.html" target="_blank" rel="noopener">传统产品经理怎么转 AI 产品经理 ↗</a></p>
-<p style="font-size:0.8125rem;color:#6E6B64;margin:8px 0 0;">页面更新：2026-11-21</p>
+<p style="font-size:0.8125rem;color:#6E6B64;margin:8px 0 0;">页面更新：2026-11-23</p>
 </section>
 <!-- role-faq:end -->
 

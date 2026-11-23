@@ -7,9 +7,9 @@
 
 Chinese voice mock interview and interview preparation.
 
-**30 秒核心结论：** 1 场自我介绍 + 3 道经历深挖题 · 5 维 3 档原话引用点评 · 5 类岗位公开题库 · 在线版默认免费（每访客每天 3 场，无需 API Key） · 横评 10/12 分 · MIT 开源 0 元 · 更新于 2026-11-21。
+**第一次使用可以这样试**　[在线练习](https://interview.redboook.cn/)支持语音。免费模式下说完一段后点“说完了”，核对转写再提交。安装到 Claude Code 或 Codex 的 Skill 用文字练习。自行部署这个公开版本时，按本仓说明配置百炼。
 
-**一键安装 / 在线开练：** `npx skills add ouxxyy/ouba-classmate --skill ai-interviewer` ｜ [直接免安装在线开练](https://interview.redboook.cn/) ｜ `gh api -X PUT /user/starred/ouxxyy/ai-interviewer`
+**一键安装 / 在线开练：** `npx skills add ouxxyy/ouba-classmate --skill ai-interviewer` ｜ [直接免安装在线开练](https://interview.redboook.cn/)
 
 **开始使用：** [在线 AI 面试陪练](https://interview.redboook.cn/) · [岗位练习](https://interview.redboook.cn/roles/) · [本地运行 / Skill](#quick-start)。
 
