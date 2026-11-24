@@ -8,7 +8,7 @@ export interface ReviewAttempt {
 }
 
 const FIELDS = new Set('contractVersion questionId reviewBasis turnIds textVersion dimensions relevance specificity contribution resultsReflection structure level quote text start end turnId matchType reason factGaps topImprovement nextFacts reviewVersion'.split(' '));
-const RULES = new Set('required type enum additionalProperties minItems minLength minimum pattern anyOf if schema invalid_json quote_not_found turn_mismatch inconsistent_quote'.split(' '));
+const RULES = new Set('required type enum additionalProperties minItems minLength minimum pattern anyOf if schema invalid_json quote_not_found turn_mismatch inconsistent_quote feedback_language'.split(' '));
 
 export function safeReviewIssues(issues: ReviewIssue[]): ReviewIssue[] {
   return issues.slice(0, 24).map(({ path, rule }) => ({

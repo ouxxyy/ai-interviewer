@@ -41,6 +41,21 @@ export type ReviewOutcome =
 
 const DIMS: DimensionKey[] = ['relevance', 'specificity', 'contribution', 'resultsReflection', 'structure'];
 
+/** Candidate-facing prose only. IDs, contract enums and verbatim quotes are language independent. */
+function englishFeedbackIssues(feedback: Feedback): ReviewIssue[] {
+  const fields: Array<[string, string]> = DIMS.map(dim => [`/dimensions/${dim}/reason`, feedback.dimensions[dim].reason]);
+  fields.push(['/topImprovement', feedback.topImprovement]);
+  for (const group of ['factGaps', 'nextFacts'] as const) {
+    feedback[group].forEach((text, index) => fields.push([`/${group}/${index}`, text]));
+  }
+  return fields.filter(([, text]) => {
+    // Allow an original Chinese product or employer name in otherwise English prose.
+    const latin = text.match(/[A-Za-z]/g)?.length ?? 0;
+    const han = text.match(/\p{Script=Han}/gu)?.length ?? 0;
+    return latin === 0 || (han > 0 && latin < 2 * han);
+  }).map(([path]) => ({ path, rule: 'feedback_language' }));
+}
+
 export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
   const maxRetries = input.maxRetries ?? 2;
   let lastCause: ReviewOutcome extends { kind: 'degraded' } ? never : 'json_error' | 'schema_error' | 'quote_not_locatable' = 'json_error';
@@ -102,6 +117,15 @@ export async function runReview(input: RunReviewInput): Promise<ReviewOutcome> {
     }
 
     const fb = parsed as Feedback;
+    if (input.language === 'en') {
+      const issues = englishFeedbackIssues(fb);
+      if (issues.length) {
+        lastCause = 'schema_error';
+        lastDetail = 'Rewrite these candidate-facing fields in English: ' + issues.map(issue => issue.path).join(', ') + '. Keep ratings and original quotes unchanged.';
+        input.onAttempt?.(attempt, { ok: false, cause: lastCause, detail: lastDetail, issues });
+        continue;
+      }
+    }
     const quoteErrors: string[] = [];
     const quoteIssues: ReviewIssue[] = [];
     for (const dim of DIMS) {

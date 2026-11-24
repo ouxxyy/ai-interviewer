@@ -130,6 +130,7 @@ function structureQuoteRule(variant: StructureHintVariant): string {
 }
 
 export function reviewPrompt(input: {
+  language?: 'en' | 'zh';
   questionText: string;
   questionId?: string;
   context?: InterviewContext;
@@ -141,7 +142,11 @@ export function reviewPrompt(input: {
   /** 默认 'prose'；'mechanical' 仅为入口操作提示分支。历史 0.2 控制实验不能用当前提示词重跑。 */
   structureHint?: StructureHintVariant;
 }): string {
-  return `你是独立文本评审器，对下面这题的回答给出五维三档反馈。你的结论只依据回答原文，不参考任何外部印象。
+  const en = input.language === 'en';
+  const reason = en ? '<one short sentence in English explaining the rating>' : '<一句话判断依据>';
+  const quoteText = en ? '<verbatim answer excerpt>' : '<用户原话片段>';
+  const englishInstructions = en ? 'You are reviewing an English-language interview. Write directly to the candidate in English. Only the four machine-readable level labels use Chinese; every dimensions.*.reason must be a complete English sentence. Never translate quote.text.\n\n' : '';
+  return `${englishInstructions}你是独立文本评审器，对下面这题的回答给出五维三档反馈。你的结论只依据回答原文，不参考任何外部印象。
 
 ${GUARDRAILS}
 
@@ -177,19 +182,19 @@ ${PLACEHOLDER_NOTE}
   "questionId": "${input.questionId ?? 'q1'}",
   "reviewBasis": { "turnIds": ${JSON.stringify(input.turnIds)}, "textVersion": "${input.textVersion}" },
   "dimensions": {
-    "relevance": { "level": "部分清楚", "quote": { "text": "<用户原话片段>", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "<一句话判断依据>" },
-    "specificity": { "level": "证据不足", "quote": { "text": "<用户原话片段>", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "<一句话判断依据>" },
-    "contribution": { "level": "部分清楚", "quote": { "text": "<用户原话片段>", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "<一句话判断依据>" },
-    "resultsReflection": { "level": "无法判断", "quote": null, "reason": "<信息不足的具体原因>" },
-    "structure": { "level": "充分清楚", "quote": { "text": "<用户原话片段>", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "<一句话判断依据>" }
+    "relevance": { "level": "部分清楚", "quote": { "text": "${quoteText}", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "${reason}" },
+    "specificity": { "level": "证据不足", "quote": { "text": "${quoteText}", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "${reason}" },
+    "contribution": { "level": "部分清楚", "quote": { "text": "${quoteText}", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "${reason}" },
+    "resultsReflection": { "level": "无法判断", "quote": null, "reason": "${en ? '<explain in English what evidence is missing>' : '<信息不足的具体原因>'}" },
+    "structure": { "level": "充分清楚", "quote": { "text": "${quoteText}", "start": 0, "end": 8, "turnId": "${input.turnIds[0] ?? 't1'}", "textVersion": "${input.textVersion}", "matchType": "exact" }, "reason": "${reason}" }
   },
-  "factGaps": ["<事实缺口1>"],
-  "topImprovement": "<最值得改的一点>",
-  "nextFacts": ["<下一轮应补充的事实>"],
+  "factGaps": ["${en ? '<missing fact in English>' : '<事实缺口1>'}"],
+  "topImprovement": "${en ? '<one concrete improvement in English>' : '<最值得改的一点>'}",
+  "nextFacts": ["${en ? '<fact to clarify next, in English>' : '<下一轮应补充的事实>'}"],
   "reviewVersion": "${PROMPT_VERSION}"
 }
 顶层字段一个都不能少，按顺序输出：contractVersion、questionId、reviewBasis、dimensions、factGaps、topImprovement、nextFacts、reviewVersion。
-五个维度键名固定，不得增删；无法判断 时 quote 为 null；questionId 与 reviewBasis.turnIds 必须与【当前问题】【评审对象轮次】一致；nextFacts 至少 1 条。`;
+五个维度键名固定，不得增删；无法判断 时 quote 为 null；questionId 与 reviewBasis.turnIds 必须与【当前问题】【评审对象轮次】一致；nextFacts 至少 1 条。${en ? '\nBefore sending JSON, read all five reason strings and the factGaps, topImprovement and nextFacts fields. Use natural English throughout. Example of style only: "You identify your decision, but the outcome is unclear." Use the candidate’s own evidence for your actual feedback.' : ''}`;
 }
 
 /** 4. 报告生成：逐题反馈汇总 → SessionReport */

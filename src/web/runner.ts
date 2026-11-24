@@ -664,6 +664,7 @@ export class InterviewRunner {
     const basis = opts.isRewrite ? this.mergedAnswerText(question.id, { rewriteOnly: true }) : this.mergedAnswerText(question.id, {});
     if (basis.turnIds.length === 0) throw new AppError('E_STATE', '没有可评审的回答轮次');
     const prompt = reviewPrompt({
+      language: this.language,
       questionId: question.id,
       questionText: question.text,
       context: this.interviewContext(question),

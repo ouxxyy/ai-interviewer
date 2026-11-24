@@ -839,6 +839,8 @@ test('a draft can switch to English before planning, and the choice applies to e
     assert.equal(report.report?.completedQuestions, 1);
     assert.ok(h.text.prompts.length >= 5);
     assert.ok(h.text.prompts.every(prompt => prompt.includes('Interview language: English')));
+    assert.equal(report.reviewMeta[0]?.attempts, 2, 'reject the first mixed-language review');
+    assert.ok(report.reviewMeta[0]?.attemptLog?.[0]?.issues?.some(issue => issue.rule === 'feedback_language'));
     const feedback = report.reviews.q1!;
     for (const dimension of Object.values(feedback.dimensions)) {
       if (dimension.quote) assert.ok(answer.includes(dimension.quote.text));

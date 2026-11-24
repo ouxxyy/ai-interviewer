@@ -295,6 +295,12 @@ export class ScriptedTextClient implements TextLlmClient {
         nextFacts: ['你个人负责的具体动作', '活动结果数据'],
         reviewVersion: 'prompts@0.3.0',
       };
+      if (req.prompt.includes('You are reviewing an English-language interview') && this.counts.review! > 1) {
+        for (const dimension of Object.values(fb.dimensions)) dimension.reason = 'The available evidence identifies the context.';
+        fb.topImprovement = 'Explain the decision you owned.';
+        fb.factGaps = ['Impact on users'];
+        fb.nextFacts = ['How did you measure the impact?'];
+      }
       return { text: JSON.stringify(fb), usage: { promptTokens: 900, completionTokens: 400 } };
     }
     if (kind === 'report') {
