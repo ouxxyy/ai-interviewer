@@ -68,9 +68,10 @@ export function requireCredential(key = 'DASHSCOPE_API_KEY'): string {
  * 这是「密钥不进日志/报告/证据/评论」这条红线的机械保障，而不是靠人记得住。
  */
 export function assertNoSecret(text: string): void {
-  const key = process.env.DASHSCOPE_API_KEY;
-  if (key !== undefined && key.length >= 8 && text.includes(key)) {
-    throw new Error('拒绝写入：内容中包含凭证值（已拦截，未打印内容）');
+  for (const key of [process.env.DASHSCOPE_API_KEY, process.env.OPENAI_API_KEY]) {
+    if (key !== undefined && key.length >= 8 && text.includes(key)) {
+      throw new Error('拒绝写入：内容中包含凭证值（已拦截，未打印内容）');
+    }
   }
   if (/sk-[A-Za-z0-9._-]{12,}/.test(text)) {
     throw new Error('拒绝写入：内容中匹配到疑似密钥模式 sk-*（已拦截，未打印内容）');

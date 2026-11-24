@@ -10,6 +10,7 @@
  * - 回放口径：优先磁盘文件；`saveAudio=false` 的活跃会话仍可从内存回放**本场**音频（标注 `source: memory`），
  *   内存音频有上限，超出后该场回放不可用并如实返回 `unavailable`。
  */
+import type { InterviewLanguage } from './language.js';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pcmToWav, sha256, pcmDurationSeconds } from '../t1r/audio.js';
@@ -24,6 +25,7 @@ export type SessionStatus = 'active' | 'report' | 'ended';
 export type AudioTrack = 'user' | 'interviewer';
 
 export interface StoredSession {
+  language: InterviewLanguage;
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -82,6 +84,7 @@ interface MemoryAudio {
 const MAX_MEMORY_AUDIO_BYTES = 24 * 1024 * 1024; // 约 12 分钟 16k 单声道 PCM
 
 export interface CreateSessionInput {
+  language?: InterviewLanguage;
   id: string;
   ruleVersion: string;
   realtimeModel: string | null;
@@ -113,7 +116,7 @@ export class Store {
   createSession(input: CreateSessionInput): StoredSession {
     const now = new Date().toISOString();
     const session: StoredSession = {
-      id: input.id,
+      id: input.id, language: input.language ?? 'zh',
       createdAt: now,
       updatedAt: now,
       status: 'active',
@@ -144,9 +147,9 @@ export class Store {
     if (!session.saveHistory) return;
     this.db.raw
       .prepare(
-        `INSERT INTO sessions (id, created_at, updated_at, status, state, synthetic, save_audio, rule_version, realtime_model, text_model, materials_json, plan_json, report_json, report_source, review_meta_json, completed_questions)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-         ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at, status = excluded.status, state = excluded.state,
+        `INSERT INTO sessions (id, created_at, updated_at, status, state, synthetic, save_audio, rule_version, realtime_model, text_model, materials_json, plan_json, report_json, report_source, review_meta_json, completed_questions, language)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET language = excluded.language, updated_at = excluded.updated_at, status = excluded.status, state = excluded.state,
            materials_json = excluded.materials_json, plan_json = excluded.plan_json, report_json = excluded.report_json,
            report_source = excluded.report_source, review_meta_json = excluded.review_meta_json,
            completed_questions = excluded.completed_questions, realtime_model = excluded.realtime_model, text_model = excluded.text_model`,
@@ -167,7 +170,7 @@ export class Store {
         session.report === null ? null : JSON.stringify(session.report),
         session.reportSource,
         JSON.stringify(session.reviewMeta),
-        session.completedQuestions,
+        session.completedQuestions, session.language,
       );
     session.persisted = true;
   }
@@ -181,7 +184,7 @@ export class Store {
 
   updateSession(
     id: string,
-    patch: Partial<Pick<StoredSession, 'state' | 'status' | 'materials' | 'plan' | 'report' | 'reportSource' | 'reviewMeta' | 'completedQuestions' | 'realtimeModel' | 'textModel'>>,
+    patch: Partial<Pick<StoredSession, 'language' | 'state' | 'status' | 'materials' | 'plan' | 'report' | 'reportSource' | 'reviewMeta' | 'completedQuestions' | 'realtimeModel' | 'textModel'>>,
   ): StoredSession {
     const session = this.getSession(id);
     if (!session) throw new Error(`会话不存在：${id}`);
@@ -550,6 +553,7 @@ export interface DeleteReport {
 }
 
 interface SessionRow {
+  language: InterviewLanguage;
   id: string;
   created_at: string;
   updated_at: string;
@@ -583,6 +587,7 @@ interface TurnRow {
 
 function fromRow(row: SessionRow): StoredSession {
   return {
+    language: row.language,
     id: row.id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 /**
  * 会话页的纯策略层：类型守卫、题量进度、失败动作恢复（P0-1 / P1-2 / P2-3）。
  *
@@ -83,9 +84,9 @@ export function canEndSession(snapshot: Snapshot | null, processing: boolean): b
 export function nextQuestionLabel(snapshot: Snapshot | null): string {
   const questions = snapshot?.plan?.questions;
   const index = snapshot?.machine.questionIndex ?? 0;
-  if (questions === undefined) return '下一题';
-  if (index >= questions.length - 1) return '查看报告';
-  return questions[index]?.kind === 'introduction' ? '进入经历题' : '下一题';
+  if (questions === undefined) return t('下一题');
+  if (index >= questions.length - 1) return t('查看报告');
+  return questions[index]?.kind === 'introduction' ? t('进入经历题') : t('下一题');
 }
 
 // ---------- 过程点评与 Agent 状态 ----------
@@ -132,20 +133,20 @@ export function currentReviewFailure(snapshot: Snapshot | null): { message: stri
   const id = snapshot?.currentQuestion?.id;
   if (!snapshot || !id) return null;
   if (snapshot.state === 'review' && snapshot.lastError !== null) {
-    return { message: '评审请求未完成。已提交的回答仍保留在本场会话中。', attempts: 0 };
+    return { message: t('评审请求未完成。已提交的回答仍保留在本场会话中。'), attempts: 0 };
   }
   const feedback = snapshot.reviews[id];
   if (snapshot.state !== 'rewrite' || !feedback?.reviewVersion.startsWith('degraded:')) return null;
   const meta = [...snapshot.reviewMeta].reverse().find(item => item.questionId === id);
   const cause = feedback.reviewVersion.slice('degraded:'.length);
-  const message = cause === 'schema_error' ? '点评格式未通过检查。'
-    : cause === 'quote_not_locatable' ? '点评引用未能在你的回答中核实。'
-    : cause === 'json_error' ? '点评返回的内容无法解析。' : '本次未生成有效点评。';
+  const message = cause === 'schema_error' ? t('点评格式未通过检查。')
+    : cause === 'quote_not_locatable' ? t('点评引用未能在你的回答中核实。')
+    : cause === 'json_error' ? t('点评返回的内容无法解析。') : t('本次未生成有效点评。');
   return { message, attempts: meta?.attempts ?? 0 };
 }
 
 export type AgentActivityKind = 'connecting' | 'speaking' | 'listening' | 'reviewing' | 'preparing' | 'ready' | 'paused' | 'offline';
-export type AgentAudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed' | 'offline';
+export type AgentAudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'blocked' | 'paused' | 'closed' | 'offline';
 
 export interface AgentActivity {
   kind: AgentActivityKind;
@@ -164,36 +165,39 @@ export function agentActivity(input: {
   reviewFailed?: boolean;
 }): AgentActivity {
   if (input.audioStatus === 'offline' || input.audioStatus === 'closed') {
-    return { kind: 'offline', active: false, title: '实时连接已断开', detail: '已完成的回答仍在服务端；重新连接后可继续。' };
+    return { kind: 'offline', active: false, title: t('实时连接已断开'), detail: t('已完成的回答仍在服务端；重新连接后可继续。') };
   }
   if (input.audioStatus === 'paused') {
-    return { kind: 'paused', active: false, title: '已暂停', detail: '暂停期间不会继续上传音频，点“恢复”后再继续说。' };
+    return { kind: 'paused', active: false, title: t('已暂停'), detail: t('暂停期间不会继续上传音频，点“恢复”后再继续说。') };
   }
   if (input.audioStatus === 'connecting' || input.state === undefined) {
-    return { kind: 'connecting', active: true, title: '正在连接面试官', detail: `已等待 ${input.elapsedSeconds} 秒；正在读取这场练习的状态。` };
+    return { kind: 'connecting', active: true, title: t('正在连接面试官'), detail: t("已等待 {0} 秒；正在读取这场练习的状态。", input.elapsedSeconds) };
+  }
+  if (input.audioStatus === 'blocked') {
+    return { kind: 'ready', active: false, title: t('题目朗读已挂起'), detail: t('点“重听本题”播放语音，也可以直接点“开始作答”。') };
   }
   if (input.audioStatus === 'playing') {
-    return { kind: 'speaking', active: true, title: '小八正在说', detail: '可以随时点“打断”，旧回应的待播音频会被清空。' };
+    return { kind: 'speaking', active: true, title: t('小八正在说'), detail: t('可以随时点“打断”，旧回应的待播音频会被清空。') };
   }
   if (input.recording || input.audioStatus === 'listening') {
-    return { kind: 'listening', active: true, title: '小八正在听你的回答', detail: '你的语音只会进入回答转写；说完后再进行引用核对。' };
+    return { kind: 'listening', active: true, title: t('小八正在听你的回答'), detail: t('你的语音只会进入回答转写；说完后再进行引用核对。') };
   }
   if (input.reviewFailed && !input.busy) {
-    return { kind: 'ready', active: false, title: '点评未完成', detail: '回答已保留，可用同一份回答重新评审，无需重新录音。' };
+    return { kind: 'ready', active: false, title: t('点评未完成'), detail: t('回答已保留，可用同一份回答重新评审，无需重新录音。') };
   }
   if (input.state === 'review' || (input.busy && (input.state === 'answer' || input.state === 'followup'))) {
     const detail = input.elapsedSeconds >= 8
-      ? `已等待 ${input.elapsedSeconds} 秒；正在生成结构化点评，已提交的回答不会丢失。`
-      : `已等待 ${input.elapsedSeconds} 秒；正在校验引用位置并整理五维点评。`;
-    return { kind: 'reviewing', active: true, title: '正在核对你的原话', detail };
+      ? t("已等待 {0} 秒；正在生成结构化点评，已提交的回答不会丢失。", input.elapsedSeconds)
+      : t("已等待 {0} 秒；正在校验引用位置并整理五维点评。", input.elapsedSeconds);
+    return { kind: 'reviewing', active: true, title: t('正在核对你的原话'), detail };
   }
   if (input.busy) {
-    return { kind: 'preparing', active: true, title: '正在进入下一步', detail: `已等待 ${input.elapsedSeconds} 秒；正在同步会话状态。` };
+    return { kind: 'preparing', active: true, title: t('正在进入下一步'), detail: t("已等待 {0} 秒；正在同步会话状态。", input.elapsedSeconds) };
   }
   if (input.state === 'rewrite') {
-    return { kind: 'ready', active: false, title: '点评已就绪', detail: '你可以按建议重答一次，或直接进入下一题。' };
+    return { kind: 'ready', active: false, title: t('点评已就绪'), detail: t('你可以按建议重答一次，或直接进入下一题。') };
   }
-  return { kind: 'ready', active: false, title: '轮到你作答', detail: '点击“开始作答”；完成后会立即显示原话引用、点评和建议。' };
+  return { kind: 'ready', active: false, title: t('轮到你作答'), detail: t('点击“开始作答”；完成后会立即显示原话引用、点评和建议。') };
 }
 
 // ---------- 连续面试自动开麦 ----------
@@ -349,8 +353,8 @@ export function defaultRetry(observed: ObservedSession | null): RecoveryStep {
 /** 无法自动恢复时给用户看的说明（不假装「已修复」）。 */
 export function recoveryNotice(step: RecoveryStep): string {
   if (step.type !== 'none') return '';
-  if (step.reason === 'halted') return '本场已按止损停止，不再自动重试。';
-  if (step.reason === 'not_retryable') return '这一步已经由服务端记录，不能重复提交。你可以「重听本题」，或结束本场查看已完成的题目。';
-  if (step.reason === 'no_context') return '暂时没有可重试的操作。如果连接已恢复，直接按界面上的按钮继续即可。';
-  return '服务端状态还没对上，请稍后再试。';
+  if (step.reason === 'halted') return t('本场已按止损停止，不再自动重试。');
+  if (step.reason === 'not_retryable') return t('这一步已经由服务端记录，不能重复提交。你可以「重听本题」，或结束本场查看已完成的题目。');
+  if (step.reason === 'no_context') return t('暂时没有可重试的操作。如果连接已恢复，直接按界面上的按钮继续即可。');
+  return t('服务端状态还没对上，请稍后再试。');
 }

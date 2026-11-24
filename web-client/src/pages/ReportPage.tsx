@@ -1,3 +1,4 @@
+import { language, t } from '../lib/i18n.js';
 import { ArrowCounterClockwise, ClockCounterClockwise, Paperclip, Trash } from '@phosphor-icons/react';
 import { useEffect, useMemo, useState } from 'react';
 import { ApiError, api } from '../api';
@@ -34,10 +35,11 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
     let active = true;
     void api.detail(sid)
       .then((result) => active && setDetail(result))
-      .catch((caught) => active && setError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: '网络连接中断' }));
+      .catch((caught) => active && setError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: t('网络连接中断') }));
     return () => { active = false; };
   }, [preview, sid]);
 
+  const locale = language();
   const report = detail?.report;
   const feedbacks = useMemo(() => experienceFeedbacks(detail?.report), [detail]);
   const dimensions = useMemo(() => DIMENSIONS.map((item) => ({ ...item, feedback: representativeDimension(feedbacks, item.key) })), [feedbacks]);
@@ -57,8 +59,8 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
         return [{ quote, label: questionLabel(currentReport.perQuestion, question.questionId), turnType: turn?.turnType ?? 'answer' }];
       });
     });
-  }, [detail]);
-  const comparisons = useMemo(() => detail === null ? [] : rewriteComparisons(detail), [detail]);
+  }, [detail, locale]);
+  const comparisons = useMemo(() => detail === null ? [] : rewriteComparisons(detail), [detail, locale]);
 
   if (error !== null) {
     return <div className="page"><BrandHeader onNavigate={onNavigate} /><main className="standalone-state"><ErrorState error={error} onAction={(action) => action === 'home' ? onNavigate('/') : location.reload()} /></main></div>;
@@ -69,26 +71,26 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
 
   const created = new Date(detail.createdAt);
   const updated = new Date(detail.updatedAt);
-  const dateLabel = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(created);
+  const dateLabel = new Intl.DateTimeFormat(locale, { month: 'long', day: 'numeric' }).format(created);
   const minutes = Math.max(1, Math.round((updated.getTime() - created.getTime()) / 60_000));
-  const durationLabel = new Intl.NumberFormat('zh-CN').format(minutes);
+  const durationLabel = new Intl.NumberFormat(locale).format(minutes);
   const rewriteCount = comparisons.length;
   const progress = reportProgress(report);
   const introduction = report.perQuestion.find((question) => question.kind === 'introduction');
   const experienceQuestions = report.perQuestion.filter((question) => question.kind !== 'introduction');
-  const topImprovement = report.priorityPractice[0] ?? feedbacks[0]?.topImprovement ?? '继续用更具体的事实补强回答。';
-  const sourceLabel = detail.reportSource === 'model_priority_practice' ? '模型报告' : detail.reportSource === 'derived_from_validated_feedback' ? '由已校验逐题反馈派生' : '零完成题固定说明';
+  const topImprovement = report.priorityPractice[0] ?? feedbacks[0]?.topImprovement ?? t('继续用更具体的事实补强回答。');
+  const sourceLabel = detail.reportSource === 'model_priority_practice' ? t('模型报告') : detail.reportSource === 'derived_from_validated_feedback' ? t('由已校验逐题反馈派生') : t('零完成题固定说明');
   const hasDegraded = [...new Map(detail.reviewMeta.map(item => [item.questionId, item])).values()].some(item => item.kind === 'degraded');
 
   const confirmDelete = async () => {
     setDeleting(true);
     try {
       const result = await api.deleteSession(sid);
-      if (!result.verified) throw new Error('删除结果未验证');
+      if (!result.verified) throw new Error(t('删除结果未验证'));
       onNavigate('/history');
     } catch (caught) {
       setShowDelete(false);
-      setError(caught instanceof ApiError ? caught.body : { code: 'E_INTERNAL', message: '删除未完成', hint: '本场记录仍然保留，可以再试一次' });
+      setError(caught instanceof ApiError ? caught.body : { code: 'E_INTERNAL', message: t('删除未完成'), hint: t('本场记录仍然保留，可以再试一次') });
     } finally {
       setDeleting(false);
     }
@@ -96,105 +98,105 @@ export function ReportPage({ sid, preview, onNavigate }: ReportPageProps) {
 
   return (
     <div className="page page--report">
-      <a className="skip-link" href="#report-main">跳到主要内容</a>
+      <a className="skip-link" href="#report-main">{t("跳到主要内容")}</a>
       <BrandHeader onNavigate={onNavigate} compact />
       <main id="report-main" className="report-main">
         <header className="report-heading">
           <div>
-            <h1>本场复盘 <span>{dateLabel}</span></h1>
-            <p>自我介绍：{progress.introductionLabel} <i /> 经历题 {progress.completedExperienceQuestions} / {progress.totalExperienceQuestions} <i /> {durationLabel} 分钟 <i /> 重答 {rewriteCount} 次</p>
-            <small>{sourceLabel}{hasDegraded ? '，部分题为降级评审' : ''}{preview ? ' · 开发预览：旧三题样例，不计入真实练习与匿名统计' : ''}</small>
+            <h1>{t("本场复盘")} <span>{dateLabel}</span></h1>
+            <p>{t("自我介绍：")}{progress.introductionLabel} <i /> {t("经历题")} {progress.completedExperienceQuestions} / {progress.totalExperienceQuestions} <i /> {durationLabel} {t("分钟")} <i /> {t("重答")} {rewriteCount} {t("次")}</p>
+            <small>{sourceLabel}{hasDegraded ? t('，部分题为降级评审') : ''}{preview ? t(' · 开发预览：旧三题样例，不计入真实练习与匿名统计') : ''}</small>
           </div>
           <div className="report-character">
-            <div className="say-card">这一场，你已经把自己的做法讲得更清楚了。</div>
-            <img src="/characters/char-cheer.png" width="1024" height="956" alt="小八为你加油" />
+            <div className="say-card">{t("这一场，你已经把自己的做法讲得更清楚了。")}</div>
+            <img src="/characters/char-cheer.png" width="1024" height="956" alt={t("小八为你加油")} />
           </div>
         </header>
 
         <section className="report-section" aria-labelledby="introduction-title">
-          <div className="section-heading"><h2 id="introduction-title">自我介绍</h2><p>{progress.introductionLabel}</p></div>
-          {introduction?.feedback ? <QuestionFeedback feedback={introduction.feedback} /> : <p className="report-empty">{introduction === undefined ? '这份旧三题报告未包含自我介绍。' : '本场没有可展示的自我介绍点评。'}</p>}
+          <div className="section-heading"><h2 id="introduction-title">{t("自我介绍")}</h2><p>{progress.introductionLabel}</p></div>
+          {introduction?.feedback ? <QuestionFeedback feedback={introduction.feedback} /> : <p className="report-empty">{introduction === undefined ? t('这份旧三题报告未包含自我介绍。') : t('本场没有可展示的自我介绍点评。')}</p>}
         </section>
 
-        <div className="section-heading report-section"><h2 id="dimension-title">经历题五维汇总</h2><p>仅汇总经历题；自我介绍单独呈现</p></div>
+        <div className="section-heading report-section"><h2 id="dimension-title">{t("经历题五维汇总")}</h2><p>{t("仅汇总经历题；自我介绍单独呈现")}</p></div>
         <section className="dimension-grid" aria-labelledby="dimension-title">
           {dimensions.map((dimension) => (
             <article key={dimension.key} className={`dimension-card${dimension.feedback.level === '无法判断' ? ' dimension-card--unknown' : ''}${dimension.key === worstKey ? ' dimension-card--worst' : ''}`}>
-              {dimension.key === worstKey ? <span className="worst-sticker">最值得改</span> : null}
-              <h3>{dimension.label}</h3>
-              <strong>{dimension.feedback.level}</strong>
-              {dimension.feedback.level === '无法判断' ? <p>没有足够原话，不并入三档</p> : <LevelDots level={dimension.feedback.level} />}
+              {dimension.key === worstKey ? <span className="worst-sticker">{t("最值得改")}</span> : null}
+              <h3>{t(dimension.label)}</h3>
+              <strong>{t(dimension.feedback.level)}</strong>
+              {dimension.feedback.level === '无法判断' ? <p>{t("没有足够原话，不并入三档")}</p> : <LevelDots level={dimension.feedback.level} />}
             </article>
           ))}
         </section>
 
         <section className="priority-card">
           <span>!</span>
-          <div><h2>最值得改的一处</h2><p>{topImprovement}</p></div>
+          <div><h2>{t("最值得改的一处")}</h2><p>{detail.reportSource === 'fixed_zero_completion' ? t('本次未完成任何题目，无有效反馈') : topImprovement}</p></div>
         </section>
 
         <section className="report-section" aria-labelledby="question-feedback-title">
-          <div className="section-heading"><h2 id="question-feedback-title">经历题逐题反馈</h2><p>保留每题五维理由、证据缺口与练习点</p></div>
+          <div className="section-heading"><h2 id="question-feedback-title">{t("经历题逐题反馈")}</h2><p>{t("保留每题五维理由、证据缺口与练习点")}</p></div>
           {experienceQuestions.map((question) => (
             <article className="question-feedback" key={question.questionId}>
               <div className="section-heading"><h3>{questionLabel(report.perQuestion, question.questionId)}</h3><p>{introductionStatusLabel(question.status)}</p></div>
-              {question.feedback ? <QuestionFeedback feedback={question.feedback} /> : <p className="report-empty">本环节没有可展示的正式点评。</p>}
+              {question.feedback ? <QuestionFeedback feedback={question.feedback} /> : <p className="report-empty">{t("本环节没有可展示的正式点评。")}</p>}
             </article>
           ))}
         </section>
 
         <section className="report-section" aria-labelledby="report-quotes-title">
-          <div className="section-heading"><h2 id="report-quotes-title">评审用到的你的原话</h2><p>锚点来自服务端的评审基准文本</p></div>
+          <div className="section-heading"><h2 id="report-quotes-title">{t("评审用到的你的原话")}</h2><p>{t("锚点来自服务端的评审基准文本")}</p></div>
           {quotes.length > 0 ? (
             <div className="quote-grid">
               {quotes.map(({ quote, label, turnType }) => (
                 <blockquote key={`${quote.turnId}-${quote.start}`}>
                   <Paperclip size={20} weight="bold" aria-hidden="true" />
-                  <div><p>「{quote.text}」</p><cite>{label} <i /> {turnType === 'rewrite' ? '重答原话' : '初答原话'}</cite></div>
+                  <div><p>「{quote.text}」</p><cite>{label} <i /> {turnType === 'rewrite' ? t('重答原话') : t('初答原话')}</cite></div>
                 </blockquote>
               ))}
             </div>
-          ) : <p className="report-empty">本场评审没有引用可定位的原话。逐题反馈仍会保留，但这里不会补造证据。</p>}
+          ) : <p className="report-empty">{t("本场评审没有引用可定位的原话。逐题反馈仍会保留，但这里不会补造证据。")}</p>}
         </section>
 
         <section className="report-section" aria-labelledby="compare-title">
-          <div className="section-heading"><h2 id="compare-title">初答 vs 重答</h2><p>新增片段只按已验证子串高亮</p></div>
-          {comparisons.length === 0 ? <p className="report-empty">本场没有完成重答，暂时没有对照内容。</p> : (
+          <div className="section-heading"><h2 id="compare-title">{t("初答 vs 重答")}</h2><p>{t("新增片段只按已验证子串高亮")}</p></div>
+          {comparisons.length === 0 ? <p className="report-empty">{t("本场没有完成重答，暂时没有对照内容。")}</p> : (
             comparisons.map((comparison) => <div className="compare-grid" key={comparison.questionId}>
-              <article><span>初答 <i /> {comparison.label}</span><p>{comparison.initial}</p></article>
-              <article className="compare-rewrite"><span>重答 <i /> {comparison.label}</span><p>{highlightAdded(comparison.rewrite, comparison.delta).map((part, index) => part.marked ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</p>
-                {comparison.delta?.corrected.length ? <p>纠正：{comparison.delta.corrected.join('；')}</p> : null}
-                {comparison.delta?.stillMissing.length ? <p>仍缺：{comparison.delta.stillMissing.join('；')}</p> : null}
+              <article><span>{t("初答")} <i /> {comparison.label}</span><p>{comparison.initial}</p></article>
+              <article className="compare-rewrite"><span>{t("重答")} <i /> {comparison.label}</span><p>{highlightAdded(comparison.rewrite, comparison.delta).map((part, index) => part.marked ? <mark key={index}>{part.text}</mark> : <span key={index}>{part.text}</span>)}</p>
+                {comparison.delta?.corrected.length ? <p>{t("纠正：")}{comparison.delta.corrected.join(t('；'))}</p> : null}
+                {comparison.delta?.stillMissing.length ? <p>{t("仍缺：")}{comparison.delta.stillMissing.join(t('；'))}</p> : null}
               </article>
             </div>)
           )}
         </section>
 
         <div className="report-actions">
-          <button className="button button--primary" type="button" onClick={() => onNavigate('/')}><ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />再练一场</button>
-          <button className="button button--paper" type="button" onClick={() => onNavigate('/history')}><ClockCounterClockwise size={18} weight="bold" aria-hidden="true" />查看历史练习</button>
-          <button className="button button--text-danger" type="button" onClick={() => setShowDelete(true)}><Trash size={17} weight="bold" aria-hidden="true" />删除本场记录</button>
+          <button className="button button--primary" type="button" onClick={() => onNavigate('/')}><ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />{t("再练一场")}</button>
+          <button className="button button--paper" type="button" onClick={() => onNavigate('/history')}><ClockCounterClockwise size={18} weight="bold" aria-hidden="true" />{t("查看历史练习")}</button>
+          <button className="button button--text-danger" type="button" onClick={() => setShowDelete(true)}><Trash size={17} weight="bold" aria-hidden="true" />{t("删除本场记录")}</button>
         </div>
       </main>
-      {showDelete ? <ConfirmDialog title="删除这场练习？" confirmLabel="确认删除" dangerous busy={deleting} onCancel={() => setShowDelete(false)} onConfirm={() => void confirmDelete()}><p>会一并删除数据库记录、录音和该会话的临时文件。这个操作无法撤销。</p></ConfirmDialog> : null}
+      {showDelete ? <ConfirmDialog title={t("删除这场练习？")} confirmLabel={t("确认删除")} dangerous busy={deleting} onCancel={() => setShowDelete(false)} onConfirm={() => void confirmDelete()}><p>{t("会一并删除数据库记录、录音和该会话的临时文件。这个操作无法撤销。")}</p></ConfirmDialog> : null}
     </div>
   );
 }
 
 function LevelDots({ level }: { level: '证据不足' | '部分清楚' | '充分清楚' }) {
   const count = level === '证据不足' ? 1 : level === '部分清楚' ? 2 : 3;
-  return <div className="level-dots" aria-label={`${level}，三档中第 ${count} 档`}>{[0, 1, 2].map((index) => <i key={index} className={index < count ? 'is-filled' : ''} />)}</div>;
+  return <div className="level-dots" aria-label={t("{0}，三档中第 {1} 档", t(level), count)}>{[0, 1, 2].map((index) => <i key={index} className={index < count ? 'is-filled' : ''} />)}</div>;
 }
 
 
 function QuestionFeedback({ feedback }: { feedback: Feedback }) {
   return <div className="question-feedback-body">
-    <p><strong>最值得改：</strong>{feedback.topImprovement}</p>
+    <p><strong>{t("最值得改：")}</strong>{feedback.topImprovement}</p>
     <dl>{DIMENSIONS.map(({ key, label }) => {
       const dimension = feedback.dimensions[key];
-      return <div key={key}><dt>{label} · {dimension.level}</dt><dd>{dimension.reason}</dd></div>;
+      return <div key={key}><dt>{t(label)} · {t(dimension.level)}</dt><dd>{dimension.reason}</dd></div>;
     })}</dl>
-    {feedback.factGaps.length ? <p><strong>证据缺口：</strong>{feedback.factGaps.join('；')}</p> : null}
-    {feedback.nextFacts.length ? <p><strong>下一步：</strong>{feedback.nextFacts.join('；')}</p> : null}
+    {feedback.factGaps.length ? <p><strong>{t("证据缺口：")}</strong>{feedback.factGaps.join(t('；'))}</p> : null}
+    {feedback.nextFacts.length ? <p><strong>{t("下一步：")}</strong>{feedback.nextFacts.join(t('；'))}</p> : null}
   </div>;
 }

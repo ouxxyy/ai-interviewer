@@ -1,0 +1,11 @@
+:root { font: 17px/1.6 system-ui, sans-serif; color: #182c35; background: #f4f8f9; }
+body { margin: 0 auto; max-width: 52rem; padding: 1.5rem; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #bdcccf; padding-bottom: 1rem; }
+.brand-mark { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; }
+.brand-mark span { background: #234650; color: white; padding: .2rem .65rem; border-radius: .4rem; }
+main { max-width: 44rem; padding-block: 1rem 3rem; }
+h1, h2 { line-height: 1.2; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); }
+h2 { font-size: 1.35rem; margin-top: 2rem; }
+a { color: #175867; text-underline-offset: .18em; }
+li { margin-block: .8rem; }

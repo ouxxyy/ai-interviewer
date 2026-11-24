@@ -37,6 +37,10 @@ export interface WebSettings {
 
 export interface ModelConfigStatus {
   configured: boolean;
+  userConfigured?: boolean;
+  freeAvailable?: boolean;
+  provider?: 'bailian' | 'free-openai' | 'unconfigured';
+  transcriptionModel?: string;
   keyName: 'DASHSCOPE_API_KEY';
   storage: '.env' | 'visitor-encrypted';
   textModel: string;
@@ -151,7 +155,7 @@ export interface Snapshot {
   toggles: { saveHistory: boolean; saveAudio: boolean };
   materials: { jd: string; experience: string; stage: Stage; targetRole: string } | null;
   plan: { questions: PlannedQuestion[]; askedTopics: string[] } | null;
-  currentQuestion: { id: string; kind?: QuestionKind; index: number; text: string; intent: string } | null;
+  currentQuestion: { id: string; kind?: QuestionKind; index: number; text: string; spokenText?: string; intent: string } | null;
   pending: string;
   lastError: AppErrorBody | null;
   halted: boolean;
@@ -229,6 +233,7 @@ export interface SessionListItem {
 }
 
 export interface MaterialsDraft {
+  language?: 'en' | 'zh';
   jd: string;
   experience: string;
   stage: Stage;

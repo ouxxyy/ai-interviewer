@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url><loc>https://interview.redboook.cn/</loc><lastmod>2026-11-21</lastmod></url>
-<url><loc>https://interview.redboook.cn/roles/ai-pm.html</loc><lastmod>2026-11-23</lastmod></url>
+<url><loc>https://interview.redboook.cn/</loc><lastmod>2026-11-24</lastmod></url>
+<url><loc>https://interview.redboook.cn/roles/ai-pm.html</loc><lastmod>2026-11-24</lastmod></url>
 <url><loc>https://interview.redboook.cn/roles/b2b-pm.html</loc><lastmod>2026-11-21</lastmod></url>
 <url><loc>https://interview.redboook.cn/roles/backend-dev.html</loc><lastmod>2026-11-21</lastmod></url>
 <url><loc>https://interview.redboook.cn/roles/data-analyst.html</loc><lastmod>2026-11-21</lastmod></url>
 <url><loc>https://interview.redboook.cn/roles/growth-pm.html</loc><lastmod>2026-11-21</lastmod></url>
 <url><loc>https://interview.redboook.cn/roles/</loc><lastmod>2026-11-21</lastmod></url>
+<url><loc>https://interview.redboook.cn/en/</loc></url>
+<url><loc>https://interview.redboook.cn/en/roles/</loc></url>
+<url><loc>https://interview.redboook.cn/en/roles/ai-pm.html</loc></url>
+<url><loc>https://interview.redboook.cn/en/roles/b2b-pm.html</loc></url>
+<url><loc>https://interview.redboook.cn/en/roles/growth-pm.html</loc></url>
+<url><loc>https://interview.redboook.cn/en/roles/backend-dev.html</loc></url>
+<url><loc>https://interview.redboook.cn/en/roles/data-analyst.html</loc></url>
 </urlset>

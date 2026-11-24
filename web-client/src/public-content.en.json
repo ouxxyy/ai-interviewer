@@ -1,0 +1,21 @@
+{
+  "summary": "Practice an English or Chinese voice interview based on a real job description and your own experience. Start with a short introduction, then work through three experience questions with follow-ups and feedback.",
+  "roles": [
+    { "path": "/en/roles/ai-pm.html", "title": "AI product management — use cases, evaluation, and cost" },
+    { "path": "/en/roles/b2b-pm.html", "title": "B2B product management — workflows and trade-offs" },
+    { "path": "/en/roles/growth-pm.html", "title": "Growth product management — metrics and experiments" },
+    { "path": "/en/roles/backend-dev.html", "title": "Backend engineering — architecture and incident reviews" },
+    { "path": "/en/roles/data-analyst.html", "title": "Data analysis — metric definitions and attribution" }
+  ],
+  "faqs": [
+    { "q": "How do I practice in English?", "a": "Open the English version or select English from the language menu before starting. Add a job description and your experience, choose your career stage, and start the interview. You can also follow your browser’s preferred language." },
+    { "q": "Do I need an API key?", "a": "The hosted site offers free interviews within daily visitor and shared limits. You can optionally use your own Alibaba Cloud Model Studio key, billed to your account. Self-hosted installations need a configured model service." },
+    { "q": "What happens to my answers and recordings?", "a": "The interview uses a model service to generate questions, transcribe speech, and provide feedback. Use the storage controls to choose whether to save history or audio. You can delete a saved interview in History." },
+    { "q": "What is the feedback based on?", "a": "Feedback uses your confirmed answers and verifies quoted passages against your transcript. If the evidence cannot be verified, you may be asked to retry. Practice is for preparation and does not guarantee an offer." }
+  ],
+  "title": "Ouba Interview Coach | AI Mock Interview Practice",
+  "headline": "AI Mock Interview Practice in English and Chinese",
+  "description": "Practice an English or Chinese voice interview tailored to your job description and experience. Get follow-up questions and feedback with verified quotes from your answers.",
+  "updated_at": "2026-11-24",
+  "quotable_summary": "One introduction, three experience questions, five feedback dimensions, and five role guides. Hosted practice is free within usage limits."
+}

@@ -11,6 +11,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(here, '../dist/web-client'),
     emptyOutDir: true,
+    rollupOptions: { input: { main: path.join(here, 'index.html'), english: path.join(here, 'en/index.html') } },
     sourcemap: true,
   },
   server: {

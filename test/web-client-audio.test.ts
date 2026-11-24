@@ -13,7 +13,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { RealtimeAudio } from '../web-client/src/audio.js';
 
-type Status = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed' | 'offline';
+type Status = 'connecting' | 'idle' | 'listening' | 'playing' | 'blocked' | 'paused' | 'closed' | 'offline';
 
 class FakeWebSocket {
   static readonly OPEN = 1;
@@ -79,6 +79,13 @@ class FakeAudioContext {
 
   constructor(_options?: AudioContextOptions) {
     FakeAudioContext.instances.push(this);
+  }
+
+  createBuffer(): AudioBuffer {
+    return { copyToChannel() {} } as unknown as AudioBuffer;
+  }
+  createBufferSource(): AudioBufferSourceNode {
+    return { connect() {}, start() {}, stop() {} } as unknown as AudioBufferSourceNode;
   }
 
   createMediaStreamSource(): MediaStreamAudioSourceNode {
@@ -494,5 +501,21 @@ test('旧worklet加载失败晚到时，只清旧context，不影响新麦克风
   assert.equal(runtime.isCapturing, true);
   assert.equal(recorded.errors.some((error) => error.code === 'E_MIC_DENIED'), false);
   assert.equal(recorded.microphones.at(-1), '新设备');
+  await runtime.close();
+});
+
+test('挂起的首题朗读允许直接作答，开始采集前停止旧语音', async () => {
+  installCaptureDom();
+  FakeAudioContext.staySuspended = true;
+  const { runtime, recorded } = makeRuntime();
+  const connected = runtime.connect('s-tts');
+  FakeWebSocket.last.establish();
+  await connected;
+  FakeWebSocket.last.deliver({ type: 'interviewer.audio', audio: 'AAAAAA==' });
+  assert.equal(recorded.statuses.at(-1), 'blocked');
+  FakeAudioContext.staySuspended = false;
+  assert.equal(await runtime.startAnswer(), true);
+  assert.deepEqual(FakeWebSocket.last.sent.map(v => JSON.parse(v).type), ['interrupt', 'answer.start']);
+  assert.equal(recorded.statuses.at(-1), 'listening');
   await runtime.close();
 });

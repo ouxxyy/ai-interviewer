@@ -27,7 +27,7 @@ test('SEO/GEO: every sitemap URL serves its real content with correct GET/HEAD t
       const head=await fetch(app.url+route,{method:'HEAD'});assert.equal(head.status,200,route);assert.equal(await head.text(),'');assert.equal(head.headers.get('content-type'),get.headers.get('content-type'));assert.equal(Number(head.headers.get('content-length')),Buffer.byteLength(raw));
     }
     const xml=await (await fetch(app.url+'/sitemap.xml')).text();
-    const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]!);assert.equal(urls.length,7);assert.equal(new Set(urls).size,7);
+    const urls=[...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]!);assert.equal(urls.length,14);assert.equal(new Set(urls).size,14);
     for(const url of urls){const response=await fetch(app.url+new URL(url).pathname);assert.equal(response.status,200,url);const body=await response.text();assert.match(body,/<h1[\s>]/);assert.ok(body.includes(url),`canonical URL absent: ${url}`);}
   }finally{await close();}
 });
@@ -54,4 +54,22 @@ test('SEO/GEO: private routes stay noindex and missing/unsafe resources never fa
     for(const route of ['/session/test','/report/test','/history','/settings']){const res=await fetch(app.url+route,{method:'HEAD'});assert.equal(res.status,200);assert.match(res.headers.get('x-robots-tag')??'',/noindex/);assert.equal(await res.text(),'');}
     const api=await fetch(app.url+'/api/settings');assert.equal(api.status,401);assert.match(api.headers.get('x-robots-tag')??'',/noindex/);
   }finally{await close();rmSync(root,{recursive:true,force:true});}
+});
+
+test('browser preference and English deep links serve the correct index before JavaScript runs', async () => {
+  const { app, close } = await boot(path.join(REPO_ROOT, 'dist/web-client'));
+  try {
+    for (const [route, preference, expected] of [
+      ['/', 'fr, en-US;q=0.9, zh;q=0.5', 'en'],
+      ['/', 'zh-Hant, en;q=0.8', 'zh-CN'],
+      ['/en/', 'zh-CN', 'en'],
+      ['/en/history', 'zh-CN', 'en'],
+    ]) {
+      const response = await fetch(app.url+route, { headers: { 'Accept-Language': preference! } });
+      assert.equal(response.status, 200);
+      assert.ok((await response.text()).includes('<html lang="'+expected+'">'));
+      if (route === '/') assert.equal(response.headers.get('vary'), 'Accept-Language');
+      if (route === '/en/history') assert.match(response.headers.get('x-robots-tag') ?? '', /noindex/);
+    }
+  } finally { await close(); }
 });

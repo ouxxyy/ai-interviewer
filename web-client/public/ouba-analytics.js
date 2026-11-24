@@ -6,13 +6,14 @@
   const websiteId = config && config.dataset.websiteId;
   const domain = config && config.dataset.domain;
   if (!websiteId || !domain || location.hostname !== domain) return;
-  const events = new Set(['contact_opened','wechat_copied','community_opened','community_link_copied','community_link_clicked','official_account_opened','official_account_copied','email_clicked','github_clicked','practice_requested','practice_started','practice_ended','practice_completed','arrangement_completed','story_requested','story_completed','story_followup_completed','chat_mode_selected','chat_requested','chat_completed','share_opened','signup_completed','purchase_completed']);
+  const events = new Set(['contact_opened','wechat_copied','community_opened','community_link_copied','community_link_clicked','official_account_opened','official_account_copied','email_clicked','github_clicked','first_feedback_received','practice_quota_blocked','practice_requested','practice_started','practice_ended','practice_completed','arrangement_completed','story_requested','story_completed','story_followup_completed','chat_mode_selected','chat_requested','chat_completed','share_opened','signup_completed','purchase_completed']);
   const queue = [];
   const props = new Set(['placement','service','mode','completed_questions','total_questions','schema_version','value','currency','plan']);
   function cleanData(data) {
     const result = {schema_version: 1};
     Object.entries(data || {}).forEach(function (entry) {
       const key=entry[0], value=entry[1];
+      if (key==='stage' && (value==='session_create' || value==='in_practice')) { result.stage=value; return; }
       if (!props.has(key)) return;
       if (typeof value==='number' && Number.isFinite(value) && value>=0 && value<=1000000) result[key]=value;
       else if (typeof value==='string' && /^[a-zA-Z0-9_-]{1,60}$/.test(value)) result[key]=value;

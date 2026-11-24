@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createPracticeObserver, trackEvent } from '../web-client/src/lib/analytics.js';
+import { createPracticeObserver, createQuotaAttempt, trackEvent } from '../web-client/src/lib/analytics.js';
 import type { Snapshot } from '../web-client/src/types.js';
 
 function snapshot(options: { state?: Snapshot['state']; legacy?: boolean; complete?: boolean; synthetic?: boolean } = {}): Snapshot {
@@ -143,4 +143,34 @@ test('公共统计脚本实际执行：同源代理、匿名URL/referrer/title�
   assert.equal(clean.title, '欧八面试陪练');
   assert.equal(JSON.stringify(clean).includes('secret'), false);
   assert.equal(JSON.stringify(clean.data), JSON.stringify({ schema_version: 2, completed_questions: 4, total_questions: 4 }));
+});
+
+test('first useful feedback excludes degraded, empty, history and replay', () => {
+  const store = storage();
+  const events: string[] = [];
+  const emit = (name: string) => { events.push(name); };
+  const observe = createPracticeObserver(emit, store);
+  const s = snapshot({ state: 'rewrite' });
+  s.reviewBasis.q1 = { questionId: 'q1', text: 'sample', turnIds: ['t1'], textVersion: 'raw' };
+  s.reviews.q1 = { questionId: 'q1', reviewVersion: 'degraded:test', topImprovement: 'sample' } as Snapshot['reviews'][string];
+  observe(s);
+  s.reviews.q1!.reviewVersion = 'valid';
+  s.reviews.q1!.topImprovement = '  ';
+  observe(s);
+  s.reviews.q1!.topImprovement = 'sample';
+  observe({ ...s, synthetic: true });
+  observe({ ...s, status: 'ended', state: 'ended' });
+  assert.deepEqual(events, []);
+  observe(s); observe(s); createPracticeObserver(emit, store)(s);
+  assert.deepEqual(events, ['first_feedback_received']);
+});
+
+test('quota is counted once for a denied attempt, repeated attempts count independently', () => {
+  const events: unknown[] = [];
+  for (const stage of ['session_create','in_practice','in_practice'] as const) {
+    const block = createQuotaAttempt(stage, (name, data) => { events.push([name,data]); });
+    block('E_OFFLINE'); block('E_QUOTA'); block('E_QUOTA');
+  }
+  assert.deepEqual(events, ['session_create','in_practice','in_practice'].map(stage =>
+    ['practice_quota_blocked',{schema_version:2,stage}]));
 });

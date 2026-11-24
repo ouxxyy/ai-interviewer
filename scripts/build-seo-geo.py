@@ -6,9 +6,10 @@ from pathlib import Path
 from html.parser import HTMLParser
 from html import escape
 import json,re
+from english_pages import write_english_pages
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1];WEB=ROOT/'web-client';PUBLIC=WEB/'public'
-DOMAIN='https://interview.redboook.cn';AUTHOR='https://albertou.redboook.cn/';DATE='2026-11-16'
+DOMAIN='https://interview.redboook.cn';AUTHOR='https://albertou.redboook.cn/';DATE='2026-11-24'
 AI_BOTS=('OAI-SearchBot','ChatGPT-User','PerplexityBot','Claude-SearchBot','ClaudeBot','Googlebot','Google-Extended','Bingbot','Applebot-Extended','Baiduspider','Sogou web spider','YisouSpider','Bytespider')
 class Text(HTMLParser):
  def __init__(self):super().__init__();self.skip=0;self.parts=[]
@@ -21,11 +22,11 @@ class Text(HTMLParser):
 def build():
  content=json.loads((WEB/'src/public-content.json').read_text())
  faqs=content['faqs'];roles=content['roles']
- schema={'@context':'https://schema.org','@graph':[{'@type':'SoftwareApplication','@id':DOMAIN+'/#app','name':'欧八面试陪练','url':DOMAIN+'/','applicationCategory':'EducationalApplication','operatingSystem':'Web','dateModified':DATE,'license':'https://opensource.org/license/mit','offers':{'@type':'Offer','price':'0','priceCurrency':'CNY','description':'本仓自托管版使用自己的百炼账号，模型调用费用由用户承担。官方托管站提供免 Key 的限额免费练习。'},'description':content['summary'],'author':{'@type':'Person','name':'欧八同学','url':AUTHOR}},{'@type':'FAQPage','@id':DOMAIN+'/#faq','mainEntity':[{'@type':'Question','name':f['q'],'acceptedAnswer':{'@type':'Answer','text':f['a']}} for f in faqs]}]}
+ schema={'@context':'https://schema.org','@graph':[{'@type':'SoftwareApplication','@id':DOMAIN+'/#app','name':'欧八面试陪练','url':DOMAIN+'/','applicationCategory':'EducationalApplication','operatingSystem':'Web','inLanguage':['zh','en'],'dateModified':DATE,'license':'https://opensource.org/license/mit','offers':{'@type':'Offer','price':'0','priceCurrency':'CNY','description':'本仓自托管版使用自己的百炼账号，模型调用费用由用户承担。官方托管站提供免 Key 的限额免费练习。'},'description':content['summary'],'author':{'@type':'Person','name':'欧八同学','url':AUTHOR}},{'@type':'FAQPage','@id':DOMAIN+'/#faq','mainEntity':[{'@type':'Question','name':f['q'],'acceptedAnswer':{'@type':'Answer','text':f['a']}} for f in faqs]}]}
  links='<ul>'+''.join('<li><a href="'+r['path']+'">'+escape(r['title'])+'</a></li>' for r in roles)+'</ul><a href="/roles/">查看全部岗位练习 →</a>'
  faq_html=''.join('<details><summary>'+escape(f['q'])+'</summary><p>'+escape(f['a'])+'</p></details>' for f in faqs)
  quotable_html=f'<div class="quotable-summary"><strong>练习内容：</strong>{escape(content["quotable_summary"])} 最近更新：{DATE}。</div>'
- initial=f'''<header class="brand-header"><a class="brand-mark" href="/"><span>8</span><strong>欧八面试陪练</strong></a><nav aria-label="公开导航"><a href="/roles/">岗位面试练习库</a> · <a href="{AUTHOR}">欧八同学咨询</a></nav></header>
+ initial=f'''<header class="brand-header"><a class="brand-mark" href="/"><span>8</span><strong>欧八面试陪练</strong></a><nav aria-label="公开导航"><a href="/en/" lang="en">English</a> · <a href="/roles/">岗位面试练习库</a> · <a href="{AUTHOR}">欧八同学咨询</a></nav></header>
 +<main class="public-resources"><h1>{escape(content['headline'])}</h1><p>{escape(content['summary'])}</p>{quotable_html}<p>本仓自托管版先配置自己的百炼 API Key，模型调用费用由用户承担。也可以前往<a href="{DOMAIN}/">官方托管面试站</a>使用免 Key 的免费额度。</p><noscript><p>在线训练需要启用 JavaScript；下方岗位练习与使用说明可直接阅读。</p></noscript><h2>岗位面试练习与使用说明</h2>{links}<h2>常见问题</h2>{faq_html}<p>作者：<a href="{AUTHOR}">欧八同学</a>，9 年产品经验，曾任职网易、搜狐、MINISO。<a href="https://github.com/ouxxyy/ai-interviewer">查看开源代码与本地运行说明</a>。</p></main>'''.replace('\n+','\n')
  index=f'''<!doctype html>
 <html lang="zh-CN"><head>
@@ -33,6 +34,7 @@ def build():
 <title>{escape(content['title'])}</title>
 <meta name="description" content="{escape(content['description'], quote=True)}">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large"><link rel="canonical" href="{DOMAIN}/">
+<link rel="alternate" hreflang="en" href="{DOMAIN}/en/"><link rel="alternate" hreflang="zh" href="{DOMAIN}/">
 <meta property="og:type" content="website"><meta property="og:url" content="{DOMAIN}/"><meta property="og:title" content="{escape(content['title'], quote=True)}"><meta property="og:description" content="{escape(content['description'], quote=True)}">
 <script type="application/ld+json">{json.dumps(schema,ensure_ascii=False,separators=(',',':'))}</script>
 <script defer src="/ouba-analytics.js?v=2" data-proxy="same-origin" data-website-id="4897cfc4-d00f-47b5-b150-07db3748db54" data-domain="interview.redboook.cn" data-title="欧八面试陪练"></script>
@@ -48,6 +50,8 @@ def build():
   assert 'index-B50kyzIk.css' not in body
   for raw in re.findall(r'<script type="application/ld\+json">(.*?)</script>',body,re.S):json.loads(raw)
   entries.append((url,title));t=Text();t.feed(body);texts.append('## '+title+'\n来源：'+url+'\n\n'+'\n'.join(t.parts))
+ analytics=re.search(r'<script defer src="/ouba-analytics[^>]+></script>',index)[0].replace('data-title="欧八面试陪练"','data-title="Ouba Interview Coach"')
+ entries.extend(write_english_pages(WEB,DOMAIN,analytics))
  ai_rules=''.join(f'User-agent: {bot}\nAllow: /\nDisallow: /api/\nDisallow: /harness\nDisallow: /realtime\n\n' for bot in AI_BOTS)
  (PUBLIC/'robots.txt').write_text(f'{ai_rules}User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /harness\nDisallow: /realtime\n\nSitemap: {DOMAIN}/sitemap.xml\n')
  # Published URLs carry their own modification dates. Preserve them on rebuild.

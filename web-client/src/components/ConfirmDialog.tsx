@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import { useEffect, useRef } from 'react';
 
 interface ConfirmDialogProps {
@@ -23,9 +24,9 @@ export function ConfirmDialog({ title, children, confirmLabel, dangerous = false
         <h2 id="confirm-title">{title}</h2>
         <div className="confirm-copy">{children}</div>
         <div className="dialog-actions">
-          <button ref={cancelRef} className="button button--paper" type="button" onClick={onCancel} disabled={busy}>取消</button>
+          <button ref={cancelRef} className="button button--paper" type="button" onClick={onCancel} disabled={busy}>{t("取消")}</button>
           <button className={`button ${dangerous ? 'button--danger' : 'button--primary'}`} type="button" onClick={onConfirm} disabled={busy}>
-            {busy ? '正在处理…' : confirmLabel}
+            {busy ? t('正在处理…') : confirmLabel}
           </button>
         </div>
       </section>

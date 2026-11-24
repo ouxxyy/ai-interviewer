@@ -31,7 +31,8 @@ import { REPO_ROOT, type WebPaths } from './paths.js';
 import type { SettingsStore } from './settings.js';
 import type { Store } from './store.js';
 import type { CredentialStore, VisitorRegistry } from './visitor.js';
-import { PUBLIC_DISCLOSURE } from './disclosure.js';
+import { requestLanguage } from './language.js';
+import { englishDisclosure, PUBLIC_DISCLOSURE } from './disclosure.js';
 
 const MAX_BODY_BYTES = 16 * 1024 * 1024;
 const HARNESS_FILE = path.join(REPO_ROOT, 'src', 'web', 'public', 'harness.html');
@@ -84,7 +85,7 @@ const STATIC_CONTENT_TYPES: Record<string, string> = {
 };
 
 /** 同源托管 Vite 构建产物；子目录优先匹配其下 index.html，无扩展名路由回退根 index.html，API 与 harness 不走这里。 */
-function serveStatic(staticDir: string, pathname: string, res: http.ServerResponse, headOnly = false): boolean {
+function serveStatic(staticDir: string, pathname: string, res: http.ServerResponse, headOnly = false, language = 'zh'): boolean {
   const root = path.resolve(staticDir);
   const index = path.join(root, 'index.html');
   if (!existsSync(index)) return false;
@@ -103,8 +104,14 @@ function serveStatic(staticDir: string, pathname: string, res: http.ServerRespon
   const candidateIsFile = existsSync(candidate) && statSync(candidate).isFile();
   const dirIndex = path.join(candidate, 'index.html');
   const candidateHasDirIndex = !candidateIsFile && existsSync(dirIndex) && statSync(dirIndex).isFile();
-  const appRoute = relative === '' || /^(settings|history|privacy)$/.test(relative) || /^(session|report|reports)\/[^/]+$/.test(relative);
-  const file = candidateIsFile ? candidate : candidateHasDirIndex ? dirIndex : appRoute ? index : null;
+  const englishPath = relative === 'en' || relative.startsWith('en/');
+  const route = englishPath ? relative.slice(3) : relative;
+  const englishIndex = path.join(root, 'en', 'index.html');
+  const useEnglishIndex = (englishPath || language === 'en') && existsSync(englishIndex);
+  const appIndex = useEnglishIndex ? englishIndex : index;
+  const appRoute = route === '' || /^(settings|history|privacy)$/.test(route) || /^(session|report|reports)\/[^/]+$/.test(route);
+  if (appRoute && !englishPath) res.setHeader('Vary', 'Accept-Language');
+  const file = appRoute ? appIndex : candidateIsFile ? candidate : candidateHasDirIndex ? dirIndex : null;
   if (file === null) return false;
   const realRelative = path.relative(realpathSync(root), realpathSync(file));
   if (realRelative.startsWith('..') || path.isAbsolute(realRelative)) return false;
@@ -184,7 +191,7 @@ export function createServer(deps: ServerDeps): RunningServer {
   async function handle(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', `http://${deps.host}:${deps.port}`);
     const route = `${req.method ?? 'GET'} ${url.pathname}`;
-    if (/^\/(api|session|report|reports|settings|history|privacy|harness)(\/|$)/.test(url.pathname)) {
+    if (/^\/(?:en\/)?(api|session|report|reports|settings|history|privacy|harness)(\/|$)/.test(url.pathname)) {
       res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     }
     try {
@@ -201,7 +208,8 @@ export function createServer(deps: ServerDeps): RunningServer {
       }
       const scope = deps.visitors && url.pathname.startsWith('/api/') ? deps.visitors.require(req) : deps;
       const { manager, store, settings, credentials, paths } = scope;
-      const disclosure = deps.visitors ? PUBLIC_DISCLOSURE : DISCLOSURE;
+      const language = requestLanguage(req.headers['accept-language']);
+      const disclosure = language === 'en' ? englishDisclosure(Boolean(deps.visitors)) : deps.visitors ? PUBLIC_DISCLOSURE : DISCLOSURE;
       const disclosureVersion = disclosure.version;
       let config = configs.get(credentials);
       if (!config) { config = { token: randomUUID(), writes: [] }; configs.set(credentials, config); }
@@ -221,10 +229,10 @@ export function createServer(deps: ServerDeps): RunningServer {
       }
       if (req.method === 'GET' && url.pathname === '/api/model-config') {
         return json(res, 200, {
-          ...credentials.status(),
           textModel: process.env.AI_INTERVIEWER_TEXT_MODEL?.trim() || DASHSCOPE_DEFAULTS.model,
           realtimeModel: process.env.AI_INTERVIEWER_REALTIME_MODEL?.trim() || REALTIME_DEFAULTS.model,
           voice: REALTIME_DEFAULTS.defaultVoice,
+          ...credentials.status(),
           configToken: config.token,
         });
       }
@@ -245,6 +253,7 @@ export function createServer(deps: ServerDeps): RunningServer {
           textModel: process.env.AI_INTERVIEWER_TEXT_MODEL?.trim() || DASHSCOPE_DEFAULTS.model,
           realtimeModel: process.env.AI_INTERVIEWER_REALTIME_MODEL?.trim() || REALTIME_DEFAULTS.model,
           voice: REALTIME_DEFAULTS.defaultVoice,
+          ...credentials.status(),
           configToken: config.token,
         });
       }
@@ -279,8 +288,10 @@ export function createServer(deps: ServerDeps): RunningServer {
       }
       if (req.method === 'POST' && url.pathname === '/api/sessions') {
         if (deps.visitors && manager.listLive().length >= 5) throw new AppError('E_QUOTA', '最多保留 5 场在线训练，请删除旧场次后继续');
-        if (deps.visitors && !credentials.status().configured) throw new AppError('E_VALIDATION', '请先配置你的百炼 API Key');
+        if (deps.visitors && !credentials.status().configured) throw new AppError('E_VALIDATION', '本站免费服务暂未启用，请配置自己的百炼 API Key');
         const body = await readJsonObject(req);
+        const interviewLanguage = body.language ?? language;
+        if (interviewLanguage !== 'zh' && interviewLanguage !== 'en') throw new AppError('E_VALIDATION', 'Unsupported interview language');
         const synthetic = optionalBool(body, 'synthetic') ?? true;
         const saveHistory = optionalBool(body, 'saveHistory');
         const saveAudio = optionalBool(body, 'saveAudio');
@@ -295,8 +306,9 @@ export function createServer(deps: ServerDeps): RunningServer {
         // 与 SettingsStore 同一不变量：关历史就不可能存录音。请求体也不能写出矛盾组合。
         const wantHistory = saveHistory ?? current.saveHistory;
         const wantAudio = wantHistory ? (saveAudio ?? current.saveAudio) : false;
+        deps.visitors?.claimFreeSession(req);
         const runner = manager.create({
-          synthetic,
+          language: interviewLanguage, synthetic,
           saveHistory: wantHistory,
           saveAudio: wantAudio,
         });
@@ -323,7 +335,9 @@ export function createServer(deps: ServerDeps): RunningServer {
           const body = await readJsonObject(req);
           const stage = body.stage === '应届' || body.stage === '社招' ? body.stage : null;
           if (stage === null) throw new AppError('E_VALIDATION', 'stage 只能是「应届」或「社招」');
+          if (body.language !== undefined && body.language !== 'zh' && body.language !== 'en') throw new AppError('E_VALIDATION', 'Unsupported interview language');
           const snapshot = await runner().confirmMaterials({
+            language: body.language,
             jd: requireString(body, 'jd', { min: 10, max: 20_000 }),
             experience: requireString(body, 'experience', { min: 30, max: 40_000 }),
             stage,
@@ -419,7 +433,7 @@ export function createServer(deps: ServerDeps): RunningServer {
         res.end(readFileSync(HARNESS_FILE));
         return;
       }
-      if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname !== '/api' && !url.pathname.startsWith('/api/') && serveStatic(deps.staticDir, url.pathname, res, req.method === 'HEAD')) return;
+      if ((req.method === 'GET' || req.method === 'HEAD') && url.pathname !== '/api' && !url.pathname.startsWith('/api/') && serveStatic(deps.staticDir, url.pathname, res, req.method === 'HEAD', language)) return;
       if ((req.method === 'GET' || req.method === 'HEAD') && (url.pathname === '/' || url.pathname === '/index.html')) {
         return json(res, 200, {
           service: 'ai-interviewer-web',

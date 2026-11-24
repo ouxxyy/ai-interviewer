@@ -7,6 +7,8 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync, chmodSync } from 'n
 import { DatabaseSync } from 'node:sqlite';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
+import { isIP } from 'node:net';
+import type { OpenAiConfig } from '../clients/openai-compatible.js';
 import { AppError } from './errors.js';
 import type { CredentialConfigStatus } from './credentials.js';
 import type { SessionManager } from './manager.js';
@@ -36,7 +38,8 @@ export class VisitorRegistry {
   private readonly secure: boolean;
 
   constructor(private readonly root: string, origin: string,
-    private readonly factory: (root: string, credentials: CredentialStore, key: () => string) => VisitorContext) {
+    private readonly factory: (root: string, credentials: CredentialStore, key: () => string) => VisitorContext,
+    private readonly freeConfig: OpenAiConfig | null = null) {
     const url = new URL(origin);
     if (url.origin !== origin || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname)))) {
       throw new Error('AI_INTERVIEWER_PUBLIC_ORIGIN 必须是精确 HTTPS 源站（仅回环测试允许 HTTP）');
@@ -55,6 +58,7 @@ export class VisitorRegistry {
     if (this.key.length !== 32) throw new Error('访客凭证主密钥格式错误');
     this.db = new DatabaseSync(dbFile);
     chmodSync(dbFile, 0o600);
+    this.db.exec('CREATE TABLE IF NOT EXISTS free_sessions (bucket TEXT NOT NULL, day TEXT NOT NULL, count INTEGER NOT NULL, PRIMARY KEY(bucket,day))');
     this.db.exec('PRAGMA journal_mode = WAL; CREATE TABLE IF NOT EXISTS visitors (id TEXT PRIMARY KEY, credential TEXT, created_at TEXT NOT NULL);');
   }
 
@@ -89,7 +93,7 @@ export class VisitorRegistry {
       this.issued.push(now);
       res.setHeader('Set-Cookie', `${this.secure ? COOKIE : LOCAL_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=31536000${this.secure ? '; Secure' : ''}`);
     }
-    return { mode: { public: true, keyConfigured: this.readKey(id) !== '' } };
+    return { mode: { public: true, keyConfigured: this.readKey(id) !== '' || this.freeConfig !== null } };
   }
 
   require(req: IncomingMessage, websocket = false): VisitorContext {
@@ -109,7 +113,13 @@ export class VisitorRegistry {
     if (!entry) {
       if (this.contexts.size >= 64) throw new AppError('E_QUOTA', '服务繁忙，请稍后重试');
       const credentials: CredentialStore = {
-        status: () => ({ configured: this.readKey(id) !== '', keyName: 'DASHSCOPE_API_KEY', storage: 'visitor-encrypted' }),
+        status: () => {
+          const userConfigured = this.readKey(id) !== '';
+          return { configured: userConfigured || this.freeConfig !== null, userConfigured, freeAvailable: this.freeConfig !== null,
+            provider: userConfigured ? 'bailian' : this.freeConfig ? 'free-openai' : 'unconfigured',
+            keyName: 'DASHSCOPE_API_KEY', storage: 'visitor-encrypted',
+            ...(!userConfigured && this.freeConfig ? { textModel: this.freeConfig.textModel, realtimeModel: this.freeConfig.speechModel, transcriptionModel: this.freeConfig.transcriptionModel, voice: this.freeConfig.voice } : {}) };
+        },
         update: raw => {
           const value = raw.trim();
           if (!/^sk-[A-Za-z0-9._-]{17,509}$/.test(value)) throw new AppError('E_VALIDATION', '请填写百炼控制台的完整 API Key');
@@ -129,6 +139,25 @@ export class VisitorRegistry {
     }
     entry.used = now;
     return entry.value;
+  }
+
+  /** Limits persist across restarts; deleting cookies still shares the IP limit. */
+  claimFreeSession(req: IncomingMessage): void {
+    const id = this.id(req);
+    if (!id || this.readKey(id) !== '' || !this.freeConfig) return;
+    const forwarded = req.headers['x-real-ip'];
+    const ip = typeof forwarded === 'string' && isIP(forwarded) ? forwarded : req.socket.remoteAddress ?? 'unknown';
+    const day = new Date().toISOString().slice(0, 10);
+    const buckets: Array<[string, number]> = [[`visitor:${id}`, 3], [`ip:${digest(ip)}`, 10], ['global', 100]];
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      for (const [bucket, limit] of buckets) {
+        this.db.prepare('INSERT OR IGNORE INTO free_sessions(bucket,day,count) VALUES (?,?,0)').run(bucket, day);
+        const change = this.db.prepare('UPDATE free_sessions SET count=count+1 WHERE bucket=? AND day=? AND count<?').run(bucket, day, limit);
+        if (change.changes !== 1) throw new AppError('E_QUOTA', '今日免费训练次数已用完，请明日再试或配置自己的百炼 API Key');
+      }
+      this.db.exec('COMMIT');
+    } catch (error) { this.db.exec('ROLLBACK'); throw error; }
   }
 
   private readKey(id: string): string {

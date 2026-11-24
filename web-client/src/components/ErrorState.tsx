@@ -1,3 +1,4 @@
+import { language, t } from '../lib/i18n.js';
 import { ArrowClockwise, ArrowLeft, FileText, Gear, MicrophoneSlash, SpeakerHigh, StopCircle, WifiSlash } from '@phosphor-icons/react';
 import type { AppErrorBody, ErrorCode } from '../types';
 
@@ -55,6 +56,29 @@ const ERROR_SPECS: Partial<Record<ErrorCode, ErrorSpec>> = {
   },
 };
 
+const englishErrorTitles: Record<string, string> = {
+  E_BAD_REQUEST: 'The request could not be processed',
+  E_VALIDATION: 'Check your input',
+  E_FORBIDDEN: 'Access denied',
+  E_UNAUTHORIZED: 'Authentication failed',
+  E_NOT_FOUND: 'Interview or resource not found',
+  E_STATE: 'This action is unavailable at this stage',
+  E_DISCLOSURE_REQUIRED: 'Review the privacy notice before continuing',
+  E_MATERIALS_UNCONFIRMED: 'Confirm your interview materials',
+  E_PLAN_FAILED: 'The interview questions could not be generated',
+  E_REALTIME: 'Voice connection failed',
+  E_REALTIME_TIMEOUT: 'The voice connection timed out',
+  E_UPLINK_PAUSED: 'Audio uploads are paused',
+  E_UPSTREAM: 'The model service is unavailable',
+  E_REPORT_FAILED: 'The report could not be generated',
+  E_INTERNAL: 'The service could not complete this request',
+};
+
+function errorCopy(message: string, fallback: string): string {
+  const translated = t(message);
+  return language() === 'en' && /\p{Script=Han}/u.test(translated) ? fallback : translated;
+}
+
 interface ErrorStateProps {
   error: AppErrorBody;
   compact?: boolean;
@@ -65,9 +89,9 @@ export function ErrorState({ error, compact = false, onAction }: ErrorStateProps
   const halt = error.halt === true || error.code === 'E_QUOTA';
   const spec: ErrorSpec = ERROR_SPECS[error.code] ?? {
     title: error.message,
-    fallbackHint: '按提示检查后再继续。',
+    fallbackHint: t('按提示检查后再继续。'),
     icon: Gear,
-    actions: halt ? [{ id: 'home', label: '返回首页' }] : [{ id: 'retry', label: '再试一次', primary: true }],
+    actions: halt ? [{ id: 'home', label: t('返回首页') }] : [{ id: 'retry', label: t('再试一次'), primary: true }],
   };
   const Icon = spec.icon;
   const actions = halt ? spec.actions.filter((action) => action.id !== 'retry' && action.id !== 'reconnect') : spec.actions;
@@ -77,14 +101,14 @@ export function ErrorState({ error, compact = false, onAction }: ErrorStateProps
       <div className="error-icon"><Icon size={24} weight="bold" aria-hidden={true} /></div>
       <div className="error-content">
         <code>{error.code}</code>
-        <h2>{spec.title}</h2>
-        <p>{error.hint ?? spec.fallbackHint}</p>
+        <h2>{errorCopy(spec.title, englishErrorTitles[error.code] ?? 'The request could not be completed')}</h2>
+        <p>{errorCopy(error.hint ?? (error.code === 'E_QUOTA' ? error.message : spec.fallbackHint), t(spec.fallbackHint))}</p>
       </div>
       <div className="error-actions">
         {actions.map((action) => (
           <button key={action.id} className={`button ${action.primary ? 'button--primary' : 'button--paper'}`} type="button" onClick={() => onAction?.(action.id)}>
             {action.id === 'home' ? <ArrowLeft size={16} weight="bold" aria-hidden="true" /> : null}
-            {action.label}
+            {t(action.label)}
           </button>
         ))}
       </div>

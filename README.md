@@ -89,6 +89,8 @@ https://github.com/user-attachments/assets/485891d3-e4d4-436b-b4db-4e98593061ba
 
 ### 方式一：在线版（免费、免安装、无需 API Key）
 
+网页会按浏览器偏好自动选择中文或英文。也可在开始前手动切换，或直接进入[英文面试](https://interview.redboook.cn/en/)。
+
 打开 [欧八面试陪练](https://interview.redboook.cn/)，确认使用告知，填写岗位 JD、真实经历和求职阶段，即可开始练习。默认使用本站提供的 OpenAI 服务，Key 仅保存在服务端，不发送给浏览器。
 
 - **免费额度：** 每访客每天 3 场、每 IP 每天 10 场；全站每天最多 100 场、1000 次上游调用，同时最多 4 次调用，每场最多 80 次。日额度在北京时间 08:00 重置；额度不足或繁忙时会提示稍后再试，不向访客收费。
@@ -198,7 +200,7 @@ npm run validate -- <file.json> <contract-name>       # 独立契约校验 CLI
 
 ## English overview
 
-A Chinese voice AI mock interview app for practicing a self-introduction and experience questions from a job description and your work history. It asks follow-up questions, quotes answer evidence in feedback and compares one retry.
+Choose [English interview practice](https://interview.redboook.cn/en/) or open the homepage to follow your browser language. You can also choose 中文 or English before starting a session. Practice a self-introduction and experience questions from a job description and your work history. It asks follow-up questions, quotes answer evidence in feedback and compares one retry.
 
 See [Quick start](#quick-start). The hosted website is free to try without an API key: 3 sessions per visitor per day, subject to shared limits. The site operator pays for the default OpenAI service; optional DashScope BYOK uses your own account and billing. Free voice mode transcribes after you submit an answer. Self-hosting still requires your own model credentials and costs. Required text and audio are sent to the selected cloud model. Full-session human-microphone validation and quality calibration remain incomplete.
 

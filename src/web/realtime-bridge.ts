@@ -31,11 +31,12 @@ export interface RealtimeLike {
 }
 
 export interface BridgeOptions {
+  language?: 'en' | 'zh';
   credential: string;
   model?: string;
   voice?: string;
   inputTranscriptionModel?: string;
-  createClient?: (opts: { credential: string; model?: string; voice?: string; inputTranscriptionModel?: string }) => RealtimeLike;
+  createClient?: (opts: { language?: 'zh' | 'en'; credential: string; model?: string; voice?: string; inputTranscriptionModel?: string }) => RealtimeLike;
   onInterviewerAudio?: (chunk: Buffer, seq: number) => void;
   onUserTranscript?: (partial: string, final: boolean) => void;
   logger?: Logger;
@@ -115,6 +116,11 @@ export class RealtimeBridge {
   private speaking = false;
 
   constructor(private readonly opts: BridgeOptions) {}
+
+  setLanguage(language: 'zh' | 'en'): void {
+    if (this.client) throw new Error('Cannot change the language of an active voice connection');
+    this.opts.language = language;
+  }
 
   get stats(): BridgeStats {
     return this.stats_;
@@ -202,6 +208,7 @@ export class RealtimeBridge {
   private createClient(): RealtimeLike {
     if (this.opts.createClient) {
       return this.opts.createClient({
+        language: this.opts.language,
         credential: this.opts.credential,
         ...(this.opts.model === undefined ? {} : { model: this.opts.model }),
         ...(this.opts.voice === undefined ? {} : { voice: this.opts.voice }),
@@ -209,6 +216,7 @@ export class RealtimeBridge {
       });
     }
     return new DashscopeRealtimeClient(this.opts.credential, {
+      language: this.opts.language ?? 'zh',
       ...(this.opts.model === undefined ? {} : { model: this.opts.model }),
       voice: this.opts.voice ?? REALTIME_DEFAULTS.defaultVoice,
       ...(this.opts.inputTranscriptionModel === undefined ? {} : { inputTranscriptionModel: this.opts.inputTranscriptionModel }),

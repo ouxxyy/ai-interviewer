@@ -8,6 +8,7 @@
  *   且内容全部来自已通过校验的 Feedback（`priorityPractice` 要么由模型写且过来源校验，要么由反馈派生并标注来源）。
  * - 撞上 1310／bigmodel 立刻 `halt`：本场不再发起任何模型调用（不重试）。
  */
+import { interviewPrompt, type InterviewLanguage } from './language.js';
 import { SessionMachine, type MachineSnapshot, type SessionEvent, type SessionState } from '../state/machine.js';
 import { runReview, type ReviewChannel } from '../review/reviewer.js';
 import { safeReviewIssues, type ReviewAttempt } from '../review/diagnostics.js';
@@ -52,6 +53,7 @@ export type Pending =
   | 'ended';
 
 export interface RunnerSnapshot {
+  language: InterviewLanguage;
   sid: string;
   state: SessionState;
   status: 'active' | 'report' | 'ended';
@@ -60,7 +62,7 @@ export interface RunnerSnapshot {
   toggles: { saveHistory: boolean; saveAudio: boolean };
   materials: CandidateMaterials | null;
   plan: QuestionPlan | null;
-  currentQuestion: { id: string; index: number; kind: QuestionKind; text: string; intent: string } | null;
+  currentQuestion: { id: string; index: number; kind: QuestionKind; text: string; spokenText?: string; intent: string } | null;
   pending: Pending;
   lastError: RunnerError | null;
   halted: boolean;
@@ -76,6 +78,7 @@ export interface RunnerSnapshot {
 }
 
 export interface RunnerOptions {
+  language?: InterviewLanguage;
   store: Store;
   textClient: TextLlmClient;
   logger: Logger;
@@ -111,6 +114,7 @@ export class InterviewRunner {
   private readonly logger: Logger;
   private readonly bridge: RealtimeBridge;
   readonly sid: string;
+  language: InterviewLanguage;
   readonly synthetic: boolean;
   readonly saveHistory: boolean;
   readonly saveAudio: boolean;
@@ -130,6 +134,7 @@ export class InterviewRunner {
   private answerStartedAt: string | null = null;
   private rewroteFirstAnswer = new Map<string, string>();
   /** 本轮回答应当记成什么类型（追问轮／重答轮／普通回答）——由「刚才说了什么」决定，而非由状态推断。 */
+  private spokenPrompt: { questionId: string; text: string; type: 'question' | 'followup' } | null = null;
   private expectedTurnType: 'answer' | 'followup' | 'rewrite' = 'answer';
   private usage = { textCalls: 0, promptTokens: 0, completionTokens: 0, inputAudioBytes: 0 };
 
@@ -138,6 +143,7 @@ export class InterviewRunner {
     this.text = opts.textClient;
     this.logger = opts.logger;
     this.sid = opts.sessionId;
+    this.language = opts.language ?? 'zh';
     this.synthetic = opts.synthetic;
     this.saveHistory = opts.saveHistory;
     this.saveAudio = opts.saveAudio;
@@ -145,13 +151,13 @@ export class InterviewRunner {
     this.bridge =
       opts.createBridge?.(opts.sessionId) ??
       new RealtimeBridge({
-        credential: opts.credential,
+        credential: opts.credential, language: this.language,
         model,
         voice: opts.voice ?? REALTIME_DEFAULTS.defaultVoice,
         logger: opts.logger,
       });
     this.store.createSession({
-      id: opts.sessionId,
+      id: opts.sessionId, language: this.language,
       ruleVersion: RULES_VERSION,
       realtimeModel: model,
       textModel: (opts.textClient as { model?: string }).model ?? null,
@@ -169,7 +175,7 @@ export class InterviewRunner {
     const question = this.plan?.questions[m.questionIndex] ?? null;
     const reviews = Object.fromEntries(this.reviews);
     return {
-      sid: this.sid,
+      sid: this.sid, language: this.language,
       state: m.state,
       status: session?.status ?? 'active',
       machine: m,
@@ -177,7 +183,7 @@ export class InterviewRunner {
       toggles: { saveHistory: this.saveHistory, saveAudio: this.saveAudio },
       materials: this.materials,
       plan: this.plan,
-      currentQuestion: question === null ? null : { id: question.id, index: m.questionIndex, kind: question.kind, text: question.text, intent: question.intent },
+      currentQuestion: question === null ? null : { id: question.id, index: m.questionIndex, kind: question.kind, text: question.text, spokenText: this.spokenPrompt?.questionId === question.id ? this.spokenPrompt.text : question.text, intent: question.intent },
       pending: m.state as Pending,
       lastError: this.lastError,
       halted: this.halted,
@@ -217,7 +223,7 @@ export class InterviewRunner {
     if (this.halted) throw new AppError('E_QUOTA', '本场已按止损停止：额度不足后不再发起模型调用', { halt: true });
     try {
       const res = await this.text.complete({
-        prompt: req.prompt,
+        prompt: interviewPrompt(req.prompt, this.language),
         jsonMode: req.jsonMode ?? true,
         temperature: req.temperature ?? 0.2,
         maxTokens: req.maxTokens ?? 2048,
@@ -240,7 +246,7 @@ export class InterviewRunner {
 
   // ---------- 材料 ----------
 
-  async confirmMaterials(input: { jd: string; experience: string; stage: '应届' | '社招'; targetRole: string }): Promise<RunnerSnapshot> {
+  async confirmMaterials(input: { language?: InterviewLanguage; jd: string; experience: string; stage: '应届' | '社招'; targetRole: string }): Promise<RunnerSnapshot> {
     this.assertNotHalted();
     if (this.machine.snapshot().state !== 'materials_review') {
       throw new AppError('E_STATE', `当前状态 ${this.machine.snapshot().state} 不允许确认材料`);
@@ -249,19 +255,23 @@ export class InterviewRunner {
     const experience = input.experience.trim();
     if (jd.length < 10) throw new AppError('E_VALIDATION', 'JD 太短（至少 10 个字符）', { hint: '把目标岗位的 JD 粘贴进来，或使用「虚构演示」样例' });
     if (experience.length < 30) throw new AppError('E_VALIDATION', '经历太短（至少 30 个字符）', { hint: '粘贴你的经历文本，或上传文本型 PDF／DOCX' });
+    if (input.language && input.language !== this.language) {
+      this.bridge.setLanguage(input.language);
+      this.language = input.language;
+    }
     const prevVersion = this.materials?.materialsVersion ?? 0;
     this.materials = {
       contractVersion: CONTRACT_VERSION,
       jd,
       experience,
       stage: input.stage,
-      targetRole: input.targetRole.trim() === '' ? '未指定' : input.targetRole.trim(),
+      targetRole: input.targetRole.trim() === '' ? (this.language === 'en' ? 'Unspecified' : '未指定') : input.targetRole.trim(),
       materialsVersion: prevVersion + 1,
       confirmed: true,
     };
     const fired = this.machine.fire('MATERIALS_CONFIRMED');
     if (!fired.accepted) throw new AppError('E_STATE', fired.error ?? '材料确认被状态机拒绝');
-    this.store.updateSession(this.sid, { materials: this.materials, state: this.machine.snapshot().state });
+    this.store.updateSession(this.sid, { language: this.language, materials: this.materials, state: this.machine.snapshot().state });
     try {
       this.plan = await this.generatePlan();
     } catch (e) {
@@ -358,7 +368,11 @@ export class InterviewRunner {
     const state = this.machine.snapshot().state;
     if (state !== 'answer' && state !== 'followup') throw new AppError('E_STATE', `状态 ${state} 不能重读问题`);
     const question = this.requireQuestion();
-    await this.speak(question.text, 'question');
+    const prompt = this.spokenPrompt;
+    const expected = this.expectedTurnType;
+    await this.speak(prompt?.questionId === question.id ? prompt.text : question.text,
+      prompt?.questionId === question.id ? prompt.type : 'question');
+    this.expectedTurnType = expected;
     this.lastError = null;
     return this.snapshot();
   }
@@ -374,6 +388,7 @@ export class InterviewRunner {
       this.machine.fire('ERROR_DISCONNECT');
       throw err;
     }
+    this.spokenPrompt = { questionId: question.id, text, type: turnType };
     const startedAt = new Date().toISOString();
     let result;
     try {
@@ -385,7 +400,7 @@ export class InterviewRunner {
       throw err;
     }
     const endedAt = new Date().toISOString();
-    const transcript = result.transcript.trim() === '' ? '（服务端未返回朗读转写）' : result.transcript;
+    const transcript = result.transcript.trim() === '' ? (this.language === 'en' ? '(No spoken transcript returned)' : '（服务端未返回朗读转写）') : result.transcript;
     if (result.cancelled) {
       // 打断过的问题：音频被判为不完整，但文本仍是应用层下发的内容；如实记进轮次，供回放核对。
       this.logger.info('runner.question_interrupted', { sid: this.sid, turnType, deltasAfterCancel: result.deltasAfterCancel });
@@ -622,7 +637,7 @@ export class InterviewRunner {
     const value = parsed.value as Partial<FollowupDecision>;
     const need = value.need === true;
     const questionText = typeof value.question === 'string' ? value.question : null;
-    if (need && (questionText === null || questionText.trim().length === 0 || questionText.length > 80)) {
+    if (need && (questionText === null || questionText.trim().length === 0 || questionText.length > (this.language === 'en' ? 240 : 80))) {
       throw new AppError('E_UPSTREAM', '追问判定要求追问但没有给出可用的追问文本');
     }
     return {
@@ -663,6 +678,7 @@ export class InterviewRunner {
     let outcome;
     try {
       outcome = await runReview({
+        language: this.language,
         channel,
         basisText: basis.text,
         turnIds: basis.turnIds,
@@ -773,6 +789,7 @@ ${rewriteBasis}
   async rewriteStart(): Promise<RunnerSnapshot> {
     const fired = this.machine.fire('REWRITE_START');
     if (!fired.accepted) throw new AppError('E_STATE', fired.error ?? '状态机拒绝重答');
+    this.spokenPrompt = null;
     this.expectedTurnType = 'rewrite';
     this.answerChunks = [];
     this.answerStartedAt = null;
@@ -937,7 +954,7 @@ ${rewriteBasis}
       if (out.length >= 2) break;
       if (!out.includes(item)) out.push(item);
     }
-    return out.length > 0 ? out.slice(0, 2) : ['本次已完成题目，但反馈中没有可提炼的练习点'];
+    return out.length > 0 ? out.slice(0, 2) : [this.language === 'en' ? 'No practice suggestions could be drawn from the feedback.' : '本次已完成题目，但反馈中没有可提炼的练习点'];
   }
 
   // ---------- 内部工具 ----------

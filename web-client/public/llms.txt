@@ -27,3 +27,7 @@
 - [数据分析师模拟面试｜指标口径与业务归因追问｜欧八面试陪练](https://interview.redboook.cn/roles/data-analyst.html)
 - [增长产品经理模拟面试｜指标、实验与归因追问｜欧八面试陪练](https://interview.redboook.cn/roles/growth-pm.html)
 - [AI 模拟面试岗位练习｜产品经理、后端开发、数据分析｜欧八面试陪练](https://interview.redboook.cn/roles/)
+
+## English interview practice
+
+[Ouba Interview Coach](https://interview.redboook.cn/en/) offers English and Chinese voice interviews, with questions based on your job description and experience, follow-ups, and feedback tied to your own words.

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { appPath, language, languageSnapshot, navigationPath, subscribeLanguage, t } from './lib/i18n.js';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ApiError, api } from './api';
 import { ErrorState } from './components/ErrorState';
 import { HistoryPage } from './pages/HistoryPage';
@@ -8,6 +9,8 @@ import { ReportPage } from './pages/ReportPage';
 import { SessionPage } from './pages/SessionPage';
 import { ModelSettingsPage } from './pages/ModelSettingsPage';
 import { PublicResources } from './components/PublicResources';
+import chineseContent from './public-content.json';
+import englishContent from './public-content.en.json';
 import type { AppErrorBody, MaterialsDraft, PreviewData, WebSettings } from './types';
 
 /** 预览只在开发构建里通过查询参数开启；生产构建里这个分支会被整体消除（P2-1）。 */
@@ -18,7 +21,15 @@ function previewName(): string | null {
 
 export default function App() {
   const preview = previewName();
-  const [path, setPath] = useState(location.pathname);
+  useSyncExternalStore(subscribeLanguage, languageSnapshot);
+  const locale = language();
+  const [path, setPath] = useState(() => appPath(location.pathname));
+  useEffect(() => {
+    const metadata = locale === 'en' ? englishContent : chineseContent;
+    document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+    document.title = metadata.title;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', metadata.description);
+  }, [locale]);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   /** 错误画廊也只是开发预览页，同样走 DEV-only 动态载入，不进生产包。 */
   const [errorGallery, setErrorGallery] = useState<React.ComponentType<{ onNavigate(path: string): void }> | null>(null);
@@ -29,7 +40,7 @@ export default function App() {
   const shellRef = useRef<HTMLDivElement>(null);
 
   const navigate = useCallback((next: string) => {
-    history.pushState({}, '', next);
+    history.pushState({}, '', navigationPath(next));
     setPath(next);
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
@@ -37,7 +48,7 @@ export default function App() {
   const consumeSetup = useCallback(() => setPendingSetup(null), []);
 
   useEffect(() => {
-    const onPopState = () => setPath(location.pathname);
+    const onPopState = () => setPath(appPath(location.pathname));
     addEventListener('popstate', onPopState);
     return () => removeEventListener('popstate', onPopState);
   }, []);
@@ -51,7 +62,7 @@ export default function App() {
         setSettings(settingsResult.settings);
         setModelConfigured(modelConfig.configured);
       })
-      .catch((caught) => active && setBootError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: '暂时无法读取应用设置', hint: '请检查网络连接后刷新重试' }));
+      .catch((caught) => active && setBootError(caught instanceof ApiError ? caught.body : { code: 'E_OFFLINE', message: t('暂时无法读取应用设置'), hint: t('请检查网络连接后刷新重试') }));
     return () => { active = false; };
   }, [preview]);
 
@@ -89,7 +100,7 @@ export default function App() {
   const previewKind = previewData?.kind ?? null;
   let content: React.ReactNode;
   if (settings === null || (preview === null && modelConfigured === null)) {
-    content = bootError !== null ? <main className="standalone-state"><ErrorState error={bootError} onAction={() => location.reload()} /></main> : <main className="app-loading" aria-live="polite"><div className="loading-logo">8</div><p>正在打开欧八面试陪练…</p></main>;
+    content = bootError !== null ? <main className="standalone-state"><ErrorState error={bootError} onAction={() => location.reload()} /></main> : <main className="app-loading" aria-live="polite"><div className="loading-logo">8</div><p>{t("正在打开欧八面试陪练…")}</p></main>;
   } else if (previewKind === 'session' && previewData?.snapshot != null) {
     content = <SessionPage sid={previewData.snapshot.sid} preview={previewData.snapshot} previewTranscript={previewData.transcript ?? undefined} answerStartMode={settings.answerStartMode} onSetupConsumed={consumeSetup} onNavigate={navigate} />;
   } else if (previewKind === 'report' && previewData?.detail != null) {

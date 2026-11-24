@@ -173,6 +173,8 @@ async function main() {
     await new Promise((resolve, reject) => { ws.once('open', resolve); ws.once('error', reject); });
     cdp = new Cdp(ws);
     await cdp.send('Page.enable');
+    // This regression asserts Chinese labels regardless of the host language.
+    await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: "Object.defineProperty(navigator, 'languages', {get: () => ['zh-CN']});" });
     await cdp.send('Runtime.enable');
     await cdp.send('Log.enable');
     await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: "window.__localAnalytics=[]; window.oubaAnalytics={track:(name,data)=>window.__localAnalytics.push({name,data})};" });

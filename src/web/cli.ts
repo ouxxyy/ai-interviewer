@@ -23,8 +23,11 @@ import { SettingsStore } from './settings.js';
 import { Store } from './store.js';
 import { DashscopeTextClient } from '../clients/dashscope.js';
 import type { TextLlmClient } from '../clients/types.js';
-import type { RealtimeBridge } from './realtime-bridge.js';
+import { RealtimeBridge } from './realtime-bridge.js';
 import { CredentialConfigStore } from './credentials.js';
+import { openAiConfig, OpenAiTextClient } from '../clients/openai-compatible.js';
+import { OpenAiAudioClient } from '../clients/openai-audio.js';
+import { FreeBudget } from './free-budget.js';
 
 function parseArgs(argv: string[]): Map<string, string> {
   const out = new Map<string, string>();
@@ -92,6 +95,8 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     ...(opts.createBridge === undefined ? {} : { createBridge: opts.createBridge }),
   });
   const publicMode = opts.publicMode ?? process.env.AI_INTERVIEWER_PUBLIC === 'on';
+  const freeConfig = publicMode ? openAiConfig(credentialEnv) : null;
+  const freeBudget = freeConfig ? new FreeBudget(path.join(paths.root, 'free-usage.sqlite')) : null;
   const visitors = publicMode ? new VisitorRegistry(path.join(paths.root, 'public'), opts.publicOrigin ?? process.env.AI_INTERVIEWER_PUBLIC_ORIGIN ?? '', (root, credentials, key) => {
     const visitorPaths = webPaths(root);
     const visitorDb = new InterviewDb(visitorPaths.dbFile);
@@ -100,6 +105,16 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     const visitorSettings = new SettingsStore(visitorDb, PUBLIC_DISCLOSURE.version);
     const visitorManager = new SessionManager({
       store: visitorStore, logger, paths: visitorPaths, credential: key,
+      sessionProvider: language => {
+        // Snapshot the selected provider and credentials once per new interview.
+        const ownKey = key();
+        if (ownKey || !freeConfig) return { credential: ownKey, textClient: opts.textClient ?? new DashscopeTextClient({ credential: () => ownKey,
+          ...(process.env.AI_INTERVIEWER_TEXT_MODEL ? { model: process.env.AI_INTERVIEWER_TEXT_MODEL } : {}) }) };
+        const guard = freeBudget!.sessionGuard();
+        return { credential: freeConfig.apiKey, textClient: opts.textClient ?? new OpenAiTextClient(freeConfig, guard),
+          createBridge: opts.createBridge ?? (() => new RealtimeBridge({ credential: freeConfig.apiKey, logger,
+            language, createClient: options => new OpenAiAudioClient(freeConfig, guard, options.language), transcriptTimeoutMs: 60_000 })) };
+      },
       textClientForSession: credential => opts.textClient ?? new DashscopeTextClient({ credential: () => credential,
         ...(process.env.AI_INTERVIEWER_TEXT_MODEL ? { model: process.env.AI_INTERVIEWER_TEXT_MODEL } : {}),
       }),
@@ -111,7 +126,7 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     });
     return { manager: visitorManager, store: visitorStore, settings: visitorSettings, credentials, paths: visitorPaths,
       close: () => { visitorManager.closeAll(); visitorDb.close(); } };
-  }) : undefined;
+  }, freeConfig) : undefined;
   const port = opts.port ?? Number(process.env.AI_INTERVIEWER_PORT ?? SERVER_DEFAULTS.port);
   const running = createServer({ visitors, manager, store, settings, credentials, logger, paths, staticDir: opts.staticDir ?? webStaticRoot(), port, host: SERVER_DEFAULTS.host });
   await new Promise<void>((resolve, reject) => {
@@ -127,6 +142,7 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
     db,
     close: async () => {
       visitors?.close();
+      freeBudget?.close();
       manager.closeAll();
       await running.close();
       db.close();
@@ -136,7 +152,7 @@ export async function startServer(opts: ServeOptions = {}): Promise<{
 
 function printStartupBanner(url: string, paths: ReturnType<typeof webPaths>, settings: SettingsStore): void {
   if (process.env.AI_INTERVIEWER_PUBLIC === 'on') {
-    process.stdout.write(`AI 面试官公网 BYOK 服务：${url}（仅回环监听，由 HTTPS 反代）\n公开源站：${process.env.AI_INTERVIEWER_PUBLIC_ORIGIN}\n访客数据与加密凭证：${paths.root}/public\n全局 API Key 禁用；harness 禁用。请备份数据及 credential-master.key。\n`);
+    process.stdout.write(`AI 面试官公网服务：${url}（仅回环监听，由 HTTPS 反代）\n公开源站：${process.env.AI_INTERVIEWER_PUBLIC_ORIGIN}\n访客数据与加密凭证：${paths.root}/public\n用户百炼优先；站点免费服务按服务端开关启用；harness 禁用。请备份数据及 credential-master.key。\n`);
     return;
   }
   const current = settings.get();

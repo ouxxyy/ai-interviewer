@@ -125,7 +125,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
 
   constructor(
     private readonly credential: string,
-    private readonly opts: { model?: string; voice?: string; instructions?: string; baseUrl?: string; inputTranscriptionModel?: string; requireVoiceAssertion?: boolean } = {},
+    private readonly opts: { language?: 'en' | 'zh'; model?: string; voice?: string; instructions?: string; baseUrl?: string; inputTranscriptionModel?: string; requireVoiceAssertion?: boolean } = {},
   ) {}
 
   get expectedVoice(): string {
@@ -235,7 +235,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
       input_audio_transcription: { model: this.opts.inputTranscriptionModel ?? 'qwen3-asr-flash-realtime' },
       instructions:
         cfg.instructions ??
-        '你是中文面试官。当用户消息要求你朗读文本时，必须逐字朗读该文本，不得改写、增删、重复或追加任何内容；不要自行提问，不要评价回答。',
+        (this.opts.language === 'en' ? 'Read the English interview text verbatim, with no additional comments, questions or evaluation.' : '你是中文面试官。当用户消息要求你朗读文本时，必须逐字朗读该文本，不得改写、增删、重复或追加任何内容；不要自行提问，不要评价回答。'),
     };
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('session.update 超时（未收到 session.updated）')), 20_000);
@@ -259,7 +259,7 @@ export class DashscopeRealtimeClient implements RealtimeVoiceClient {
     this.transcriptFinal = '';
     this.send({
       type: 'conversation.item.create',
-      item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: `请逐字朗读以下面试问题，不要添加任何其他内容：${text}` }] },
+      item: { type: 'message', role: 'user', content: [{ type: 'input_text', text: this.opts.language === 'en' ? `Read this interview question verbatim: ${text}` : `请逐字朗读以下面试问题，不要添加任何其他内容：${text}` }] },
     });
     this.responseStartedAt = Date.now();
     this.resetCollector();

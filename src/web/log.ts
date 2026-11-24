@@ -18,8 +18,9 @@ export function redactValue(value: unknown): unknown {
   if (value === null || value === undefined) return value;
   if (typeof value === 'string') {
     let out = value;
-    const key = process.env.DASHSCOPE_API_KEY;
-    if (key !== undefined && key.length >= 8) out = out.split(key).join('<redacted>');
+    for (const key of [process.env.DASHSCOPE_API_KEY, process.env.OPENAI_API_KEY]) {
+      if (key !== undefined && key.length >= 8) out = out.split(key).join('<redacted>');
+    }
     out = out.replace(/sk-[A-Za-z0-9._-]{12,}/g, '<redacted>');
     if (out.length > MAX_TEXT) out = `${out.slice(0, PREVIEW)}…<len=${value.length}>`;
     return out;

@@ -5,6 +5,7 @@
  * - 历史会话只在 SQLite 与磁盘音频里，重启后仍可列出、查看、回放、删除（验收项 2）。
  * - 删除会话时先关掉实时连接，再交给 `Store.deleteSession()` 做「数据库 + 音频 + 临时文件」清理。
  */
+import type { InterviewLanguage } from './language.js';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
@@ -19,12 +20,14 @@ import type { DeleteReport, Store } from './store.js';
 import { buildReviewBasis, type ReportSource, type ReviewBasisDetail, type ReviewMeta } from './session-metadata.js';
 
 export interface CreateSessionRequest {
+  language?: InterviewLanguage;
   synthetic?: boolean;
   saveHistory?: boolean;
   saveAudio?: boolean;
 }
 
 export interface HistorySessionDetail {
+  language: InterviewLanguage;
   sid: string;
   live: boolean;
   persisted: boolean;
@@ -46,6 +49,8 @@ export interface HistorySessionDetail {
   usage: { textCalls: number; promptTokens: number; completionTokens: number; inputAudioBytes: number; audioBytesIn: number; audioBytesOut: number };
 }
 
+export interface SessionProvider { credential: string; textClient: TextLlmClient; createBridge?: (sid: string) => RealtimeBridge; }
+
 export class SessionManager {
   private readonly runners = new Map<string, InterviewRunner>();
 
@@ -56,6 +61,7 @@ export class SessionManager {
       credential: string | (() => string);
       textClient: TextLlmClient;
       textClientForSession?: (credential: string) => TextLlmClient;
+      sessionProvider?: (language: InterviewLanguage) => SessionProvider;
       paths: WebPaths;
       realtimeModel?: string;
       voice?: string;
@@ -65,19 +71,21 @@ export class SessionManager {
 
   create(req: CreateSessionRequest): InterviewRunner {
     const sid = `s-${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
-    const credential = typeof this.opts.credential === 'function' ? this.opts.credential() : this.opts.credential;
+    const language = req.language ?? 'zh';
+    const provider = this.opts.sessionProvider?.(language);
+    const credential = provider?.credential ?? (typeof this.opts.credential === 'function' ? this.opts.credential() : this.opts.credential);
     const runner = new InterviewRunner({
       store: this.opts.store,
-      textClient: this.opts.textClientForSession?.(credential) ?? this.opts.textClient,
+      textClient: provider?.textClient ?? this.opts.textClientForSession?.(credential) ?? this.opts.textClient,
       logger: this.opts.logger,
       credential,
-      sessionId: sid,
+      sessionId: sid, language,
       synthetic: req.synthetic ?? true,
       saveHistory: req.saveHistory ?? true,
       saveAudio: req.saveAudio ?? true,
       ...(this.opts.realtimeModel === undefined ? {} : { realtimeModel: this.opts.realtimeModel }),
       ...(this.opts.voice === undefined ? {} : { voice: this.opts.voice }),
-      ...(this.opts.createBridge === undefined ? {} : { createBridge: this.opts.createBridge }),
+      ...((provider?.createBridge ?? this.opts.createBridge) === undefined ? {} : { createBridge: provider?.createBridge ?? this.opts.createBridge }),
     });
     this.runners.set(sid, runner);
     this.opts.logger.info('session.created', { sid, synthetic: runner.synthetic, saveHistory: runner.saveHistory, saveAudio: runner.saveAudio });
@@ -110,7 +118,7 @@ export class SessionManager {
       const snap = runner.snapshot();
       return {
         sid,
-        live: true,
+        language: snap.language, live: true,
         persisted: runner.saveHistory,
         status: snap.status,
         state: snap.state,
@@ -143,7 +151,7 @@ export class SessionManager {
     }
     return {
       sid,
-      live: false,
+      language: session.language, live: false,
       persisted: true,
       status: session.status,
       state: session.state,

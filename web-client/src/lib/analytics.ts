@@ -1,20 +1,24 @@
+import { latestReviewedFeedback } from './session-view.js';
 import type { Snapshot } from '../types.js';
 
-export type PracticeEvent = 'practice_requested' | 'practice_started' | 'practice_ended' | 'practice_completed';
-type Data = Partial<Record<'schema_version' | 'completed_questions' | 'total_questions', number>>;
+export type PracticeEvent = 'practice_requested' | 'practice_started' | 'practice_ended' | 'practice_completed' | 'first_feedback_received' | 'practice_quota_blocked';
+type QuotaStage = 'session_create' | 'in_practice';
+type CountKey = 'schema_version' | 'completed_questions' | 'total_questions';
+type Data = Partial<Record<CountKey, number>> & { stage?: QuotaStage };
 type Emit = (name: PracticeEvent, data?: Data) => unknown;
-const EVENTS = new Set<PracticeEvent>(['practice_requested', 'practice_started', 'practice_ended', 'practice_completed']);
+const EVENTS = new Set<PracticeEvent>(['practice_requested', 'practice_started', 'practice_ended', 'practice_completed', 'first_feedback_received', 'practice_quota_blocked']);
 const PROPS = new Set(['schema_version', 'completed_questions', 'total_questions']);
 
 declare global { interface Window { oubaAnalytics?: { track: Emit } } }
 
-/** 公共统计脚本也会过滤；业务层只接受这四个事件和匿名计数。 */
+/** 公共统计脚本也会过滤；业务层只接受指定事件、固定阶段和匿名计数。 */
 function cleanData(data?: Data): Data {
   const result: Data = {};
   for (const [key, value] of Object.entries(data ?? {})) {
+    if (key === 'stage' && (value === 'session_create' || value === 'in_practice')) { result.stage = value; continue; }
     if (!PROPS.has(key) || typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > 1_000_000) continue;
     if (key === 'schema_version' && value !== 1 && value !== 2) continue;
-    result[key as keyof Data] = value;
+    result[key as CountKey] = value;
   }
   return result;
 }
@@ -30,6 +34,16 @@ function safelyEmit(emit: Emit, name: PracticeEvent, data?: Data): void {
 export const trackEvent: Emit = (name, data) => {
   if (typeof window !== 'undefined' && window.oubaAnalytics !== undefined) safelyEmit(window.oubaAnalytics.track, name, data);
 };
+
+// Each operation shares a single reporter across its HTTP, WS and snapshot notifications.
+export function createQuotaAttempt(stage: QuotaStage, emit: Emit = trackEvent) {
+  let reported = false;
+  return (code: string | undefined) => {
+    if (reported || code !== 'E_QUOTA') return;
+    reported = true;
+    safelyEmit(emit, 'practice_quota_blocked', { schema_version: 2, stage });
+  };
+}
 
 function validPlan(next: Snapshot): boolean {
   const questions = next.plan?.questions;
@@ -65,6 +79,12 @@ export function createPracticeObserver(emit: Emit, storage?: Pick<Storage, 'getI
     if (next.synthetic || !next.sid) return;
     if (next.status === 'active' && next.state !== 'report' && next.state !== 'ended') active.add(next.sid);
     const version = schemaVersion(next);
+    if (next.status === 'active' && next.state !== 'ended' && next.state !== 'report') {
+      const reviewed = latestReviewedFeedback(next);
+      if (reviewed?.feedback.topImprovement?.trim() && reviewed.basis.turnIds.length > 0) {
+        once(next.sid, 'first_feedback_received', { schema_version: version });
+      }
+    }
     if ((next.state === 'question' || next.state === 'answer') && next.machine.questionIndex === 0 && validPlan(next)) {
       once(next.sid, 'practice_started', { schema_version: version, total_questions: next.plan!.questions.length });
     }

@@ -20,6 +20,7 @@ export interface ReviewChannel {
 }
 
 export interface RunReviewInput {
+  language?: 'en' | 'zh';
   channel: ReviewChannel;
   /** D1/D11：评审对象文本（修订版优先，由调用方决定）。 */
   basisText: string;
@@ -164,7 +165,7 @@ function degradedFeedback(input: RunReviewInput, cause: string, detail: string):
     dims[dim] = {
       level: '无法判断',
       quote: null,
-      reason: `暂无法评价：评审输出未通过${cause === 'quote_not_locatable' ? '引用定位' : '契约'}校验（${cause}），已按规则降级，不展示猜测等级。`,
+      reason: input.language === 'en' ? 'The feedback could not be verified against this answer.' : `暂无法评价：评审输出未通过${cause === 'quote_not_locatable' ? '引用定位' : '契约'}校验（${cause}），已按规则降级，不展示猜测等级。`,
     };
   }
   return {
@@ -173,8 +174,8 @@ function degradedFeedback(input: RunReviewInput, cause: string, detail: string):
     reviewBasis: { turnIds: input.turnIds, textVersion: input.textVersion },
     dimensions: dims,
     factGaps: [],
-    topImprovement: '暂无法评价：请稍后重新提交评审。',
-    nextFacts: ['本次评审未完成，无新增事实要求'],
+    topImprovement: input.language === 'en' ? 'Try submitting this answer for feedback again.' : '暂无法评价：请稍后重新提交评审。',
+    nextFacts: [input.language === 'en' ? 'There are no verified follow-up points for this attempt.' : '本次评审未完成，无新增事实要求'],
     reviewVersion: `degraded:${cause}`,
   };
 }

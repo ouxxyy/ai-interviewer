@@ -1,4 +1,5 @@
-import { observePractice } from '../lib/analytics';
+import { language, t } from '../lib/i18n.js';
+import { createQuotaAttempt, observePractice } from '../lib/analytics';
 import { ArrowCounterClockwise, ArrowRight, HandPalm, Microphone, Pause, Play, SpeakerHigh, Stop, Waveform } from '@phosphor-icons/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ENTRY_HINTS } from '../../../src/rules/entry-hints';
@@ -20,7 +21,7 @@ interface SessionPageProps {
   onNavigate(path: string): void;
 }
 
-type AudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed' | 'offline';
+type AudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'blocked' | 'paused' | 'closed' | 'offline';
 
 function toErrorBody(caught: unknown, fallback: AppErrorBody): AppErrorBody {
   return caught instanceof ApiError ? caught.body : fallback;
@@ -67,13 +68,25 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   const hasStartedOnceRef = useRef(false);
   const lastAutoStartKeyRef = useRef<string | null>(null);
   const endingRef = useRef(false);
+  const quotaAttempt = useRef<ReturnType<typeof createQuotaAttempt> | null>(null);
+  const realSession = useRef(false);
+  const beginAttempt = useCallback(() => {
+    quotaAttempt.current = realSession.current ? createQuotaAttempt('in_practice') : null;
+    return quotaAttempt.current;
+  }, []);
 
   useEffect(() => { errorRef.current = error; }, [error]);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
 
   const applySnapshot = useCallback((next: Snapshot): boolean => {
     if (!isSnapshot(next)) return false;
-    if (preview === undefined) observePractice(next);
+    if (preview === undefined) {
+      observePractice(next);
+      // A snapshot replayed on connection can already contain an old error.
+      if (!next.synthetic && snapshotRef.current?.sid === next.sid && snapshotRef.current.lastError?.code !== 'E_QUOTA') {
+        quotaAttempt.current?.(next.lastError?.code);
+      }
+    }
     snapshotRef.current = next;
     setSnapshot(next);
     setBusy(false);
@@ -84,6 +97,8 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   useEffect(() => {
     if (preview !== undefined) return;
     let active = true;
+    realSession.current = false;
+    quotaAttempt.current = null;
     const runtime = new RealtimeAudio({
       onSnapshot: (next) => {
         if (!active) return;
@@ -101,6 +116,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
       },
       onError: (nextError) => {
         if (!active) return;
+        quotaAttempt.current?.(nextError.code);
         setError(nextError);
         setBusy(false);
         if (nextError.code === 'E_OFFLINE') setOffline(true);
@@ -126,15 +142,18 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
             onNavigate(`/report/${encodeURIComponent(sid)}`);
             return;
           }
-          setError({ code: 'E_CONFLICT', message: '这场练习已经是历史记录', hint: '历史记录不能继续作答；可以新建一场继续练，或在历史里删除它' });
+          setError({ code: 'E_CONFLICT', message: t('这场练习已经是历史记录'), hint: t('历史记录不能继续作答；可以新建一场继续练，或在历史里删除它') });
           setBusy(false);
           return;
         }
+        realSession.current = !loaded.synthetic;
+        beginAttempt();
         await runtime.connect(sid);
         if (!active) return;
         if (setupRef.current !== undefined) {
           const draft = setupRef.current;
           failedOpRef.current = { kind: 'materials', draft };
+          beginAttempt();
           const response = await api.action(sid, 'materials', draft);
           if (!active) return;
           failedOpRef.current = null;
@@ -144,7 +163,8 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
         }
       } catch (caught) {
         if (!active) return;
-        setError(toErrorBody(caught, { code: 'E_OFFLINE', message: '网络连接中断', hint: '检查本地服务后重新连接' }));
+        if (caught instanceof ApiError) quotaAttempt.current?.(caught.body.code);
+        setError(toErrorBody(caught, { code: 'E_OFFLINE', message: t('网络连接中断'), hint: t('检查本地服务后重新连接') }));
         setBusy(false);
       }
     })();
@@ -154,8 +174,9 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
       void runtime.close();
       audioRef.current = null;
     };
-  }, [applySnapshot, onNavigate, onSetupConsumed, preview, sid]);
+  }, [applySnapshot, beginAttempt, onNavigate, onSetupConsumed, preview, sid]);
 
+  const locale = language();
   const questionCount = snapshot?.plan?.questions.length ?? 0;
   const questionIndex = snapshot?.machine.questionIndex ?? 0;
   const currentQuestionId = snapshot?.currentQuestion?.id;
@@ -163,9 +184,11 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     if (snapshot === null || currentQuestionId === undefined) return null;
     return [...snapshot.turns].reverse().find((turn) => turn.questionId === currentQuestionId && turn.speaker === 'interviewer') ?? null;
   }, [currentQuestionId, snapshot]);
-  const questionText = latestInterviewerTurn?.rawTranscript || snapshot?.currentQuestion?.text || '正在准备这道题';
-  const progress = useMemo(() => questionProgress(snapshot?.plan ?? null, questionIndex), [snapshot?.plan, questionIndex]);
-  const reviewFailure = useMemo(() => currentReviewFailure(snapshot), [snapshot]);
+  const legacyFollowup = latestInterviewerTurn?.turnType === 'followup' && latestInterviewerTurn.rawTranscript !== '（服务端未返回朗读转写）'
+    ? latestInterviewerTurn.rawTranscript : undefined;
+  const questionText = snapshot?.currentQuestion?.spokenText || legacyFollowup || snapshot?.currentQuestion?.text || t('正在准备这道题');
+  const progress = useMemo(() => questionProgress(snapshot?.plan ?? null, questionIndex), [snapshot?.plan, questionIndex, locale]);
+  const reviewFailure = useMemo(() => currentReviewFailure(snapshot), [snapshot, locale]);
   const coaching = useMemo(() => reviewFailure ? null : latestReviewedFeedback(snapshot), [snapshot, reviewFailure]);
   const quotes = useMemo(() => {
     if (coaching === null) return [];
@@ -181,18 +204,18 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   const atRewrite = state === 'rewrite';
   const canRewrite = canRewriteQuestion(snapshot);
   const nextLabel = nextQuestionLabel(snapshot);
-  const currentLabel = snapshot?.plan && currentQuestionId ? questionLabel(snapshot.plan.questions, currentQuestionId) : '正在准备';
-  const coachingLabel = snapshot?.plan && coaching ? questionLabel(snapshot.plan.questions, coaching.questionId) : '题目';
+  const currentLabel = snapshot?.plan && currentQuestionId ? questionLabel(snapshot.plan.questions, currentQuestionId) : t('正在准备');
+  const coachingLabel = snapshot?.plan && coaching ? questionLabel(snapshot.plan.questions, coaching.questionId) : t('题目');
   const toggles = snapshot?.toggles ?? detail?.toggles ?? null;
   const locked = busy || offline;
   const elapsedSeconds = useElapsedSeconds(processing || audioStatus === 'connecting');
   const activity = agentActivity({ state, audioStatus, recording, busy, elapsedSeconds, reviewFailed: reviewFailure !== null });
   const opportunityKey = useMemo(() => answerOpportunityKey(snapshot), [snapshot]);
   const autoSessionStarted = hasStartedOnceRef.current;
-  const activityDetail = activity.kind === 'ready' && reviewFailure === null && state !== 'rewrite' && answerStartMode === 'continuous'
+  const activityDetail = activity.kind === 'ready' && audioStatus !== 'blocked' && reviewFailure === null && state !== 'rewrite' && answerStartMode === 'continuous'
     ? autoSessionStarted
-      ? '连续面试已开启：小八说完后会自动开始录音；需要停一下可点“暂停”。'
-      : '本次连接请点击一次“开始作答”完成麦克风确认；之后小八说完会自动开麦。'
+      ? t('连续面试已开启：小八说完后会自动开始录音；需要停一下可点“暂停”。')
+      : t('本次连接请点击一次“开始作答”完成麦克风确认；之后小八说完会自动开麦。')
     : activity.detail;
 
   useEffect(() => {
@@ -211,6 +234,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
   }, [offline]);
 
   const startAnswer = useCallback(async (): Promise<boolean> => {
+    beginAttempt();
     failedOpRef.current = { kind: 'answer_start' };
     hasStartedOnceRef.current = true;
     lastAutoStartKeyRef.current = answerOpportunityKey(snapshotRef.current);
@@ -224,9 +248,10 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     setRecording(audioRef.current?.isCapturing === true);
     if (sent !== false) failedOpRef.current = null;
     return audioRef.current?.isCapturing === true;
-  }, []);
+  }, [beginAttempt]);
 
   const commitAnswer = useCallback(async () => {
+    beginAttempt();
     failedOpRef.current = { kind: 'answer_commit' };
     setBusy(true);
     setError(null);
@@ -234,7 +259,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     const sent = await audioRef.current?.commitAnswer();
     setRecording(false);
     if (sent !== false) failedOpRef.current = null;
-  }, []);
+  }, [beginAttempt]);
 
   const action = useCallback(async (name: string, body?: unknown) => {
     if (preview !== undefined) return;
@@ -242,6 +267,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
       if (endingRef.current) return;
       endingRef.current = true;
     }
+    const reportQuota = beginAttempt();
     failedOpRef.current = { kind: 'http', name, ...(body === undefined ? {} : { body }) };
     setBusy(true);
     setError(null);
@@ -257,12 +283,13 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
       applySnapshot(response.snapshot);
       if (response.snapshot.state === 'ended') onNavigate(`/report/${encodeURIComponent(sid)}`);
     } catch (caught) {
-      setError(toErrorBody(caught, { code: 'E_OFFLINE', message: '网络连接中断' }));
+      if (caught instanceof ApiError) reportQuota?.(caught.body.code);
+      setError(toErrorBody(caught, { code: 'E_OFFLINE', message: t('网络连接中断') }));
     } finally {
       if (name === 'end') endingRef.current = false;
       setBusy(false);
     }
-  }, [applySnapshot, onNavigate, preview, sid]);
+  }, [applySnapshot, beginAttempt, onNavigate, preview, sid]);
 
   useEffect(() => {
     if (preview !== undefined) return;
@@ -281,7 +308,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     })) return;
     lastAutoStartKeyRef.current = opportunityKey;
     void startAnswer().then((started) => {
-      if (started) setNotice('小八说完了，已自动开始录音；需要停一下可点“暂停”。');
+      if (started) setNotice(t('小八说完了，已自动开始录音；需要停一下可点“暂停”。'));
     });
   }, [answerStartMode, audioStatus, autoSessionStarted, busy, error, offline, opportunityKey, paused, preview, recording, startAnswer, state]);
 
@@ -312,7 +339,7 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
     else step = recoveryStep(op, observed, errorRef.current);
 
     if (step.type === 'refresh') {
-      setNotice('还没拿到服务端的真实状态，等连接恢复后再试一次。');
+      setNotice(t('还没拿到服务端的真实状态，等连接恢复后再试一次。'));
       return;
     }
     if (step.type === 'none') {
@@ -352,60 +379,60 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
 
   return (
     <div className="page page--session">
-      <a className="skip-link" href="#session-main">跳到主要内容</a>
+      <a className="skip-link" href="#session-main">{t("跳到主要内容")}</a>
       <BrandHeader onNavigate={onNavigate} compact />
       <main id="session-main" className="session-main">
         <aside className="session-rail">
           <div className="question-count"><strong>{String(questionIndex + 1).padStart(2, '0')}</strong><span>/ {String(Math.max(questionCount, 1)).padStart(2, '0')}</span></div>
           <div className="toy-stage toy-stage--session">
-            <img src="/characters/char-listening.png" width="1024" height="956" alt="小八正在倾听" />
+            <img src="/characters/char-listening.png" width="1024" height="956" alt={t("小八正在倾听")} />
             <i aria-hidden="true" />
-            <span className={`listen-dot${audioStatus === 'listening' ? ' is-live' : ''}`}><Waveform size={16} weight="bold" aria-hidden="true" />{audioStatus === 'playing' ? '小八正在说' : audioStatus === 'paused' ? '已暂停' : offline || audioStatus === 'closed' ? '连接已断开' : '小八在听'}</span>
+            <span className={`listen-dot${audioStatus === 'listening' ? ' is-live' : ''}`}><Waveform size={16} weight="bold" aria-hidden="true" />{audioStatus === 'playing' ? t('小八正在说') : audioStatus === 'paused' ? t('已暂停') : offline || audioStatus === 'closed' ? t('连接已断开') : t('小八在听')}</span>
           </div>
-          <ol className="question-progress" aria-label="面试进度">
+          <ol className="question-progress" aria-label={t("面试进度")}>
             {progress === null ? (
-              <li className="is-loading"><span>正在准备</span>题目加载中…</li>
+              <li className="is-loading"><span>{t("正在准备")}</span>{t("题目加载中…")}</li>
             ) : progress.map((item) => (
               <li key={item.key} className={item.done ? 'is-done' : item.current ? 'is-current' : ''}>
-                <span>{item.done ? '已完成' : item.current ? '当前' : '待回答'}</span>
+                <span>{item.done ? t('已完成') : item.current ? t('当前') : t('待回答')}</span>
                 {item.label}
               </li>
             ))}
           </ol>
-          <p className="save-status">历史 {toggles?.saveHistory ? '开' : '关'} <span /> 录音 {toggles?.saveAudio ? '开' : '关'} <span /> 开麦 {answerStartMode === 'continuous' ? '连续' : '手动'}</p>
+          <p className="save-status">{t("历史")} {toggles?.saveHistory ? t('开') : t('关')} <span /> {t("录音")} {toggles?.saveAudio ? t('开') : t('关')} <span /> {t("开麦")} {answerStartMode === 'continuous' ? t('连续') : t('手动')}</p>
         </aside>
 
         <section className="interview-stage" aria-busy={processing}>
-          {preview ? <p className="session-notice">开发预览：旧三题样例，不计入真实练习与匿名统计。</p> : null}
+          {preview ? <p className="session-notice">{t("开发预览：旧三题样例，不计入真实练习与匿名统计。")}</p> : null}
           <div className="question-bubble">
-            <span className="speaker-label">小八问 · {currentLabel}</span>
+            <span className="speaker-label">{t("小八问 ·")} {currentLabel}</span>
             <h1>{questionText}</h1>
-            <p>{snapshot?.currentQuestion?.intent ?? '用具体事实回答，不用追求完美。'}</p>
-            {currentLabel === '自我介绍' ? <p>建议 1–2 分钟，不强制限时；讲清目标岗位、真实亮点和个人价值。</p> : null}
+            <p>{snapshot?.currentQuestion?.intent ?? t('用具体事实回答，不用追求完美。')}</p>
+            {snapshot?.currentQuestion?.kind === 'introduction' ? <p>{t("建议 1–2 分钟，不强制限时；讲清目标岗位、真实亮点和个人价值。")}</p> : null}
           </div>
 
           <div className={`answer-bubble${recording ? ' is-recording' : ''}`}>
-            <span className="speaker-label speaker-label--answer">你的回答</span>
+            <span className="speaker-label speaker-label--answer">{t("你的回答")}</span>
             {transcript === '' ? (
-              <p className="transcript-empty">{recording ? '开始说吧，转写会出现在这里。' : '点击“开始作答”后，再开始说。'}</p>
+              <p className="transcript-empty">{recording ? t('开始说吧，转写会出现在这里。') : t('点击“开始作答”后，再开始说。')}</p>
             ) : (
-              <p className="transcript-text">{transcript}<span className={finalTranscript ? 'transcript-final' : 'transcript-caret'} aria-label={finalTranscript ? '已确认转写' : '正在转写'} /></p>
+              <p className="transcript-text">{transcript}<span className={finalTranscript ? 'transcript-final' : 'transcript-caret'} aria-label={finalTranscript ? t('已确认转写') : t('正在转写')} /></p>
             )}
           </div>
 
           <section className={`agent-activity agent-activity--${activity.kind}${activity.active ? ' is-active' : ''}${activity.active && elapsedSeconds >= 3 ? ' is-long-wait' : ''}`} role="status" aria-live="polite">
             <div className="agent-orb" aria-hidden="true"><i /><i /><i /></div>
             <div className="agent-activity__copy">
-              <span>Agent 状态</span>
+              <span>{t("Agent 状态")}</span>
               <strong>{activity.title}</strong>
               <p>{activityDetail}</p>
-              {microphoneLabel ? <p>当前输入：{microphoneLabel}</p> : null}
+              {microphoneLabel ? <p>{t("当前输入：")}{microphoneLabel}</p> : null}
             </div>
             {activity.kind === 'reviewing' ? (
-              <ol className="agent-steps" aria-label="点评流程">
-                <li className="is-done">回答已提交</li>
-                <li className="is-active">等待结构化点评</li>
-                <li>返回后可重答</li>
+              <ol className="agent-steps" aria-label={t("点评流程")}>
+                <li className="is-done">{t("回答已提交")}</li>
+                <li className="is-active">{t("等待结构化点评")}</li>
+                <li>{t("返回后可重答")}</li>
               </ol>
             ) : null}
           </section>
@@ -414,28 +441,28 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
 
           <section className="evidence-strip" aria-labelledby="evidence-title">
             <div className="evidence-heading">
-              <span>{reviewFailure ? '评审未完成' : coaching === null ? '等待点评' : `${coachingLabel}${coaching.current ? '' : ' · 最近完成'}`}</span>
-              <h2 id="evidence-title">评审用到的你的原话</h2>
-              <p>只展示通过定位校验的引用，不会把题目或建议冒充成你的原话。</p>
+              <span>{reviewFailure ? t('评审未完成') : coaching === null ? t('等待点评') : `${coachingLabel}${coaching.current ? '' : t(' · 最近完成')}`}</span>
+              <h2 id="evidence-title">{t("评审用到的你的原话")}</h2>
+              <p>{t("只展示通过定位校验的引用，不会把题目或建议冒充成你的原话。")}</p>
             </div>
             <div className="evidence-content">
               <div className="evidence-list">
                 {quotes.length > 0 ? quotes.map((quote) => <q key={`${quote.turnId}-${quote.start}`}>{quote.text}</q>) : (
-                  <p className="evidence-empty">{reviewFailure ? '本题尚无通过校验的点评引用。' : waitingReview ? '回答已提交，正在定位可引用的原话…' : transcript !== '' ? '你的原话正在记录；提交点评后，这里会显示被实际引用的片段。' : '完成本题点评后，这里会保留最近一题通过校验的原话。'}</p>
+                  <p className="evidence-empty">{reviewFailure ? t('本题尚无通过校验的点评引用。') : waitingReview ? t('回答已提交，正在定位可引用的原话…') : transcript !== '' ? t('你的原话正在记录；提交点评后，这里会显示被实际引用的片段。') : t('完成本题点评后，这里会保留最近一题通过校验的原话。')}</p>
                 )}
               </div>
               {reviewFailure !== null ? (
-                <aside className="instant-feedback" aria-label="评审未完成" role="status">
-                  <div><span>点评未完成</span><strong>{reviewFailure.message}</strong></div>
-                  <p>{reviewFailure.attempts > 0 ? `已尝试 ${reviewFailure.attempts} 次。` : ''}这不是对你回答好坏的评价，本题暂不计入完成数。</p>
-                  <p>回答已保留，无需重新录音。重新评审会再次调用模型，可能产生费用。</p>
-                  <button className="button button--paper" type="button" disabled={locked || snapshot?.halted === true} onClick={() => void action('review/retry')}>重新评审</button>
+                <aside className="instant-feedback" aria-label={t("评审未完成")} role="status">
+                  <div><span>{t("点评未完成")}</span><strong>{reviewFailure.message}</strong></div>
+                  <p>{reviewFailure.attempts > 0 ? t("已尝试 {0} 次。", reviewFailure.attempts) : ''}{t("这不是对你回答好坏的评价，本题暂不计入完成数。")}</p>
+                  <p>{t("回答已保留，无需重新录音。重新评审会再次调用模型；免费模式消耗免费额度，自备百炼按账号用量计费。")}</p>
+                  <button className="button button--paper" type="button" disabled={locked || snapshot?.halted === true} onClick={() => void action('review/retry')}>{t("重新评审")}</button>
                 </aside>
               ) : null}
               {coaching !== null ? (
-                <aside className="instant-feedback" aria-label={`${coachingLabel}即时点评`}>
-                  <div><span>即时点评</span><strong>{coaching.feedback.topImprovement}</strong></div>
-                  {coaching.feedback.nextFacts.length > 0 ? <p><b>下一步：</b>{coaching.feedback.nextFacts.slice(0, 2).join('；')}</p> : null}
+                <aside className="instant-feedback" aria-label={t("{0}即时点评", coachingLabel)}>
+                  <div><span>{t("即时点评")}</span><strong>{coaching.feedback.topImprovement}</strong></div>
+                  {coaching.feedback.nextFacts.length > 0 ? <p><b>{t("下一步：")}</b>{coaching.feedback.nextFacts.slice(0, 2).join(t('；'))}</p> : null}
                 </aside>
               ) : null}
             </div>
@@ -443,30 +470,30 @@ export function SessionPage({ sid, setup, preview, previewTranscript, answerStar
 
           <div className="session-controls">
             <div className="control-secondary">
-              <button type="button" onClick={() => audioRef.current?.repeatQuestion()} disabled={locked}><SpeakerHigh size={18} weight="bold" aria-hidden="true" />重听本题</button>
-              <button type="button" onClick={() => { if (paused) { audioRef.current?.resume(); setNotice('已恢复。点击“开始作答”后继续。'); } else { audioRef.current?.pause(); hasStartedOnceRef.current = false; lastAutoStartKeyRef.current = null; setRecording(false); setNotice('已暂停并停止麦克风采集；恢复后请重新开始作答。'); } setPaused(!paused); }} disabled={locked}>
-                {paused ? <Play size={18} weight="fill" aria-hidden="true" /> : <Pause size={18} weight="fill" aria-hidden="true" />}{paused ? '恢复' : '暂停'}
+              <button type="button" onClick={() => audioRef.current?.repeatQuestion()} disabled={locked}><SpeakerHigh size={18} weight="bold" aria-hidden="true" />{t("重听本题")}</button>
+              <button type="button" onClick={() => { if (paused) { audioRef.current?.resume(); setNotice(t('已恢复。点击“开始作答”后继续。')); } else { audioRef.current?.pause(); hasStartedOnceRef.current = false; lastAutoStartKeyRef.current = null; setRecording(false); setNotice(t('已暂停并停止麦克风采集；恢复后请重新开始作答。')); } setPaused(!paused); }} disabled={locked}>
+                {paused ? <Play size={18} weight="fill" aria-hidden="true" /> : <Pause size={18} weight="fill" aria-hidden="true" />}{paused ? t('恢复') : t('暂停')}
               </button>
-              <button type="button" onClick={() => { const count = audioRef.current?.interrupt() ?? 0; setNotice(`已打断，清空 ${count} 段本地待播音频`); }} disabled={locked}><HandPalm size={18} weight="bold" aria-hidden="true" />打断</button>
-              <button type="button" onClick={() => void action('end')} disabled={preview !== undefined || !canEndSession(snapshot, processing)}><Stop size={18} weight="bold" aria-hidden="true" />结束本场</button>
+              <button type="button" onClick={() => { const count = audioRef.current?.interrupt() ?? 0; setNotice(t("已打断，清空 {0} 段本地待播音频", count)); }} disabled={locked}><HandPalm size={18} weight="bold" aria-hidden="true" />{t("打断")}</button>
+              <button type="button" onClick={() => void action('end')} disabled={preview !== undefined || !canEndSession(snapshot, processing)}><Stop size={18} weight="bold" aria-hidden="true" />{t("结束本场")}</button>
             </div>
             <div className="control-primary">
               {atRewrite ? (
                 <>
-                  <button className="button button--paper" type="button" onClick={() => void action('rewrite/start')} disabled={locked || !canRewrite}><ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />重答一次</button>
+                  <button className="button button--paper" type="button" onClick={() => void action('rewrite/start')} disabled={locked || !canRewrite}><ArrowCounterClockwise size={18} weight="bold" aria-hidden="true" />{t("重答一次")}</button>
                   <button className="button button--primary" type="button" onClick={() => void action('next')} disabled={locked}>{nextLabel}<ArrowRight size={18} weight="bold" aria-hidden="true" /></button>
                 </>
               ) : processing ? (
                 <button className="button button--primary" type="button" disabled><span className="button-pulse" />{activity.title}</button>
               ) : recording ? (
-                <button className="button button--primary" type="button" onClick={() => void commitAnswer()} disabled={offline}><Stop size={18} weight="fill" aria-hidden="true" />说完了</button>
+                <button className="button button--primary" type="button" onClick={() => void commitAnswer()} disabled={offline}><Stop size={18} weight="fill" aria-hidden="true" />{t("说完了")}</button>
               ) : (
-                <button className="button button--primary" type="button" onClick={() => void startAnswer()} disabled={offline || paused || audioStatus === 'playing' || audioStatus === 'connecting' || (state !== 'answer' && state !== 'followup')}><Microphone size={19} weight="fill" aria-hidden="true" />开始作答</button>
+                <button className="button button--primary" type="button" onClick={() => void startAnswer()} disabled={locked || paused || audioStatus === 'connecting' || (state !== 'answer' && state !== 'followup')}><Microphone size={19} weight="fill" aria-hidden="true" />{t("开始作答")}</button>
               )}
             </div>
           </div>
           {notice ? <p className="session-notice" role="status">{notice}</p> : null}
-          <details className="structure-hint"><summary>如何讲清楚表达结构</summary><p>{ENTRY_HINTS.structureQuoteProcedure}</p></details>
+          <details className="structure-hint"><summary>{t("如何讲清楚表达结构")}</summary><p>{t(ENTRY_HINTS.structureQuoteProcedure)}</p></details>
         </section>
       </main>
     </div>

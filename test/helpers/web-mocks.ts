@@ -19,6 +19,7 @@ export interface MockRealtimeScript {
   speak400?: number;
   /** 每次朗读产出多少个音频分片。 */
   audioChunks?: number;
+  omitSpeechTranscript?: boolean;
   /** 每片之间的间隔（毫秒），用于让打断有机会插进来。 */
   chunkDelayMs?: number;
   /** commit 后的转写（按顺序取；用尽后返回空串）。 */
@@ -102,7 +103,7 @@ export class MockRealtimeClient implements RealtimeLike {
         for (const cb of this.transcriptCbs) cb(text, false);
         if (i === chunks - 1) {
           const result: ResponseResult = {
-            transcript: text,
+            transcript: this.script.omitSpeechTranscript ? '' : text,
             audio: Buffer.concat(emitted),
             firstAudioMs: delay,
             totalMs: delay * chunks,

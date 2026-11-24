@@ -19,6 +19,13 @@ export interface CredentialConfigStatus {
   configured: boolean;
   keyName: typeof DASHSCOPE_KEY_NAME;
   storage: '.env' | 'visitor-encrypted';
+  userConfigured?: boolean;
+  freeAvailable?: boolean;
+  provider?: 'bailian' | 'free-openai' | 'unconfigured';
+  textModel?: string;
+  realtimeModel?: string;
+  transcriptionModel?: string;
+  voice?: string;
 }
 
 export class CredentialConfigStore {

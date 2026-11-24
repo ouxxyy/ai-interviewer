@@ -53,17 +53,23 @@ export type Disclosure = typeof DISCLOSURE;
 /** 公网保存与匿名统计采用独立告知版本；变更后需要重新确认。 */
 export const PUBLIC_DISCLOSURE = {
   ...DISCLOSURE,
-  version: 'disclosure@public-2',
+  version: 'disclosure@public-3',
   staysLocal: [
     '开启保存后，材料、转写、反馈、报告与可选录音保存在本站服务器，按访客隔离；并非只留在你的电脑。',
     '浏览器保存 HttpOnly 访客 Cookie，它是访问历史与配置的唯一凭证；请勿共享浏览器个人资料。',
     '清除 Cookie、换浏览器或无痕窗口会成为新访客，无法恢复旧记录。服务器管理员有管理数据的能力。',
   ],
   sentToCloud: [
-    ...DISCLOSURE.sentToCloud.slice(0, 4),
-    'API Key 经本站同源 HTTPS 提交，在服务器加密保存；不回显、不写浏览器存储或日志。本站以你的 Key 调用百炼。',
+    ...DISCLOSURE.sentToCloud.slice(0, 2),
+    '问题与点评文本发送给当前模型服务用于 AI 语音合成；你的回答音频发送给当前模型服务用于转写。免费模式在点击“说完了”后转写，百炼模式支持实时转写。',
+    'API Key 经本站同源 HTTPS 提交，在服务器加密保存；不回显、不写浏览器存储或日志。填写后新建场次优先使用你的百炼；未填写时使用本站提供的免费 OpenAI 兼容服务。材料、回答与音频会发送给当前所选服务，免费模式默认发送给 OpenAI。',
     '归一后的页面路径、访问来源，以及练习请求、开始、结束、完成事件与环节数量 → 本站匿名统计服务；不发送材料、回答、录音或 API Key。',
   ],
+  billing: {
+    payer: '默认免费面试由本站承担模型费用，无需自行配置；使用你自己的百炼 Key 时，由你的阿里云账号承担费用。',
+    pricing: '免费服务设每日次数与共享调用额度；达到上限会提示稍后再试，不会向用户收费。自己的百炼用量以百炼账单为准。',
+    counter: '面试官声音为 AI 合成；免费模式在点击“说完了”后转写回答，非边说边转写。',
+  },
   storage: {
     root: '本站服务器的访客独立目录', database: '每位访客独立的 SQLite 历史库',
     audio: '每位访客独立的录音目录', uploads: '上传解析临时文件（解析完即删）', note: DISCLOSURE.storage.note,
@@ -74,3 +80,43 @@ export const PUBLIC_DISCLOSURE = {
     '如需停用 Key，请在百炼控制台撤销；备份中的历史数据按站点备份保留期清理。',
   ],
 };
+
+export function englishDisclosure(hosted: boolean) {
+  const note = 'Turning history off applies to future interviews. With audio storage off, only text is saved. Existing records stay available until you delete them.';
+  return {
+    version: hosted ? PUBLIC_DISCLOSURE.version : DISCLOSURE_VERSION,
+    staysLocal: hosted ? [
+      'When saving is on, this site stores materials, transcripts, feedback, reports and optional recordings on its server, separately for each visitor.',
+      'An HttpOnly visitor cookie gives this browser access to your records and settings. Avoid sharing your browser profile.',
+      'Clearing cookies, switching browsers or using a private window creates another visitor identity. Site administrators can manage server data.',
+    ] : [
+      'The local service stores saved materials, transcripts, your edits, feedback and reports on this computer.',
+      'Recordings are saved only when audio storage is on. History and service logs are local.',
+    ],
+    sentToCloud: [
+      'The model receives your job description and experience to generate an introduction and three experience questions.',
+      'To ask follow-ups and give feedback, the model receives your confirmed answers, question, job description, career stage and question intent. Feedback quotes come from your answer.',
+      'Questions are sent for speech synthesis and your answer audio for transcription.',
+      ...(hosted ? [
+        'Free practice uses the configured OpenAI-compatible provider. With your own Alibaba Cloud Model Studio (Bailian) key, new sessions use your provider. Keys are sent over HTTPS, encrypted on the server and never returned or logged.',
+        'Anonymous analytics include page paths, referrer, practice events and round counts. They exclude materials, answers, recordings and keys.',
+      ] : ['Your key is sent to the local service and saved in the project environment file, outside browser storage and reports.']),
+    ],
+    storage: hosted ? { root: 'Visitor-specific server directory', database: 'Separate SQLite history per visitor', audio: 'Visitor recording directory', uploads: 'Temporary files removed after extraction', note }
+      : { root: 'data/web/', database: 'data/web/interview.sqlite', audio: 'data/web/audio/<session id>/', uploads: 'data/web/tmp/uploads/ (removed after parsing)', note },
+    deletion: hosted ? [
+      'Delete an interview in History to remove its text and recordings.',
+      'Delete your records before clearing cookies. Clearing cookies alone does not delete server data.',
+      'Revoke your own key in Model Studio. Backups expire according to the site retention policy.',
+    ] : ['Delete a session in History to remove its records and audio.', 'To clear the entire local database, stop the service and remove data/web/ after checking what you want to keep.'],
+    billing: hosted ? {
+      payer: 'The site covers free practice. Using your own Model Studio key bills your Alibaba Cloud account.',
+      pricing: 'Free practice has visitor and shared limits. When exhausted, try again later. Your own provider bills separately.',
+      counter: 'The interviewer voice is AI generated. Free practice transcribes your answer after you select Done speaking.',
+    } : {
+      payer: 'Your Alibaba Cloud account pays for model usage.',
+      pricing: 'See your Model Studio billing console for current rates.',
+      counter: 'Session details show text token and audio byte counts.',
+    },
+  };
+}

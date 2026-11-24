@@ -1,7 +1,8 @@
+import { t } from './lib/i18n.js';
 import { PlaybackQueue } from './lib/playback-queue.js';
 import type { AppErrorBody, Snapshot } from './types.js';
 
-type AudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'paused' | 'closed' | 'offline';
+type AudioStatus = 'connecting' | 'idle' | 'listening' | 'playing' | 'blocked' | 'paused' | 'closed' | 'offline';
 
 interface RealtimeCallbacks {
   onSnapshot(snapshot: Snapshot): void;
@@ -70,14 +71,14 @@ export class RealtimeAudio {
     socket.onmessage = (event) => { if (this.socket === socket) this.handleMessage(event); };
     await new Promise<void>((resolve, reject) => {
       socket.onopen = () => resolve();
-      socket.onerror = () => reject(new Error('WebSocket 连接失败'));
+      socket.onerror = () => reject(new Error(t('WebSocket 连接失败')));
     });
     if (this.socket !== socket || socket.readyState !== WebSocket.OPEN) return;
     this.offlineReported = false;
     socket.onclose = () => {
       if (this.socket !== socket) return;
       this.callbacks.onStatus('closed');
-      if (!this.intentionalClose) this.reportOffline('实时连接已断开，这一场还在服务端等着');
+      if (!this.intentionalClose) this.reportOffline(t('实时连接已断开，这一场还在服务端等着'));
     };
     this.callbacks.onStatus('idle');
   }
@@ -86,7 +87,9 @@ export class RealtimeAudio {
   async startAnswer(): Promise<boolean> {
     if (this.captureStart !== null) return this.captureStart.promise;
     if (this.capturing) return true;
-    if (this.paused || !this.send({ type: 'answer.start' }) || this.socket === null) return false;
+    if (this.paused) return false;
+    if (this.playback?.isPlaying) this.interrupt();
+    if (!this.send({ type: 'answer.start' }) || this.socket === null) return false;
     const owner: CaptureOwner = {
       generation: ++this.captureGeneration, socket: this.socket,
       stream: null, context: null, worklet: null, gain: null, pendingPcm: [], tracksStopped: false,
@@ -104,6 +107,11 @@ export class RealtimeAudio {
   }
 
   repeatQuestion(): boolean {
+    const context = this.playbackContext;
+    if (context && context.state !== 'running' && !this.paused) {
+      void context.resume().catch(() => undefined);
+      if (this.playback?.isPlaying) return true;
+    }
     return this.send({ type: 'repeat.question' });
   }
 
@@ -121,7 +129,7 @@ export class RealtimeAudio {
     this.send({ type: 'resume' });
     void this.playbackContext?.resume().catch(() => undefined);
     this.playback?.resume();
-    this.callbacks.onStatus(this.playback?.isPlaying === true ? 'playing' : this.capturing ? 'listening' : 'idle');
+    this.callbacks.onStatus(this.playback?.isPlaying ? (this.playbackContext?.state === 'running' ? 'playing' : 'blocked') : this.capturing ? 'listening' : 'idle');
   }
 
   interrupt(): number {
@@ -137,6 +145,7 @@ export class RealtimeAudio {
     const socket = this.socket;
     this.socket = null;
     socket?.close();
+    this.playback?.clear();
     this.paused = false;
     return this.connect(sid);
   }
@@ -162,7 +171,7 @@ export class RealtimeAudio {
       this.socket.send(JSON.stringify(message));
       return true;
     }
-    this.reportOffline('实时连接没有建立，这一步没有发出去');
+    this.reportOffline(t('实时连接没有建立，这一步没有发出去'));
     return false;
   }
 
@@ -175,7 +184,7 @@ export class RealtimeAudio {
     this.callbacks.onError({
       code: 'E_OFFLINE',
       message,
-      hint: '点「重新连接」恢复这一场；已经提交过的回答和评审不会丢',
+      hint: t('点「重新连接」恢复这一场；已经提交过的回答和评审不会丢'),
     });
   }
 
@@ -199,7 +208,7 @@ export class RealtimeAudio {
 
   private async startCapture(owner: CaptureOwner): Promise<boolean> {
     try {
-      if (globalThis.isSecureContext === false) throw new Error('麦克风需要 HTTPS 安全连接，请使用本站 HTTPS 地址');
+      if (globalThis.isSecureContext === false) throw new Error(t('麦克风需要 HTTPS 安全连接，请使用本站 HTTPS 地址'));
       owner.stream = await this.requestMicrophone(owner);
       if (!this.ownsCapture(owner)) return false;
       owner.context = new AudioContext({ sampleRate: 16_000 });
@@ -224,9 +233,9 @@ export class RealtimeAudio {
       // 异步授权可能使用户激活失效，必须显式唤醒 context。
       await owner.context.resume();
       if (!this.ownsCapture(owner)) return false;
-      if (owner.context.state !== 'running') throw new Error(`AudioContext 未启动（${owner.context.state}）`);
+      if (owner.context.state !== 'running') throw new Error(t("AudioContext 未启动（{0}）", owner.context.state));
       this.capturing = true;
-      this.callbacks.onMicrophone?.(owner.stream.getAudioTracks()[0]?.label || '系统默认麦克风');
+      this.callbacks.onMicrophone?.(owner.stream.getAudioTracks()[0]?.label || t('系统默认麦克风'));
       this.callbacks.onStatus('listening');
       return true;
     } catch (error) {
@@ -238,7 +247,7 @@ export class RealtimeAudio {
       this.callbacks.onMicrophone?.('');
       const detail = error instanceof DOMException ? `${error.name}: ${error.message}` : String(error);
       this.send({ type: 'mic.denied', detail: detail.slice(0, 160) });
-      this.callbacks.onError({ code: 'E_MIC_DENIED', message: '麦克风没有开始采集', hint: '在浏览器网站设置中允许麦克风，确认当前输入设备后再答一次', detail });
+      this.callbacks.onError({ code: 'E_MIC_DENIED', message: t('麦克风没有开始采集'), hint: t('在浏览器网站设置中允许麦克风，确认当前输入设备后再答一次'), detail });
       return false;
     } finally {
       if (!this.ownsCapture(owner)) await this.releaseCapture(owner);
@@ -278,7 +287,7 @@ export class RealtimeAudio {
     if (typeof event.data !== 'string') return;
     const message = JSON.parse(event.data) as Record<string, unknown>;
     if (message.type === 'interviewer.audio' && typeof message.audio === 'string') {
-      this.enqueuePlayback(base64ToInt16(message.audio));
+      if (!this.captureOwner) this.enqueuePlayback(base64ToInt16(message.audio));
       return;
     }
     if ((message.type === 'transcript.partial' || message.type === 'transcript.final') && typeof message.text === 'string') {
@@ -296,7 +305,16 @@ export class RealtimeAudio {
   }
 
   private ensurePlaybackContext(): AudioContext {
-    this.playbackContext ??= new AudioContext({ sampleRate: 24_000 });
+    if (!this.playbackContext) {
+      const context = new AudioContext({ sampleRate: 24_000 });
+      this.playbackContext = context;
+      context.onstatechange = () => {
+        if (this.playbackContext === context && this.playback?.isPlaying && !this.paused && !this.offlineReported) {
+          this.callbacks.onStatus(context.state === 'running' ? 'playing' : 'blocked');
+        }
+      };
+      if (context.state !== 'running') void context.resume().catch(() => undefined);
+    }
     return this.playbackContext;
   }
 
@@ -323,7 +341,7 @@ export class RealtimeAudio {
         resume: () => { void context.resume().catch(() => undefined); },
       },
       (status) => {
-        if (status === 'playing') return this.callbacks.onStatus('playing');
+        if (status === 'playing') return this.callbacks.onStatus(context.state === 'running' ? 'playing' : 'blocked');
         this.callbacks.onStatus(this.capturing ? 'listening' : 'idle');
       },
     );

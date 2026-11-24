@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 /**
  * 报告页的纯计算层：引用定位、代表档位、初答/重答对照。
  *
@@ -24,7 +25,7 @@ const levelRank = { '证据不足': 0, '部分清楚': 1, '充分清楚': 2, '�
 
 export function representativeDimension(feedbacks: Feedback[], key: DimensionKey): DimensionFeedback {
   const values = feedbacks.map((feedback) => feedback.dimensions[key]).filter((value): value is DimensionFeedback => value !== undefined);
-  if (values.length === 0) return { level: '无法判断', quote: null, reason: '本场没有足够原话' };
+  if (values.length === 0) return { level: '无法判断', quote: null, reason: t('本场没有足够原话') };
   const assessable = values.filter((value) => value.level !== '无法判断');
   if (assessable.length === 0) return values[0]!;
   return [...assessable].sort((a, b) => levelRank[a.level] - levelRank[b.level])[0]!;
@@ -54,15 +55,15 @@ export function highlightAdded(text: string, delta: RewriteDelta | undefined): A
 /** 缺失题型仅用于兼容历史三题记录，不从正文猜测。 */
 export function questionLabel(questions: Array<{ id?: string; questionId?: string; kind?: PlannedQuestion['kind'] }>, id: string): string {
   const index = questions.findIndex((question) => (question.id ?? question.questionId) === id);
-  if (index < 0) return '题目';
-  if (questions[index]?.kind === 'introduction') return '自我介绍';
-  if (!questions.some((question) => question.kind === 'introduction')) return `第 ${index + 1} 题`;
+  if (index < 0) return t('题目');
+  if (questions[index]?.kind === 'introduction') return t('自我介绍');
+  if (!questions.some((question) => question.kind === 'introduction')) return t("第 {0} 题", index + 1);
   const number = questions.slice(0, index + 1).filter((question) => question.kind !== 'introduction').length;
-  return `经历题 ${number}`;
+  return t("经历题 {0}", number);
 }
 
 export function introductionStatusLabel(status: IntroductionStatus): string {
-  return { reviewed: '已完成', skipped: '已跳过', not_reached: '未练到', not_included: '未包含介绍' }[status];
+  return { reviewed: t('已完成'), skipped: t('已跳过'), not_reached: t('未练到'), not_included: t('未包含介绍') }[status];
 }
 
 export function reportProgress(report: SessionReport) {

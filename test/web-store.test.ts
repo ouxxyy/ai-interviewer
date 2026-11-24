@@ -62,12 +62,13 @@ test('迁移 002：为历史详情追加报告来源与评审元数据，且保�
     .run('s-old', '2026-09-27T00:00:00.000Z', '2026-09-27T00:00:00.000Z', 'active', 'materials_review', 0, 1, 'rules@0.2.0', 0);
 
   const upgraded = db.migrate();
-  assert.deepEqual(upgraded.applied, [2]);
+  assert.deepEqual(upgraded.applied, [2, 3]);
   const columns = (db.raw.prepare('PRAGMA table_info(sessions)').all() as Array<{ name: string }>).map((column) => column.name);
   assert.ok(columns.includes('report_source'));
   assert.ok(columns.includes('review_meta_json'));
-  const row = db.raw.prepare('SELECT id, report_source, review_meta_json FROM sessions WHERE id = ?').get('s-old') as Record<string, unknown>;
+  const row = db.raw.prepare('SELECT id, report_source, review_meta_json, language FROM sessions WHERE id = ?').get('s-old') as Record<string, unknown>;
   assert.equal(row.id, 's-old');
+  assert.equal(row.language, 'zh');
   assert.equal(row.report_source, null);
   assert.equal(row.review_meta_json, null);
   db.close();
@@ -346,7 +347,7 @@ test('历史摘要：区分介绍与经历题；旧JSON保持原样且无新增S
       const raw = db.raw.prepare('SELECT report_json FROM sessions WHERE id = ?').get(id) as { report_json: string };
       assert.equal(raw.report_json, rawRecords.get(id), '读取历史不得回写增加kind');
     }
-    assert.equal(db.migrate().version, 2, '不为历史摘要增加SQL迁移');
+    assert.equal(db.migrate().version, MIGRATIONS.length);
   } finally {
     db.close();
     rmSync(root, { recursive: true, force: true });

@@ -88,6 +88,11 @@ ALTER TABLE sessions ADD COLUMN report_source TEXT;
 ALTER TABLE sessions ADD COLUMN review_meta_json TEXT;
 `,
   },
+  {
+    version: 3,
+    name: 'session-language',
+    sql: "ALTER TABLE sessions ADD COLUMN language TEXT NOT NULL DEFAULT 'zh' CHECK (language IN ('zh','en'));",
+  },
 ];
 
 export interface MigrationResult {

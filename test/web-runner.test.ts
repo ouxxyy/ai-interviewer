@@ -807,3 +807,43 @@ test('重答评审请求失败后重试，只评重答版本且不增加重答�
     assert.equal(h.text.counts.rewrite_delta, 1);
   } finally { h.cleanup(); }
 });
+
+test('语音只返回 PCM 时主问题和重听的追问仍显示各自的下发题面', async () => {
+  const followup = '你如何选择投放渠道？';
+  const h = harness('tts-prompt', { realtime: { omitSpeechTranscript: true }, transcripts: ['我负责投放渠道选择。'],
+    text: { followups: [{ need: true, question: followup, reason: '细节不足', gap: '渠道' }] } });
+  try {
+    const first = await h.runner.confirmMaterials(MATERIALS);
+    assert.ok(first.currentQuestion?.text);
+    assert.equal(first.currentQuestion.spokenText, first.currentQuestion.text);
+    assert.equal(first.state, 'answer');
+    const next = await answerOnce(h.runner);
+    assert.equal(next.currentQuestion?.spokenText, followup);
+    const replay = await h.runner.repeatQuestion();
+    assert.equal(replay.currentQuestion?.spokenText, followup);
+    assert.equal(replay.machine.followupCount, next.machine.followupCount);
+  } finally { h.cleanup(); }
+});
+
+test('a draft can switch to English before planning, and the choice applies to every text stage', async () => {
+  const answer = 'I owned the rollout and checked the error rate with the support team.';
+  const followup = 'Which baseline did you choose to understand the change in the error rate, and why did it represent normal traffic?';
+  const h = harness('english-language', { transcripts: [answer, answer], text: {followups: [{need: true, question: followup}]} });
+  try {
+    assert.equal(h.runner.snapshot().language, 'zh');
+    await h.runner.confirmMaterials({ ...MATERIALS, language: 'en' });
+    assert.equal(h.store.getSession(h.runner.sid)?.language, 'en');
+    assert.equal((await answerOnce(h.runner)).currentQuestion?.spokenText, followup);
+    await answerOnce(h.runner);
+    const report = await h.runner.endSession();
+    assert.equal(report.report?.completedQuestions, 1);
+    assert.ok(h.text.prompts.length >= 5);
+    assert.ok(h.text.prompts.every(prompt => prompt.includes('Interview language: English')));
+    const feedback = report.reviews.q1!;
+    for (const dimension of Object.values(feedback.dimensions)) {
+      if (dimension.quote) assert.ok(answer.includes(dimension.quote.text));
+    }
+  } finally {
+    h.cleanup();
+  }
+});
